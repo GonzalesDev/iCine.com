@@ -773,7 +773,7 @@
                 });
 
                 const data = await response.json();
-                if (data.error) throw new Error(data.error.message);
+                if (data.error) throw new Error(JSON.stringify(data.error));
 
                 const botText = data.candidates[0].content.parts[0].text;
                 historicoChat.push({ role: "model", parts: [{ text: botText }] });
@@ -796,7 +796,7 @@
 
             } catch (e) {
                 console.error(e);
-                loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial.";
+                loadingMsg.innerText = "Erro: " + e.message;
             }
         }
 

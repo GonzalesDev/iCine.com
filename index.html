@@ -273,7 +273,10 @@
 
             <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
 
-            <h2><div class="h2-detail"></div> Já Assisti</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Já Assisti</h2>
+                <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar assistidos..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 170px; max-width: 45%;">
+            </div>
             <div class="movies-slider" id="ja-assisti-grid"></div>
         </div>
 
@@ -427,6 +430,7 @@
         }
 
         document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
+        document.getElementById('pesquisa-ja-assisti').addEventListener('input', renderizarMinhasListas);
         document.getElementById('select-genero').addEventListener('change', () => aplicarFiltros(true));
         document.getElementById('select-ordem').addEventListener('change', () => aplicarFiltros(true));
         document.getElementById('btn-carregar-mais').addEventListener('click', () => { paginaAtual++; aplicarFiltros(false); });
@@ -677,7 +681,18 @@
                 </div>`).join('');
 
             const cJa = document.getElementById('ja-assisti-grid');
-            cJa.innerHTML = listaJaAssisti.length === 0 ? `<p class="empty-msg">Nenhum filme assistido.</p>` : listaJaAssisti.map(f => `
+            const inputJaAssisti = document.getElementById('pesquisa-ja-assisti');
+            const termoFiltro = inputJaAssisti ? inputJaAssisti.value.toLowerCase().trim() : '';
+            const filmesFiltrados = termoFiltro !== ''
+                ? listaJaAssisti.filter(f => f.titulo.toLowerCase().includes(termoFiltro))
+                : listaJaAssisti;
+
+            if (listaJaAssisti.length === 0) {
+                cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido.</p>`;
+            } else if (filmesFiltrados.length === 0) {
+                cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado nos seus assistidos.</p>`;
+            } else {
+                cJa.innerHTML = filmesFiltrados.map(f => `
                 <div class="movie-card">
                     <img src="${f.capa}" alt="${f.titulo}">
                     <div class="movie-card-overlay">
@@ -693,6 +708,7 @@
                         </div>
                     </div>
                 </div>`).join('');
+            }
             mapearBotoesGrid();
         }
 

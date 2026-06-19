@@ -1,0 +1,53 @@
+Atue no arquivo `index.html`. Precisamos adicionar um filtro de pesquisa local e em tempo real para a lista "Já Assisti", para que o utilizador encontre rapidamente filmes que já viu sem precisar de fazer scroll. Siga estas 3 etapas rigorosamente, mantendo todo o resto do código intacto:
+
+1. MODIFICAÇÃO DO HTML (Interface UI):
+Encontre a aba início (`<div id="aba-inicio" class="aba ativa">`). Logo abaixo da tag `<hr...>`, substitua o título atual (`<h2><div class="h2-detail"></div> Já Assisti</h2>`) por este container flexível que alinha o título e a barra de pesquisa lado a lado:
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Já Assisti</h2>
+    <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar assistidos..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 170px; max-width: 45%;">
+</div>
+
+2. MODIFICAÇÃO DO JAVASCRIPT (Captura de Evento):
+Vá até à secção onde os `EventListeners` estão declarados (logo após a navegação de abas e o evento do `input-pesquisa`). Adicione este evento para que a pesquisa dispare a cada letra digitada instantaneamente:
+
+document.getElementById('pesquisa-ja-assisti').addEventListener('input', renderizarMinhasListas);
+
+3. MODIFICAÇÃO DO JAVASCRIPT (Lógica de Renderização Inteligente):
+Encontre a função `renderizarMinhasListas()`. Modifique a lógica específica da variável `cJa` (que monta o HTML da lista "Já Assisti") para obedecer ao termo pesquisado. Atualize o código do `cJa` para o seguinte fluxo:
+
+- Capture o texto:
+  const inputJaAssisti = document.getElementById('pesquisa-ja-assisti');
+  const termoFiltro = inputJaAssisti ? inputJaAssisti.value.toLowerCase().trim() : '';
+
+- Crie a array filtrada:
+  const filmesFiltrados = termoFiltro !== '' 
+      ? listaJaAssisti.filter(f => f.titulo.toLowerCase().includes(termoFiltro)) 
+      : listaJaAssisti;
+
+- Renderize com 3 cenários diferentes de HTML:
+  if (listaJaAssisti.length === 0) {
+      cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido.</p>`;
+  } else if (filmesFiltrados.length === 0) {
+      cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado nos seus assistidos.</p>`;
+  } else {
+      // Use filmesFiltrados.map no lugar de listaJaAssisti.map
+      cJa.innerHTML = filmesFiltrados.map(f => `
+          <div class="movie-card">
+              <img src="${f.capa}" alt="${f.titulo}">
+              <div class="movie-card-overlay">
+                  <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
+                  <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆ Watchlist</button>
+                  <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
+              </div>
+              <div class="movie-info">
+                  <div class="movie-title">${f.titulo}</div>
+                  <div class="movie-meta">
+                      <span>${f.ano}</span>
+                      <div class="movie-rating">${renderScoreBadge(f)}</div>
+                  </div>
+              </div>
+          </div>`).join('');
+  }
+
+Nota para o Agent: Certifique-se de que a `cWatch` (Watchlist) continua a renderizar normalmente na primeira parte da função.

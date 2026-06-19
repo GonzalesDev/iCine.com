@@ -777,9 +777,15 @@
                     throw new Error(`HTTP ${response.status}: ${errData.error?.message || response.statusText}`);
                 }
                 const data = await response.json();
-                if (data.error) throw new Error(JSON.stringify(data.error));
+                if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
 
-                const botText = data.candidates[0].content.parts[0].text;
+                const candidate = data.candidates?.[0];
+                if (!candidate || !candidate.content?.parts) throw new Error("Sem resposta da IA (candidates vazio).");
+
+                const parts = candidate.content.parts;
+                const textPart = parts.find(p => !p.thought && p.text) || parts[0];
+                const botText = textPart?.text;
+                if (!botText) throw new Error("Sem texto na resposta da IA.");
                 historicoChat.push({ role: "model", parts: [{ text: botText }] });
 
                 let textoDeExibicao = botText;
@@ -800,7 +806,7 @@
 
             } catch (e) {
                 console.error(e);
-                loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial.";
+                loadingMsg.innerText = "Erro IA: " + e.message;
             }
         }
 

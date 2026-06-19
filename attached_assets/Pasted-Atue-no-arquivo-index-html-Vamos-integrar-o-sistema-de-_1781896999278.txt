@@ -1,0 +1,39 @@
+Atue no arquivo `index.html`. Vamos integrar o sistema de Agregador de Streaming usando a API do TMDB. Quando o utilizador abrir o modal de detalhes de qualquer filme, o app deve exibir automaticamente em quais plataformas de streaming por assinatura (Netflix, Prime Video, Disney+, etc.) o filme está disponível. Siga estas etapas rigorosamente:
+
+1. MODIFICAÇÃO DO HTML (Interface UI):
+Encontre o modal de detalhes (`<div id="modal-detalhes" class="modal">`). Logo abaixo da sinopse (`<p id="detalhe-sinopse" ...></p>`), insira a estrutura para exibir os streamings:
+
+<h4 id="titulo-streaming" style="margin-bottom: 0.5rem; font-size: 1rem; display: none; margin-top: 1rem;">🎬 Onde Assistir (Streaming):</h4>
+<div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
+
+2. MODIFICAÇÃO DO JAVASCRIPT (Lógica de Busca de Streaming):
+Encontre a função `async function abrirDetalhes(id)`. 
+No início da função, adicione a limpeza dos campos de streaming do filme anterior:
+const txtStreaming = document.getElementById('titulo-streaming');
+const containerStreaming = document.getElementById('detalhe-streaming');
+if (txtStreaming) txtStreaming.style.style.display = 'none';
+if (containerStreaming) { containerStreaming.style.style.display = 'none'; containerStreaming.innerHTML = ''; }
+
+Logo no final do bloco `try` dessa mesma função (após a busca do trailer do YouTube), adicione a requisição para buscar as plataformas de streaming:
+
+try {
+    const respProviders = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`);
+    const dadosProviders = await respProviders.json();
+    // Verifica a região do utilizador (Prioridade Brasil 'BR' ou Portugal 'PT')
+    const provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
+    
+    if (provedoresRegiao && provedoresRegiao.flatrate) {
+        if (txtStreaming) txtStreaming.style.style.display = 'block';
+        if (containerStreaming) {
+            containerStreaming.style.style.display = 'flex';
+            containerStreaming.innerHTML = provedoresRegiao.flatrate.map(p => `
+                <div style="display: flex; align-items: center; gap: 6px; background: #111827; padding: 4px 8px; border-radius: 20px; border: 1px solid #374151;">
+                    <img src="${IMG_BASE}${p.logo_path}" alt="${p.provider_name}" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover;">
+                    <span style="font-size: 0.75rem; font-weight: bold; color: white;">${p.provider_name}</span>
+                </div>
+            `).join('');
+        }
+    }
+} catch (err) { console.log("Erro ao buscar streamings:", err); }
+
+Nota para o Agent: Mantenha todos os botões de Shorts, Trailer, Watchlist e fecho do modal a funcionar perfeitamente.

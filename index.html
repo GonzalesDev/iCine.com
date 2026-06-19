@@ -346,6 +346,8 @@
             </div>
             <h4 style="margin-bottom: 0.4rem; font-size: 1rem;">Sinopse:</h4>
             <p id="detalhe-sinopse" style="font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-bottom: 1.5rem;"></p>
+            <h4 id="titulo-streaming" style="margin-bottom: 0.5rem; font-size: 1rem; display: none; margin-top: 1rem;">🎬 Onde Assistir (Streaming):</h4>
+            <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
@@ -721,11 +723,17 @@
             document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); 
             document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
 
+            const txtStreaming = document.getElementById('titulo-streaming');
+            const containerStreaming = document.getElementById('detalhe-streaming');
+            if (txtStreaming) txtStreaming.style.display = 'none';
+            if (containerStreaming) { containerStreaming.style.display = 'none'; containerStreaming.innerHTML = ''; }
+
             const btnShorts = document.getElementById('detalhe-shorts');
             btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
 
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
             document.getElementById('modal-detalhes').style.display = 'flex';
+
             try {
                 let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
                 let dados = await resp.json();
@@ -733,6 +741,24 @@
                 const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
                 if (trailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'block'; }
             } catch (e) {}
+
+            try {
+                const respProviders = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`);
+                const dadosProviders = await respProviders.json();
+                const provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
+                if (provedoresRegiao && provedoresRegiao.flatrate) {
+                    if (txtStreaming) txtStreaming.style.display = 'block';
+                    if (containerStreaming) {
+                        containerStreaming.style.display = 'flex';
+                        containerStreaming.innerHTML = provedoresRegiao.flatrate.map(p => `
+                            <div style="display: flex; align-items: center; gap: 6px; background: #111827; padding: 4px 8px; border-radius: 20px; border: 1px solid #374151;">
+                                <img src="${IMG_BASE}${p.logo_path}" alt="${p.provider_name}" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover;">
+                                <span style="font-size: 0.75rem; font-weight: bold; color: white;">${p.provider_name}</span>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (err) { console.log("Erro ao buscar streamings:", err); }
         }
         function fecharDetalhes() { document.getElementById('modal-detalhes').style.display = 'none'; }
 

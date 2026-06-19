@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iCine | Seu Diário de Filmes na Nuvem</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#030712">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #030712; --text-main: #f9fafb; --text-muted: #9ca3af;
+            --purple: #8b5cf6; --pink: #ec4899; --card-bg: #111827;
+            --red: #ef4444; --blue: #3b82f6; 
+            --rotten: #fa320a; 
+            --imdb: #eab308;
+            --tmdb: #60a5fa;
+            --youtube: #ff0000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-top: 60px; padding-bottom: 80px; }
+
+        /* === HEADER FIXO SUPERIOR === */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 1.5rem; background-color: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(12px); border-bottom: 1px solid #1f2937; z-index: 150;
+        }
+        .logo { font-size: 1.5rem; font-weight: 900; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent; }
+        .btn-sair { font-size: 0.85rem; color: var(--red); padding: 0.3rem 0.6rem; border: 1px solid var(--red); border-radius: 6px; background: none; cursor: pointer; font-weight: bold; }
+
+        /* === NAVBAR FIXA INFERIOR === */
+        nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+            background-color: rgba(17, 24, 39, 0.95); backdrop-filter: blur(12px);
+            border-top: 1px solid #1f2937; display: flex; justify-content: space-around;
+            align-items: center; z-index: 150; padding-bottom: max(0px, env(safe-area-inset-bottom));
+        }
+        .nav-btn {
+            background: none; border: none; color: var(--text-muted);
+            font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; justify-content: center;
+        }
+        .nav-btn .icon { font-size: 1.2rem; }
+        .nav-btn.active { color: var(--purple); }
+
+        /* === BARRA DE FILTROS === */
+        .filters-container { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-direction: column; }
+        .filter-input { padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.95rem; outline: none; width: 100%; }
+        .filter-input:focus { border-color: var(--purple); }
+        .filters-row { display: flex; gap: 0.75rem; width: 100%; }
+        .filters-row select { flex: 1; }
+
+        /* === CONTEÚDO PRINCIPAL === */
+        main { padding: 1.5rem 1rem; max-width: 1200px; margin: 0 auto; overflow: hidden; }
+        .aba { display: none; animation: fadeIn 0.3s ease-out; }
+        .aba.ativa { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+        .h2-detail { width: 5px; height: 22px; background-color: var(--purple); border-radius: 4px; }
+
+        /* === SCROLL HORIZONTAL (APENAS CELULAR) === */
+        .movies-slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            scrollbar-width: none;
+        }
+        .movies-slider::-webkit-scrollbar { display: none; } 
+
+        .movies-slider .movie-card {
+            flex-shrink: 0;
+            width: calc((100% - 1rem) / 2.15); 
+        }
+
+        /* === GRID VERTICAL (Aba Explorar) === */
+        .movies-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 1rem; 
+        }
+
+        /* Responsividade para Tablets e PCs */
+        @media (min-width: 600px) { 
+            .movies-slider { 
+                display: grid; 
+                grid-template-columns: repeat(3, 1fr); 
+                overflow-x: visible;
+                padding-bottom: 0;
+            }
+            .movies-slider .movie-card { width: 100%; }
+            .movies-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 900px) { 
+            .movies-slider { grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
+            .movies-grid { grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
+        }
+
+        /* === CARDS E LAYOUT === */
+        .movie-card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); transition: transform 0.2s; cursor: pointer; }
+        .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+
+        .movie-info { padding: 0.6rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .movie-title { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .movie-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; align-items: flex-start; }
+
+        .movie-rating { font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
+        .rt-score { color: var(--rotten); }
+        .imdb-score { color: var(--imdb); }
+        .tmdb-score { color: var(--tmdb); }
+
+        .movie-card-overlay { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.2s ease-in-out; padding: 0.75rem; pointer-events: none; }
+        .movie-card.aberto .movie-card-overlay { opacity: 1; pointer-events: auto; }
+        @media (hover: hover) and (pointer: fine) { .movie-card:hover .movie-card-overlay { opacity: 1; pointer-events: auto; } }
+
+        .btn-action { width: 100%; padding: 0.5rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .btn-add { background-color: var(--purple); color: white; }
+        .btn-watched { background-color: var(--pink); color: white; }
+        .btn-delete { background-color: var(--red); color: white; }
+        .btn-info { background-color: var(--blue); color: white; }
+        .btn-carregar-mais { display: none; margin: 2rem auto 1rem auto; padding: 0.8rem 2rem; background-color: transparent; border: 2px solid var(--purple); color: var(--purple); border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer; width: 100%; max-width: 300px; text-align: center; }
+
+        /* === CHAT FLUTUANTE DE IA RESPONSIVO === */
+        .chat-fab {
+            position: fixed;
+            bottom: 85px; 
+            right: 20px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            color: white;
+            border: none;
+            font-size: 1.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .chat-fab:active { transform: scale(0.9); }
+
+        .chat-window {
+            position: fixed;
+            bottom: 150px; 
+            right: 20px;
+            width: 360px;
+            height: 500px;
+            max-height: calc(100vh - 160px); 
+            background-color: var(--card-bg);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            display: none; 
+            flex-direction: column;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            overflow: hidden;
+            animation: fadeInChat 0.2s ease-out;
+        }
+
+        @media (max-width: 600px) {
+            .chat-window {
+                bottom: 80px; 
+                right: 10px;
+                width: calc(100vw - 20px); 
+                height: 65vh; 
+                max-height: none;
+            }
+            .chat-fab { bottom: 80px; right: 15px; }
+        }
+
+        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chat-header {
+            background-color: #1f2937;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
+        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
+
+        .chat-movie-card { display: flex; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; }
+        .chat-movie-card img { width: 65px; height: 95px; object-fit: cover; }
+        .chat-movie-info { padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
+        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
+
+        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
+        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
+        .chat-input-area input:focus { border-color: var(--purple); }
+        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
+
+        /* MODAIS */
+        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: flex-end; z-index: 2000; backdrop-filter: blur(8px); animation: slideUp 0.2s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .modal-content { background-color: var(--card-bg); padding: 1.5rem; border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; text-align: center; border-top: 1px solid #374151; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); margin: 0 auto; }
+        .modal-detalhes-content { max-height: 80vh; overflow-y: auto; text-align: left; }
+        .modal-content h3 { margin-bottom: 0.5rem; font-size: 1.2rem; font-weight: 800; }
+        .modal-movie-title { color: var(--purple); font-weight: 600; margin-bottom: 1.2rem; font-size: 0.95rem; }
+        .modal-buttons { display: flex; flex-direction: column; gap: 0.6rem; }
+
+        .btn-modal { width: 100%; padding: 0.8rem; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; text-decoration: none; display: inline-block; }
+        .btn-modal-quero { background-color: var(--purple); color: white; }
+        .btn-modal-ja { background-color: var(--pink); color: white; }
+        .btn-modal-youtube { background-color: #dc2626; color: white; display: none; } 
+        .btn-modal-shorts { background-color: var(--youtube); color: white; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn-modal-cancel { background-color: #374151; color: #d1d5db; }
+
+        .empty-msg { color: var(--text-muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; grid-column: 1 / -1; text-align: center; }
+
+        /* TELA DE LOGIN */
+        #tela-login { position: fixed; inset: 0; background: var(--bg-color); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-box { padding: 2rem; width: 100%; max-width: 360px; text-align: center; }
+        .login-input { width: 100%; padding: 0.85rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 1rem; }
+        .login-input:focus { outline: none; border-color: var(--purple); }
+    </style>
+</head>
+<body>
+
+    <div id="tela-login">
+        <div class="login-box">
+            <h1 class="logo" style="margin-bottom: 0.5rem; font-size: 3rem;">iCine</h1>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Seu diário de filmes pessoal e sincronizado na nuvem.</p>
+
+            <input type="email" id="email-login" class="login-input" placeholder="Seu e-mail">
+            <input type="password" id="senha-login" class="login-input" placeholder="Sua senha">
+
+            <button id="btn-entrar-acao" class="btn-action btn-add" style="margin-bottom: 0.75rem; padding: 0.85rem; font-size: 1rem;">Entrar</button>
+            <button id="btn-registrar-acao" class="btn-action btn-watched" style="padding: 0.85rem; font-size: 1rem;">Criar Conta Grátis</button>
+            <p id="login-msg" style="color: var(--red); font-size: 0.85rem; margin-top: 1rem;"></p>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">iCine</div>
+        <button id="btn-sair-acao" class="btn-sair">Sair</button>
+    </header>
+
+    <nav>
+        <button id="btn-inicio" class="nav-btn active">
+            <span class="icon">🍿</span>
+            <span>Minhas Listas</span>
+        </button>
+        <button id="btn-explorar" class="nav-btn">
+            <span class="icon">🔍</span>
+            <span>Explorar</span>
+        </button>
+    </nav>
+
+    <main>
+        <div id="aba-inicio" class="aba ativa">
+            <h2><div class="h2-detail" style="background-color: var(--pink);"></div> Quero Assistir</h2>
+            <div class="movies-slider" id="watchlist-grid"></div>
+
+            <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+
+            <h2><div class="h2-detail"></div> Já Assisti</h2>
+            <div class="movies-slider" id="ja-assisti-grid"></div>
+        </div>
+
+        <div id="aba-explorar" class="aba">
+            <h2><div class="h2-detail"></div> Explorar Catálogo</h2>
+
+            <div class="filters-container">
+                <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome... (Enter)">
+                <div class="filters-row">
+                    <select id="select-genero" class="filter-input">
+                        <option value="todos">🎭 Todos Gêneros</option>
+                        <option value="28">Ação</option>
+                        <option value="12">Aventura</option>
+                        <option value="35">Comédia</option>
+                        <option value="18">Drama</option>
+                        <option value="878">Ficção Científica</option>
+                        <option value="27">Terror</option>
+                    </select>
+                    <select id="select-ordem" class="filter-input">
+                        <option value="populares">🔥 Populares</option>
+                        <option value="lancamentos">🆕 Lançamentos</option>
+                        <option value="nota_desc">⭐ Maior Nota</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="movies-grid" id="explorar-grid"></div>
+            <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais">⬇ Carregar Mais</button></div>
+        </div>
+    </main>
+
+    <button id="btn-chat-fab" class="chat-fab">✨</button>
+
+    <div id="chat-window" class="chat-window">
+        <div class="chat-header">
+            <div class="title">✨ IA do iCine</div>
+            <button id="btn-fechar-chat">&times;</button>
+        </div>
+
+        <div id="chat-messages" class="chat-messages">
+            <div class="chat-msg msg-bot">Olá! Sou o cérebro cinéfilo do iCine. Diga-me a "vibe" que procura e eu encontro o filme perfeito para si! 🍿</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios...">
+            <button id="btn-enviar-chat">➤</button>
+        </div>
+    </div>
+
+    <div id="modal-escolha" class="modal">
+        <div class="modal-content">
+            <h3>Organizar Filme</h3>
+            <div id="modal-nome-filme" class="modal-movie-title">Nome do Filme</div>
+            <div class="modal-buttons">
+                <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
+                <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Já Assisti</button>
+                <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-detalhes" class="modal">
+        <div class="modal-content modal-detalhes-content">
+            <h3 id="detalhe-titulo" style="font-size: 1.4rem; margin-bottom: 0.2rem; color: var(--purple);">Título</h3>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span>Ano: <span id="detalhe-ano"></span></span> | <span id="detalhe-nota" style="display:flex; gap:0.5rem; align-items:center;"></span>
+            </div>
+            <h4 style="margin-bottom: 0.4rem; font-size: 1rem;">Sinopse:</h4>
+            <p id="detalhe-sinopse" style="font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-bottom: 1.5rem;"></p>
+            <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
+                <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
+                <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
+                <button id="btn-fechar-detalhes" class="btn-modal btn-modal-cancel">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("iCine Full Stack Core Active!");
+
+        const GEMINI_KEY = 'AQ.Ab8RN6J2q4cU74uC8cObMPflpB_S3c0DWO_H8hSaNIJn2N42pA'; 
+        const TMDB_KEY = '583c7b5c219b1edbfc6a76210b4ade05'; 
+        const URL_BASE = 'https://api.themoviedb.org/3';
+        const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
+
+        const SUPABASE_URL = 'https://ihbutfwdkkkykwqoaahx.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_9GWFmch4e7hH9uijg577jQ_UoKzImDH';
+        const OMDB_KEY = '8a9cb300'; 
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let usuarioAtual = null;
+        const bancoDeFilmesLocal = new Map();
+        let listaQueroAssistir = [];
+        let listaJaAssisti = [];
+        let filmeSelecionadoTemporario = null;
+        let paginaAtual = 1;
+        let filmesExplorarAcumulados = [];
+
+        async function checarSessao() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    usuarioAtual = session.user;
+                    document.getElementById('tela-login').style.display = 'none';
+                    carregarFilmesDaNuvem(); 
+                    aplicarFiltros(true); 
+                } else {
+                    document.getElementById('tela-login').style.display = 'flex';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('btn-entrar-acao').addEventListener('click', async () => {
+            const email = document.getElementById('email-login').value;
+            const senha = document.getElementById('senha-login').value;
+            const msg = document.getElementById('login-msg');
+            msg.innerText = "A carregar...";
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+            if (error) msg.innerText = "Erro: " + error.message;
+            else checarSessao();
+        });
+
+        document.getElementById('btn-registrar-acao').addEventListener('click', async () => {
+            const email = document.getElementById('email-login').value;
+            const senha = document.getElementById('senha-login').value;
+            const msg = document.getElementById('login-msg');
+            msg.innerText = "A criar conta...";
+            const { data, error } = await supabaseClient.auth.signUp({ email, password: senha });
+            if (error) msg.innerText = "Erro: " + error.message;
+            else msg.innerText = "Conta criada com sucesso! Já pode entrar.";
+        });
+
+        document.getElementById('btn-sair-acao').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            listaQueroAssistir = []; listaJaAssisti = []; bancoDeFilmesLocal.clear();
+            checarSessao();
+        });
+
+        document.getElementById('btn-inicio').addEventListener('click', () => mudarAba('inicio'));
+        document.getElementById('btn-explorar').addEventListener('click', () => mudarAba('explorar'));
+
+        function mudarAba(abaId) {
+            document.querySelectorAll('.aba').forEach(aba => aba.classList.remove('ativa'));
+            document.getElementById('btn-inicio').classList.remove('active');
+            document.getElementById('btn-explorar').classList.remove('active');
+
+            document.getElementById(`aba-${abaId}`).classList.add('ativa');
+            document.getElementById(`btn-${abaId}`).classList.add('active');
+            if (abaId === 'inicio') renderizarMinhasListas();
+        }
+
+        document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
+        document.getElementById('select-genero').addEventListener('change', () => aplicarFiltros(true));
+        document.getElementById('select-ordem').addEventListener('change', () => aplicarFiltros(true));
+        document.getElementById('btn-carregar-mais').addEventListener('click', () => { paginaAtual++; aplicarFiltros(false); });
+
+        function renderScoreBadge(filme) {
+            let badgePrimario = filme.notaImdb && filme.notaImdb !== 'N/A' 
+                ? `<span class="imdb-score">⭐ ${filme.notaImdb}</span>` 
+                : `<span class="tmdb-score">🎬 ${filme.notaTmdb || filme.nota || '0.0'}</span>`;
+
+            let badgeRt = filme.notaRt && filme.notaRt !== 'N/A' 
+                ? `<span class="rt-score">🍅 ${filme.notaRt}</span>` 
+                : '';
+
+            return `${badgePrimario} ${badgeRt}`;
+        }
+
+        function getScoreParaOrdem(filme) {
+            let nota = filme.notaImdb !== 'N/A' ? filme.notaImdb : filme.notaTmdb;
+            return parseFloat(nota) || 0;
+        }
+
+        async function aplicarFiltros(resetarPagina = false) {
+            if (resetarPagina) {
+                paginaAtual = 1;
+                filmesExplorarAcumulados = [];
+            }
+            const termoBusca = document.getElementById('input-pesquisa').value.trim();
+            const generoId = document.getElementById('select-genero').value;
+            const ordem = document.getElementById('select-ordem').value;
+            const dataHoje = new Date().toISOString().split('T')[0];
+
+            let url = '';
+            if (termoBusca !== '') url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}`;
+            else {
+                if (ordem === 'nota_desc') {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
+                } else if (ordem === 'lancamentos') {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHoje}&page=${paginaAtual}`;
+                } else {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
+                }
+                if (generoId !== 'todos') url += `&with_genres=${generoId}`;
+            }
+
+            try {
+                const resposta = await fetch(url);
+                const dados = await resposta.json();
+
+                let novasCapas = dados.results.filter(f => f.poster_path).map(filme => ({
+                    id: filme.id, 
+                    titulo: filme.title, 
+                    tituloOriginal: filme.original_title, 
+                    ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', 
+                    notaTmdb: filme.vote_average.toFixed(1),
+                    notaImdb: 'N/A',
+                    notaRt: 'N/A',
+                    capa: `${IMG_BASE}${filme.poster_path}`, 
+                    sinopse: filme.overview || 'Sinopse não disponibilizada.'
+                }));
+
+                if (OMDB_KEY !== '') {
+                    novasCapas = await Promise.all(novasCapas.map(async (filme) => {
+                        try {
+                            const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(filme.tituloOriginal)}&y=${filme.ano}`;
+                            const respOmdb = await fetch(omdbUrl);
+                            const dadosOmdb = await respOmdb.json();
+
+                            if (dadosOmdb && dadosOmdb.imdbRating && dadosOmdb.imdbRating !== 'N/A') {
+                                filme.notaImdb = dadosOmdb.imdbRating;
+                            }
+                            if (dadosOmdb && dadosOmdb.Ratings) {
+                                const rtRating = dadosOmdb.Ratings.find(r => r.Source === "Rotten Tomatoes");
+                                if (rtRating && rtRating.Value !== 'N/A') filme.notaRt = rtRating.Value;
+                            }
+                        } catch (e) {}
+                        return filme;
+                    }));
+                }
+
+                filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
+
+                if (ordem === 'nota_desc') {
+                    filmesExplorarAcumulados.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
+                }
+
+                filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
+
+                renderizarGridExplorar(filmesExplorarAcumulados);
+                document.getElementById('btn-carregar-mais').style.display = (dados.total_pages > paginaAtual) ? 'block' : 'none';
+            } catch (erro) { console.error(erro); }
+        }
+
+        function renderizarGridExplorar(listaDeFilmes) {
+            const container = document.getElementById('explorar-grid');
+            container.innerHTML = listaDeFilmes.map(filme => `
+                <div class="movie-card">
+                    <img src="${filme.capa}" alt="${filme.titulo}">
+                    <div class="movie-card-overlay">
+                        <button class="btn-action btn-info" data-id="${filme.id}" data-action="sinopse">ℹ️ Sinopse</button>
+                        <button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">+ Lista</button>
+                    </div>
+                    <div class="movie-info">
+                        <div class="movie-title">${filme.titulo}</div>
+                        <div class="movie-meta">
+                            <span>${filme.ano}</span>
+                            <div class="movie-rating">${renderScoreBadge(filme)}</div>
+                        </div>
+                    </div>
+                </div>`).join('');
+            mapearBotoesGrid();
+        }
+
+        function mapearBotoesGrid() {
+            document.querySelectorAll('.movie-card').forEach(card => {
+                const novoCard = card.cloneNode(true);
+                card.parentNode.replaceChild(novoCard, card);
+
+                novoCard.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('a')) return;
+
+                    if (novoCard.classList.contains('aberto')) {
+                        novoCard.classList.remove('aberto');
+                    } else {
+                        document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('aberto'));
+                        novoCard.classList.add('aberto');
+                    }
+                });
+
+                novoCard.querySelectorAll('[data-action]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = parseInt(btn.getAttribute('data-id'));
+                        const acao = btn.getAttribute('data-action');
+
+                        if (acao === 'sinopse') abrirDetalhes(id);
+                        else if (acao === 'organizar') abrirModal(id);
+                        else if (acao === 'mover-ja') moverFilme(id, 'ja');
+                        else if (acao === 'mover-quero') moverFilme(id, 'quero');
+                        else if (acao === 'remover') removerFilme(id);
+                    });
+                });
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.movie-card')) {
+                document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('aberto'));
+            }
+        });
+
+        async function carregarFilmesDaNuvem() {
+            const { data } = await supabaseClient.from('meus_filmes').select('*');
+            if (data) {
+                const dataSanitizada = await Promise.all(data.map(async (f) => {
+                    let notaTmdb = f.nota || '0.0'; 
+                    let notaImdb = 'N/A';
+                    let notaRt = 'N/A';
+
+                    try {
+                        const respTmdb = await fetch(`${URL_BASE}/movie/${f.tmdb_id}?api_key=${TMDB_KEY}`);
+                        const dadosTmdb = await respTmdb.json();
+
+                        if (dadosTmdb) {
+                            notaTmdb = dadosTmdb.vote_average.toFixed(1);
+                            if (dadosTmdb.original_title) {
+                                let omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(dadosTmdb.original_title)}&y=${f.ano}`;
+                                let respOmdb = await fetch(omdbUrl);
+                                let dadosOmdb = await respOmdb.json();
+
+                                if (dadosOmdb && dadosOmdb.imdbRating && dadosOmdb.imdbRating !== 'N/A') {
+                                    notaImdb = dadosOmdb.imdbRating;
+                                }
+                                if (dadosOmdb && dadosOmdb.Ratings) {
+                                    const rtRating = dadosOmdb.Ratings.find(r => r.Source === "Rotten Tomatoes");
+                                    if (rtRating && rtRating.Value !== 'N/A') notaRt = rtRating.Value;
+                                }
+                            }
+                        }
+                    } catch (e) { console.error(e); }
+
+                    return { ...f, notaTmdb, notaImdb, notaRt };
+                }));
+
+                dataSanitizada.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
+
+                listaQueroAssistir = dataSanitizada.filter(f => f.grupo === 'quero');
+                listaJaAssisti = dataSanitizada.filter(f => f.grupo === 'ja');
+
+                dataSanitizada.forEach(f => {
+                    bancoDeFilmesLocal.set(f.tmdb_id, { id: f.tmdb_id, titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse });
+                });
+                renderizarMinhasListas();
+            }
+        }
+
+        document.getElementById('btn-salvar-quero').addEventListener('click', () => salvarNoGrupo('quero'));
+        document.getElementById('btn-salvar-ja').addEventListener('click', () => salvarNoGrupo('ja'));
+        document.getElementById('btn-cancelar-modal').addEventListener('click', fecharModal);
+        document.getElementById('btn-fechar-detalhes').addEventListener('click', fecharDetalhes);
+
+        async function salvarNoGrupo(grupo) {
+            if (!filmeSelecionadoTemporario) return;
+            const filme = filmeSelecionadoTemporario;
+
+            const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id === filme.id);
+            if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModal(); return; }
+
+            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, group: grupo, grupo: grupo };
+            const { data } = await supabaseClient.from('meus_filmes').insert([novoFilme]).select();
+            if (data) {
+                carregarFilmesDaNuvem(); 
+            }
+            fecharModal();
+        }
+
+        async function moverFilme(tmdb_id, novoGrupo) {
+            await supabaseClient.from('meus_filmes').update({ grupo: novoGrupo }).eq('tmdb_id', tmdb_id).eq('user_id', usuarioAtual.id);
+            carregarFilmesDaNuvem(); 
+        }
+
+        async function removerFilme(tmdb_id) {
+            await supabaseClient.from('meus_filmes').delete().eq('tmdb_id', tmdb_id).eq('user_id', usuarioAtual.id);
+            listaQueroAssistir = listaQueroAssistir.filter(f => f.tmdb_id !== tmdb_id);
+            listaJaAssisti = listaJaAssisti.filter(f => f.tmdb_id !== tmdb_id);
+            renderizarMinhasListas();
+        }
+
+        function renderizarMinhasListas() {
+            const cWatch = document.getElementById('watchlist-grid');
+            cWatch.innerHTML = listaQueroAssistir.length === 0 ? `<p class="empty-msg">Sua Watchlist está vazia.</p>` : listaQueroAssistir.map(f => `
+                <div class="movie-card">
+                    <img src="${f.capa}" alt="${f.titulo}">
+                    <div class="movie-card-overlay">
+                        <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
+                        <button class="btn-action btn-watched" data-id="${f.tmdb_id}" data-action="mover-ja">⬇ Assistido</button>
+                        <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
+                    </div>
+                    <div class="movie-info">
+                        <div class="movie-title">${f.titulo}</div>
+                        <div class="movie-meta">
+                            <span>${f.ano}</span>
+                            <div class="movie-rating">${renderScoreBadge(f)}</div>
+                        </div>
+                    </div>
+                </div>`).join('');
+
+            const cJa = document.getElementById('ja-assisti-grid');
+            cJa.innerHTML = listaJaAssisti.length === 0 ? `<p class="empty-msg">Nenhum filme assistido.</p>` : listaJaAssisti.map(f => `
+                <div class="movie-card">
+                    <img src="${f.capa}" alt="${f.titulo}">
+                    <div class="movie-card-overlay">
+                        <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
+                        <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆ Watchlist</button>
+                        <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
+                    </div>
+                    <div class="movie-info">
+                        <div class="movie-title">${f.titulo}</div>
+                        <div class="movie-meta">
+                            <span>${f.ano}</span>
+                            <div class="movie-rating">${renderScoreBadge(f)}</div>
+                        </div>
+                    </div>
+                </div>`).join('');
+            mapearBotoesGrid();
+        }
+
+        function abrirModal(id) { filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; document.getElementById('modal-escolha').style.display = 'flex'; }
+        function fecharModal() { document.getElementById('modal-escolha').style.display = 'none'; filmeSelecionadoTemporario = null; }
+
+        async function abrirDetalhes(id) {
+            const filme = bancoDeFilmesLocal.get(id); if (!filme) return;
+            document.getElementById('detalhe-titulo').innerText = filme.titulo; document.getElementById('detalhe-ano').innerText = filme.ano; 
+            document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); 
+            document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
+
+            const btnShorts = document.getElementById('detalhe-shorts');
+            btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
+
+            const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
+            document.getElementById('modal-detalhes').style.display = 'flex';
+            try {
+                let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
+                let dados = await resp.json();
+                if (dados.results.length === 0) { resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); dados = await resp.json(); }
+                const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
+                if (trailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'block'; }
+            } catch (e) {}
+        }
+        function fecharDetalhes() { document.getElementById('modal-detalhes').style.display = 'none'; }
+
+
+        // === MOTOR REAL DO INTELECTO DA IA GEMINI ===
+        const btnChatFab = document.getElementById('btn-chat-fab');
+        const chatWindow = document.getElementById('chat-window');
+        const btnFecharChat = document.getElementById('btn-fechar-chat');
+        const chatInput = document.getElementById('chat-input');
+        const btnEnviarChat = document.getElementById('btn-enviar-chat');
+        const chatMessages = document.getElementById('chat-messages');
+
+        let historicoChat = [];
+
+        btnChatFab.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+            if (chatWindow.style.display === 'flex') chatInput.focus();
+        });
+
+        btnFecharChat.addEventListener('click', () => { chatWindow.style.display = 'none'; });
+
+        btnEnviarChat.addEventListener('click', processarMensagemUtilizador);
+        chatInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') processarMensagemUtilizador(); });
+
+        function adicionarMensagem(texto, cssClass) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${cssClass}`;
+            msgDiv.innerHTML = texto.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv; 
+        }
+
+        async function processarMensagemUtilizador() {
+            const textoUser = chatInput.value.trim();
+            if (textoUser === '') return;
+
+            chatInput.value = '';
+            adicionarMensagem(textoUser, 'msg-user');
+            historicoChat.push({ role: "user", parts: [{ text: textoUser }] });
+
+            const loadingMsg = adicionarMensagem("A procurar nos meus arquivos... 🎬", 'msg-bot');
+
+            try {
+                // === MODELO ATUALIZADO PARA O MOTOR DO SEU PRINT ===
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        systemInstruction: {
+                            parts: [{ 
+                                text: "Você é o assistente inteligente do app iCine, focado estritamente em responder ao que o usuário perguntou de forma amigável e direta. NÃO dê recomendações extras de outros filmes se o usuário não tiver pedido por recomendações. Se o usuário perguntar sobre a sinopse, história ou curiosidade de um filme específico, foque APENAS em responder sobre esse filme e encerre a resposta. A REGRA DE OURO: SE (e somente se) você indicar ou citar algum filme, é OBRIGATÓRIO escrever o título e o ano no formato exato: [Título do Filme | Ano] para que o sistema gere o card." 
+                            }]
+                        },
+                        contents: historicoChat
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const botText = data.candidates[0].content.parts[0].text;
+                historicoChat.push({ role: "model", parts: [{ text: botText }] });
+
+                let textoDeExibicao = botText;
+                const regexFilmes = /\[(.*?)\s*\|\s*(\d{4})\]/g;
+                let match;
+                const filmesParaProcurar = [];
+
+                while ((match = regexFilmes.exec(botText)) !== null) {
+                    filmesParaProcurar.push({ titulo: match[1].trim(), ano: match[2] });
+                    textoDeExibicao = textoDeExibicao.replace(match[0], `<strong>${match[1].trim()} (${match[2]})</strong>`);
+                }
+
+                loadingMsg.innerHTML = textoDeExibicao;
+
+                for (const f of filmesParaProcurar) {
+                    buscarERenderizarFilmeChat(f.titulo, f.ano);
+                }
+
+            } catch (e) {
+                console.error(e);
+                loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial.";
+            }
+        }
+
+        async function buscarERenderizarFilmeChat(titulo, ano) {
+            try {
+                const resp = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(titulo)}&year=${ano}&language=pt-BR`);
+                const dados = await resp.json();
+
+                if (dados.results && dados.results.length > 0) {
+                    const filmeAchado = dados.results[0];
+
+                    const filmeChat = {
+                        id: filmeAchado.id,
+                        titulo: filmeAchado.title,
+                        ano: filmeAchado.release_date ? filmeAchado.release_date.split('-')[0] : 'N/A',
+                        notaTmdb: filmeAchado.vote_average.toFixed(1),
+                        notaImdb: 'N/A',
+                        notaRt: 'N/A',
+                        capa: filmeAchado.poster_path ? `${IMG_BASE}${filmeAchado.poster_path}` : 'https://via.placeholder.com/65x95?text=Sem+Capa',
+                        sinopse: filmeAchado.overview
+                    };
+
+                    bancoDeFilmesLocal.set(filmeChat.id, filmeChat);
+
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'chat-movie-card';
+                    cardDiv.innerHTML = `
+                        <img src="${filmeChat.capa}" alt="capa">
+                        <div class="chat-movie-info">
+                            <div class="chat-movie-title">${filmeChat.titulo}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">🎬 ${filmeChat.notaTmdb}</div>
+                            <button class="chat-movie-btn" onclick="abrirDetalhes(${filmeChat.id})">🔍 Ver Detalhes</button>
+                        </div>
+                    `;
+                    chatMessages.appendChild(cardDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            } catch (err) {
+                console.log("Erro ao injetar cartão do filme no chat.", err);
+            }
+        }
+
+        checarSessao();
+    </script>
+</body>
+</html>

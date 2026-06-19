@@ -631,13 +631,16 @@
             if (!filmeSelecionadoTemporario) return;
             const filme = filmeSelecionadoTemporario;
 
-            const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id === filme.id);
+            const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id == filme.id);
             if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModal(); return; }
 
-            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, group: grupo, grupo: grupo };
-            const { data } = await supabaseClient.from('meus_filmes').insert([novoFilme]).select();
-            if (data) {
-                carregarFilmesDaNuvem(); 
+            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, grupo: grupo };
+            const { error } = await supabaseClient.from('meus_filmes').insert([novoFilme]);
+            if (error) {
+                console.error('Erro ao salvar filme:', error);
+                alert('Erro ao salvar o filme. Tenta novamente.');
+            } else {
+                carregarFilmesDaNuvem();
             }
             fecharModal();
         }

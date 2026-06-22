@@ -228,6 +228,26 @@
 
         .empty-msg { color: var(--text-muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; grid-column: 1 / -1; text-align: center; }
 
+        /* === SOCIAL / AMIGOS === */
+        .nav-btn { position: relative; }
+        .badge-notif { position: absolute; top: 8px; right: calc(50% - 24px); background: var(--pink); color: white; font-size: 0.6rem; font-weight: 900; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; pointer-events: none; }
+        .perfil-setup-card { background: var(--card-bg); border: 1px solid #374151; border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
+        .amigo-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: var(--card-bg); border: 1px solid #1f2937; border-radius: 12px; margin-bottom: 0.6rem; cursor: pointer; transition: border-color 0.2s; }
+        .amigo-item:active { border-color: var(--purple); }
+        .amigo-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; color: white; flex-shrink: 0; }
+        .amigo-info { flex: 1; min-width: 0; }
+        .amigo-username { font-weight: 700; font-size: 0.95rem; }
+        .amigo-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+        .amigo-actions { display: flex; gap: 0.4rem; }
+        .btn-aceitar { background: var(--purple); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        .btn-rejeitar { background: #374151; color: var(--text-muted); border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        .secao-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 1.25rem 0 0.6rem 0; }
+        .perfil-amigo-tabs { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+        .perfil-amigo-tab { flex: 1; padding: 0.6rem; text-align: center; border-radius: 8px; border: 1px solid #374151; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-muted); background: none; }
+        .perfil-amigo-tab.ativo { background: var(--purple); color: white; border-color: var(--purple); }
+        .meu-perfil-card { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
+        .btn-add-amigo { margin-left: auto; background: var(--purple); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+
         /* TELA DE LOGIN */
         #tela-login { position: fixed; inset: 0; background: var(--bg-color); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { padding: 2rem; width: 100%; max-width: 360px; text-align: center; }
@@ -264,6 +284,11 @@
         <button id="btn-explorar" class="nav-btn">
             <span class="icon">🔍</span>
             <span>Explorar</span>
+        </button>
+        <button id="btn-amigos" class="nav-btn">
+            <span class="icon">👥</span>
+            <span>Amigos</span>
+            <span id="badge-amigos" class="badge-notif"></span>
         </button>
     </nav>
 
@@ -307,6 +332,40 @@
             <div class="movies-grid" id="explorar-grid"></div>
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais">⬇ Carregar Mais</button></div>
         </div>
+
+        <div id="aba-amigos" class="aba">
+            <!-- Username setup (sem perfil) -->
+            <div id="setup-username-card" class="perfil-setup-card" style="display:none;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👤</div>
+                <h3 style="margin-bottom: 0.4rem;">Escolhe o teu @username</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Os teus amigos usam este nome para te encontrar.</p>
+                <input type="text" id="input-username" class="filter-input" placeholder="ex: joao_cinefilo" style="margin-bottom: 0.8rem; text-align: center; text-transform: lowercase;">
+                <button id="btn-salvar-username" class="btn-modal btn-modal-quero" style="width: 100%;">✓ Confirmar Username</button>
+                <p id="username-msg" style="color: var(--red); font-size: 0.8rem; margin-top: 0.6rem; min-height: 1rem;"></p>
+            </div>
+
+            <!-- Meu perfil (com perfil criado) -->
+            <div id="meu-perfil-card" class="meu-perfil-card" style="display:none;">
+                <div class="amigo-avatar" id="meu-avatar">?</div>
+                <div>
+                    <div style="font-weight: 900; font-size: 1rem;" id="meu-username-display">@username</div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">O teu perfil público</div>
+                </div>
+                <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
+            </div>
+
+            <!-- Pedidos pendentes -->
+            <div id="secao-pedidos" style="display:none;">
+                <div class="secao-label">📬 Pedidos Pendentes</div>
+                <div id="lista-pedidos"></div>
+            </div>
+
+            <!-- Lista de amigos -->
+            <div id="secao-amigos-lista">
+                <div class="secao-label">👥 Os teus Amigos</div>
+                <div id="lista-amigos"><p class="empty-msg">Ainda não tens amigos no iCine.</p></div>
+            </div>
+        </div>
     </main>
 
     <button id="btn-chat-fab" class="chat-fab">✨</button>
@@ -324,6 +383,33 @@
         <div class="chat-input-area">
             <input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios...">
             <button id="btn-enviar-chat">➤</button>
+        </div>
+    </div>
+
+    <!-- Modal: Buscar Amigo -->
+    <div id="modal-buscar-amigo" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>🔍 Encontrar Amigo</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Pesquisa pelo @username do teu amigo</p>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <input type="text" id="input-busca-amigo" class="filter-input" placeholder="@username" style="flex: 1;">
+                <button id="btn-pesquisar-amigo" class="btn-modal btn-modal-quero" style="width: auto; padding: 0 1rem;">Buscar</button>
+            </div>
+            <div id="resultado-busca-amigo"></div>
+            <button id="btn-fechar-busca-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal: Perfil do Amigo -->
+    <div id="modal-perfil-amigo" class="modal" style="display:none;">
+        <div class="modal-content modal-detalhes-content">
+            <h3 id="perfil-amigo-titulo" style="margin-bottom: 1rem; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent;">@amigo</h3>
+            <div class="perfil-amigo-tabs">
+                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Já Assistiu</button>
+                <button class="perfil-amigo-tab" id="tab-amigo-quero">✨ Quer Assistir</button>
+            </div>
+            <div id="perfil-amigo-conteudo"></div>
+            <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
         </div>
     </div>
 
@@ -394,7 +480,8 @@
                     usuarioAtual = session.user;
                     document.getElementById('tela-login').style.display = 'none';
                     carregarFilmesDaNuvem(); 
-                    aplicarFiltros(true); 
+                    aplicarFiltros(true);
+                    verificarPerfil();
                 } else {
                     document.getElementById('tela-login').style.display = 'flex';
                 }
@@ -429,15 +516,16 @@
 
         document.getElementById('btn-inicio').addEventListener('click', () => mudarAba('inicio'));
         document.getElementById('btn-explorar').addEventListener('click', () => mudarAba('explorar'));
+        document.getElementById('btn-amigos').addEventListener('click', () => mudarAba('amigos'));
 
         function mudarAba(abaId) {
             document.querySelectorAll('.aba').forEach(aba => aba.classList.remove('ativa'));
-            document.getElementById('btn-inicio').classList.remove('active');
-            document.getElementById('btn-explorar').classList.remove('active');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
             document.getElementById(`aba-${abaId}`).classList.add('ativa');
             document.getElementById(`btn-${abaId}`).classList.add('active');
             if (abaId === 'inicio') renderizarMinhasListas();
+            if (abaId === 'amigos') renderizarAbaAmigos();
         }
 
         document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
@@ -857,6 +945,236 @@
                 loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial.";
             }
         }
+
+        // ============================================================
+        // === SISTEMA SOCIAL: AMIGOS ===
+        // ============================================================
+        let meuPerfil = null;
+        let pedidosPendentes = [];
+        let listaAmigos = [];
+
+        async function verificarPerfil() {
+            const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).single();
+            if (data) {
+                meuPerfil = data;
+            } else {
+                meuPerfil = null;
+            }
+            carregarAmigos();
+        }
+
+        async function carregarAmigos() {
+            // Pedidos pendentes recebidos por mim
+            const { data: pedidosRaw } = await supabaseClient
+                .from('amizades').select('*')
+                .eq('destinatario_id', usuarioAtual.id).eq('status', 'pendente');
+
+            pedidosPendentes = [];
+            for (const p of (pedidosRaw || [])) {
+                const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', p.solicitante_id).single();
+                pedidosPendentes.push({ ...p, username_solicitante: perf?.username || 'utilizador' });
+            }
+
+            // Amizades aceites
+            const { data: aceites } = await supabaseClient
+                .from('amizades').select('*').eq('status', 'aceite')
+                .or(`solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${usuarioAtual.id}`);
+
+            listaAmigos = [];
+            for (const a of (aceites || [])) {
+                const amigoId = a.solicitante_id === usuarioAtual.id ? a.destinatario_id : a.solicitante_id;
+                const { data: perf } = await supabaseClient.from('perfis').select('username, user_id').eq('user_id', amigoId).single();
+                if (perf) listaAmigos.push({ ...perf, amizade_id: a.id });
+            }
+
+            atualizarBadgeAmigos();
+            // Re-renderiza só se a aba estiver visível
+            if (document.getElementById('aba-amigos').classList.contains('ativa')) {
+                renderizarAbaAmigos();
+            }
+        }
+
+        function atualizarBadgeAmigos() {
+            const badge = document.getElementById('badge-amigos');
+            if (pedidosPendentes.length > 0) {
+                badge.innerText = pedidosPendentes.length;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderizarAbaAmigos() {
+            if (!meuPerfil) {
+                document.getElementById('setup-username-card').style.display = 'block';
+                document.getElementById('meu-perfil-card').style.display = 'none';
+                document.getElementById('lista-amigos').innerHTML = '<p class="empty-msg">Define o teu username para começar.</p>';
+                document.getElementById('secao-pedidos').style.display = 'none';
+                return;
+            }
+
+            // Meu perfil
+            document.getElementById('setup-username-card').style.display = 'none';
+            document.getElementById('meu-perfil-card').style.display = 'flex';
+            document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username;
+            document.getElementById('meu-avatar').innerText = meuPerfil.username.charAt(0).toUpperCase();
+
+            // Pedidos pendentes
+            const secPedidos = document.getElementById('secao-pedidos');
+            if (pedidosPendentes.length > 0) {
+                secPedidos.style.display = 'block';
+                document.getElementById('lista-pedidos').innerHTML = pedidosPendentes.map(p => `
+                    <div class="amigo-item" style="cursor: default;">
+                        <div class="amigo-avatar">${p.username_solicitante.charAt(0).toUpperCase()}</div>
+                        <div class="amigo-info">
+                            <div class="amigo-username">@${p.username_solicitante}</div>
+                            <div class="amigo-sub">quer ser teu amigo no iCine</div>
+                        </div>
+                        <div class="amigo-actions">
+                            <button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button>
+                            <button class="btn-rejeitar" onclick="rejeitarPedido('${p.id}')">✕</button>
+                        </div>
+                    </div>`).join('');
+            } else {
+                secPedidos.style.display = 'none';
+            }
+
+            // Lista de amigos
+            const listaEl = document.getElementById('lista-amigos');
+            if (listaAmigos.length === 0) {
+                listaEl.innerHTML = '<p class="empty-msg">Ainda não tens amigos no iCine. Usa o botão + Amigo!</p>';
+            } else {
+                listaEl.innerHTML = listaAmigos.map(a => `
+                    <div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')">
+                        <div class="amigo-avatar">${a.username.charAt(0).toUpperCase()}</div>
+                        <div class="amigo-info">
+                            <div class="amigo-username">@${a.username}</div>
+                            <div class="amigo-sub">Toca para ver as listas 🎬</div>
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 1.3rem; margin-left: auto;">›</span>
+                    </div>`).join('');
+            }
+        }
+
+        // Salvar username
+        document.getElementById('btn-salvar-username').addEventListener('click', async () => {
+            const raw = document.getElementById('input-username').value.trim().toLowerCase();
+            const username = raw.replace(/[^a-z0-9_]/g, '');
+            const msg = document.getElementById('username-msg');
+            if (username.length < 3) { msg.innerText = 'O username deve ter pelo menos 3 caracteres.'; return; }
+            msg.innerText = 'A guardar...';
+            const { error } = await supabaseClient.from('perfis').insert([{ user_id: usuarioAtual.id, username }]);
+            if (error) {
+                msg.innerText = error.code === '23505' ? 'Username já está em uso. Tenta outro!' : 'Erro ao guardar. Tenta novamente.';
+            } else {
+                meuPerfil = { user_id: usuarioAtual.id, username };
+                msg.innerText = '';
+                carregarAmigos();
+            }
+        });
+
+        // Buscar amigo — abrir modal
+        document.getElementById('btn-abrir-busca').addEventListener('click', () => {
+            document.getElementById('modal-buscar-amigo').style.display = 'flex';
+            document.getElementById('resultado-busca-amigo').innerHTML = '';
+            document.getElementById('input-busca-amigo').value = '';
+        });
+        document.getElementById('btn-fechar-busca-amigo').addEventListener('click', () => {
+            document.getElementById('modal-buscar-amigo').style.display = 'none';
+        });
+
+        document.getElementById('btn-pesquisar-amigo').addEventListener('click', buscarAmigo);
+        document.getElementById('input-busca-amigo').addEventListener('keyup', (e) => { if (e.key === 'Enter') buscarAmigo(); });
+
+        async function buscarAmigo() {
+            const termo = document.getElementById('input-busca-amigo').value.trim().toLowerCase().replace('@', '');
+            const resultado = document.getElementById('resultado-busca-amigo');
+            if (!termo) return;
+            resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">A pesquisar...</p>';
+
+            const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).single();
+            if (!data) {
+                resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
+                return;
+            }
+            const jaAmigo = listaAmigos.some(a => a.user_id === data.user_id);
+            resultado.innerHTML = `
+                <div class="amigo-item" style="cursor:default;">
+                    <div class="amigo-avatar">${data.username.charAt(0).toUpperCase()}</div>
+                    <div class="amigo-info">
+                        <div class="amigo-username">@${data.username}</div>
+                    </div>
+                    ${jaAmigo
+                        ? '<span style="color:var(--purple);font-size:0.8rem;font-weight:bold;">✓ Já é amigo</span>'
+                        : `<button class="btn-aceitar" id="btn-enviar-pedido-resultado">+ Adicionar</button>`}
+                </div>`;
+            if (!jaAmigo) {
+                document.getElementById('btn-enviar-pedido-resultado').addEventListener('click', () => enviarPedido(data.user_id));
+            }
+        }
+
+        async function enviarPedido(destinatario_id) {
+            const { error } = await supabaseClient.from('amizades').insert([{ solicitante_id: usuarioAtual.id, destinatario_id, status: 'pendente' }]);
+            const resultado = document.getElementById('resultado-busca-amigo');
+            if (error) {
+                resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>';
+            } else {
+                resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido enviado com sucesso!</p>';
+            }
+        }
+
+        async function aceitarPedido(id) {
+            await supabaseClient.from('amizades').update({ status: 'aceite' }).eq('id', id);
+            carregarAmigos();
+        }
+
+        async function rejeitarPedido(id) {
+            await supabaseClient.from('amizades').delete().eq('id', id);
+            carregarAmigos();
+        }
+
+        // Ver perfil do amigo
+        async function abrirPerfilAmigo(userId, username) {
+            document.getElementById('modal-perfil-amigo').style.display = 'flex';
+            document.getElementById('perfil-amigo-titulo').innerText = '@' + username;
+            document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
+            document.getElementById('tab-amigo-assisti').classList.add('ativo');
+            document.getElementById('tab-amigo-quero').classList.remove('ativo');
+
+            const { data } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
+            const filmes = data || [];
+
+            renderizarFilmesAmigo(filmes, 'ja');
+
+            document.getElementById('tab-amigo-assisti').onclick = () => {
+                document.getElementById('tab-amigo-assisti').classList.add('ativo');
+                document.getElementById('tab-amigo-quero').classList.remove('ativo');
+                renderizarFilmesAmigo(filmes, 'ja');
+            };
+            document.getElementById('tab-amigo-quero').onclick = () => {
+                document.getElementById('tab-amigo-quero').classList.add('ativo');
+                document.getElementById('tab-amigo-assisti').classList.remove('ativo');
+                renderizarFilmesAmigo(filmes, 'quero');
+            };
+        }
+
+        function renderizarFilmesAmigo(filmes, grupo) {
+            const lista = filmes.filter(f => f.grupo === grupo);
+            const container = document.getElementById('perfil-amigo-conteudo');
+            if (lista.length === 0) {
+                container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido.' : 'Watchlist vazia.'}</p>`;
+                return;
+            }
+            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `
+                <div style="background:#111827;border-radius:10px;overflow:hidden;">
+                    <img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;">
+                    <div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div>
+                </div>`).join('')}</div>`;
+        }
+
+        document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => {
+            document.getElementById('modal-perfil-amigo').style.display = 'none';
+        });
 
         async function buscarERenderizarFilmeChat(titulo, ano) {
             try {

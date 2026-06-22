@@ -1,0 +1,62 @@
+Vamos transformar o iCine em um PWA (Progressive Web App) para que ele possa ser instalado em smartphones (Android e iOS) como se fosse um aplicativo nativo. Execute estas 3 etapas na raiz do projeto:
+
+1. CRIE O ARQUIVO `manifest.json`:
+Crie este arquivo na raiz do projeto para definir a identidade do aplicativo no telemóvel:
+{
+  "name": "iCine | Diário de Filmes",
+  "short_name": "iCine",
+  "description": "Seu Diário de Filmes Pessoal na Nuvem com IA",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3174/3174241.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+2. CRIE O ARQUIVO `service-worker.js`:
+Crie este arquivo de segundo plano na raiz do projeto, que é obrigatório para o telemóvel permitir a instalação do app:
+const CACHE_NAME = 'icine-cache-v1';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json'
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((response) => {
+      return response || fetch(e.request);
+    })
+  );
+});
+
+3. ATUALIZE O `index.html`:
+- Dentro da tag <head>, logo abaixo das tags <meta>, insira o link do manifesto:
+<link rel="manifest" href="manifest.json">
+
+- Dentro da tag <script> no final do arquivo, logo no início (imediatamente abaixo da linha console.log("iCine Full Stack Core Active!");), insira o código de ativação do PWA:
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('PWA: Service Worker Ativo!', reg))
+            .catch(err => console.error('PWA: Erro no Service Worker', err));
+    });
+}
+
+Certifique-se de manter todas as regras de CSS, modais, conexão com o Supabase e a API da Groq funcionando perfeitamente sem nenhuma outra alteração.

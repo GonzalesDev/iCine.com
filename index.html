@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#030712">
+    <link rel="manifest" href="manifest.json">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -358,6 +359,14 @@
 
     <script>
         console.log("iCine Full Stack Core Active!");
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('PWA: Service Worker Ativo!', reg))
+                    .catch(err => console.error('PWA: Erro no Service Worker', err));
+            });
+        }
 
         const GROQ_KEY = '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'; 
         const TMDB_KEY = '583c7b5c219b1edbfc6a76210b4ade05'; 

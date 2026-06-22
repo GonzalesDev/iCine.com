@@ -681,7 +681,7 @@
         });
 
         async function carregarFilmesDaNuvem() {
-            const { data } = await supabaseClient.from('meus_filmes').select('*');
+            const { data } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', usuarioAtual.id);
             if (data) {
                 const dataSanitizada = await Promise.all(data.map(async (f) => {
                     let notaTmdb = f.nota || '0.0'; 

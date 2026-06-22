@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icine-cache-v2';
+const CACHE_NAME = 'icine-cache-v3';
 const ASSETS = [
   './',
   './index.html',

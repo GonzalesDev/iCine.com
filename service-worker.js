@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icine-cache-v4';
+const CACHE_NAME = 'icine-cache-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,18 @@ self.addEventListener('install', (e) => {
       return cache.addAll(ASSETS);
     })
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {

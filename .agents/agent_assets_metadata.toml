@@ -1,0 +1,13 @@
+uploads = []
+
+[[generated]]
+id = "4b42pSK2aT4xFbY-hsE4A"
+uri = "file://icon-512.png"
+type = "image"
+title = "icine app icon"
+
+[[outputs]]
+id = "u6rzLhFf1p-45W_-XdJbp"
+uri = "file://icon-512.png"
+type = "image"
+title = "Ícone iCine (512×512)"

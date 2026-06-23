@@ -56,7 +56,6 @@
         .movies-slider .movie-card { flex-shrink: 0; width: calc((100% - 1rem) / 2.15); }
         .movies-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
-        /* === Estilos das Playlists === */
         .playlist-slider { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 1rem; scrollbar-width: none; }
         .playlist-slider::-webkit-scrollbar { display: none; }
         .playlist-card { background: var(--card-bg); border: 1px solid #374151; border-radius: 12px; min-width: 140px; height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0;}
@@ -66,7 +65,6 @@
         .btn-criar-playlist { font-size: 2rem; color: var(--purple); background: rgba(139, 92, 246, 0.1); border: 2px dashed var(--purple); width: 140px; height: 140px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .btn-criar-playlist:active { transform: scale(0.95); }
 
-        /* Responsividade para Tablets e PCs */
         @media (min-width: 600px) { 
             .movies-slider, .playlist-slider { display: grid; grid-template-columns: repeat(3, 1fr); overflow-x: visible; padding-bottom: 0; }
             .movies-slider .movie-card, .btn-criar-playlist, .playlist-card { width: 100%; }
@@ -211,33 +209,22 @@
 
         <div id="aba-explorar" class="aba">
             <h2><div class="h2-detail"></div> Explorar Catálogo</h2>
-
             <div class="filters-container">
                 <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome... (Enter)">
                 <div class="filters-row">
                     <select id="select-genero" class="filter-input">
                         <option value="todos">🎭 Todos Gêneros</option>
-                        <option value="28">Ação</option>
-                        <option value="16">Animação</option>
-                        <option value="12">Aventura</option>
-                        <option value="35">Comédia</option>
-                        <option value="80">Crime</option>
-                        <option value="99">Documentário</option>
-                        <option value="18">Drama</option>
-                        <option value="10751">Família</option>
-                        <option value="14">Fantasia</option>
-                        <option value="878">Ficção Científica</option>
-                        <option value="9648">Mistério</option>
-                        <option value="10749">Romance</option>
-                        <option value="27">Terror</option>
-                        <option value="53">Thriller</option>
+                        <option value="28">Ação</option><option value="16">Animação</option><option value="12">Aventura</option>
+                        <option value="35">Comédia</option><option value="80">Crime</option><option value="99">Documentário</option>
+                        <option value="18">Drama</option><option value="10751">Família</option><option value="14">Fantasia</option>
+                        <option value="878">Ficção Científica</option><option value="9648">Mistério</option><option value="10749">Romance</option>
+                        <option value="27">Terror</option><option value="53">Thriller</option>
                     </select>
                     <select id="select-ordem" class="filter-input">
                         <option value="populares">🔥 Populares</option><option value="lancamentos">🆕 Lançamentos</option><option value="nota_desc">⭐ Maior Nota</option>
                     </select>
                 </div>
             </div>
-
             <div class="movies-grid" id="explorar-grid"></div>
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" style="display: none;">⬇ Carregar Mais</button></div>
         </div>
@@ -281,10 +268,7 @@
                 <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
                 <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Assistidos Recentemente</button>
                 <button id="btn-toggle-playlists" class="btn-modal" style="background-color: var(--blue); color: white;">➕ Adicionar a uma Playlist</button>
-                
-                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;">
-                </div>
-
+                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;"></div>
                 <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel" style="margin-top: 0.5rem;">Cancelar</button>
             </div>
         </div>
@@ -323,7 +307,6 @@
         <div style="background: var(--bg-color); width: 100%; min-height: 100vh; position: relative; padding-bottom: 80px;">
             <button id="btn-fechar-ver-playlist" style="position: absolute; top: 15px; right: 15px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">&times;</button>
             <button id="btn-editar-ver-playlist" style="position: absolute; top: 15px; right: 65px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: none;">✏️</button>
-
             <div id="capa-ver-playlist" style="width: 100%; height: 280px; background-size: cover; background-position: center; position: relative;">
                 <div style="position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color), transparent);"></div>
                 <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
@@ -413,12 +396,47 @@
         let filmeSelecionadoTemporario = null;
         let paginaAtual = 1;
         let filmesExplorarAcumulados = [];
-        
         let mostrarTodosQueroAssistir = false;
         let mostrarTodosJaAssisti = false;
-        
         let playlistSendoEditadaId = null;
         let playlistsAmigoAtual = [];
+
+        // =======================================================
+        // LÓGICA DO BOTÃO VOLTAR NATIVO (STACK DE MODAIS)
+        // =======================================================
+        let pilhaModais = [];
+
+        // Ao carregar a página, resetamos qualquer hash perdido
+        window.addEventListener('load', () => {
+            window.history.replaceState({ base: true }, '', window.location.pathname);
+        });
+
+        function abrirModalSeguro(idModal) {
+            document.getElementById(idModal).style.display = 'flex';
+            pilhaModais.push(idModal);
+            window.history.pushState({ modal: idModal }, '', `#${idModal}`);
+        }
+
+        function fecharModalSeguro(idModal) {
+            // Se o modal a fechar for o último que foi aberto, basta voltar no histórico nativo
+            if (pilhaModais[pilhaModais.length - 1] === idModal) {
+                window.history.back(); // Isto vai disparar o 'popstate' logo abaixo
+            } else {
+                // Fecho de segurança caso a ordem se tenha perdido
+                document.getElementById(idModal).style.display = 'none';
+                pilhaModais = pilhaModais.filter(id => id !== idModal);
+            }
+        }
+
+        window.addEventListener('popstate', (e) => {
+            // Quando o botão de voltar é pressionado, o último modal da pilha é fechado
+            if (pilhaModais.length > 0) {
+                const ultimoModal = pilhaModais.pop();
+                const modalEl = document.getElementById(ultimoModal);
+                if (modalEl) modalEl.style.display = 'none';
+            }
+        });
+        // =======================================================
 
         async function checarSessao() {
             try {
@@ -608,12 +626,10 @@
             document.getElementById('input-nome-playlist').value = '';
             document.getElementById('input-capa-playlist').value = '';
             document.getElementById('msg-criar-playlist').innerText = '';
-            document.getElementById('modal-criar-playlist').style.display = 'flex';
+            abrirModalSeguro('modal-criar-playlist');
         });
 
-        document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => {
-            document.getElementById('modal-criar-playlist').style.display = 'none';
-        });
+        document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => { fecharModalSeguro('modal-criar-playlist'); });
 
         document.getElementById('btn-salvar-playlist').addEventListener('click', async () => {
             const nome = document.getElementById('input-nome-playlist').value.trim();
@@ -640,16 +656,14 @@
                 if (dbError) throw dbError;
 
                 await carregarPlaylistsDaNuvem();
-                document.getElementById('modal-criar-playlist').style.display = 'none';
+                fecharModalSeguro('modal-criar-playlist');
             } catch (err) {
                 console.error(err);
                 msg.innerText = "Erro ao criar playlist. Verifique se criou a tabela e o bucket no Supabase!";
             }
         });
 
-        document.getElementById('btn-cancelar-edicao-playlist').addEventListener('click', () => {
-            document.getElementById('modal-editar-playlist').style.display = 'none';
-        });
+        document.getElementById('btn-cancelar-edicao-playlist').addEventListener('click', () => { fecharModalSeguro('modal-editar-playlist'); });
 
         document.getElementById('btn-salvar-edicao-playlist').addEventListener('click', async () => {
             const nome = document.getElementById('edit-nome-playlist').value.trim();
@@ -677,7 +691,7 @@
                 if (dbError) throw dbError;
 
                 await carregarPlaylistsDaNuvem();
-                document.getElementById('modal-editar-playlist').style.display = 'none';
+                fecharModalSeguro('modal-editar-playlist');
                 abrirVerPlaylist(playlistSendoEditadaId, false); 
             } catch (err) {
                 console.error(err);
@@ -690,8 +704,8 @@
                 const { error } = await supabaseClient.from('playlists').delete().eq('id', playlistSendoEditadaId);
                 if (!error) {
                     await carregarPlaylistsDaNuvem();
-                    document.getElementById('modal-editar-playlist').style.display = 'none';
-                    document.getElementById('modal-ver-playlist').style.display = 'none';
+                    fecharModalSeguro('modal-editar-playlist');
+                    fecharModalSeguro('modal-ver-playlist');
                 } else {
                     alert('Erro ao apagar playlist.');
                 }
@@ -719,7 +733,6 @@
         async function adicionarFilmeNaPlaylist(playlistId) {
             if (!filmeSelecionadoTemporario) return;
             const playlist = minhasPlaylists.find(p => String(p.id) === String(playlistId));
-            
             if (!playlist) { alert('Erro: Playlist não encontrada.'); return; }
 
             const jaExiste = playlist.filmes.some(f => String(f.id) === String(filmeSelecionadoTemporario.id));
@@ -732,7 +745,7 @@
             if (!error) {
                 alert('🎬 Adicionado à playlist com sucesso!');
                 carregarPlaylistsDaNuvem();
-                fecharModal();
+                fecharModalSeguro('modal-escolha');
             } else {
                 alert('Erro ao guardar na playlist.');
             }
@@ -755,7 +768,7 @@
                     document.getElementById('edit-nome-playlist').value = p.nome;
                     document.getElementById('edit-capa-playlist').value = '';
                     document.getElementById('msg-editar-playlist').innerText = '';
-                    document.getElementById('modal-editar-playlist').style.display = 'flex';
+                    abrirModalSeguro('modal-editar-playlist');
                 };
             }
             
@@ -767,27 +780,28 @@
                 document.getElementById('msg-playlist-vazia').style.display = 'none';
                 grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, true)).join('');
             }
-            document.getElementById('modal-ver-playlist').style.display = 'flex';
+            abrirModalSeguro('modal-ver-playlist');
             mapearBotoesGrid();
         }
-        document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { document.getElementById('modal-ver-playlist').style.display = 'none'; });
+        
+        document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
 
         // ==========================================
 
         document.getElementById('btn-salvar-quero').addEventListener('click', () => salvarNoGrupo('quero'));
         document.getElementById('btn-salvar-ja').addEventListener('click', () => salvarNoGrupo('ja'));
-        document.getElementById('btn-cancelar-modal').addEventListener('click', fecharModal);
+        document.getElementById('btn-cancelar-modal').addEventListener('click', () => { fecharModalSeguro('modal-escolha'); });
 
         async function salvarNoGrupo(grupo) {
             if (!filmeSelecionadoTemporario) return;
             const filme = filmeSelecionadoTemporario;
             const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id == filme.id);
-            if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModal(); return; }
+            if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModalSeguro('modal-escolha'); return; }
 
             const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, grupo: grupo };
             await supabaseClient.from('meus_filmes').insert([novoFilme]);
             carregarFilmesDaNuvem();
-            fecharModal();
+            fecharModalSeguro('modal-escolha');
         }
 
         async function moverFilme(tmdb_id, novoGrupo) {
@@ -803,7 +817,6 @@
         }
 
         function renderizarMinhasListas() {
-            // 1. Renderizar Watchlist com Limite
             const cWatch = document.getElementById('watchlist-grid');
             if (listaQueroAssistir.length === 0) {
                 cWatch.innerHTML = `<p class="empty-msg">Sua Watchlist está vazia.</p>`;
@@ -826,7 +839,6 @@
                 cWatch.innerHTML = htmlQuero;
             }
 
-            // 2. Renderizar Já Assisti com Limite e Pesquisa Local
             const cJa = document.getElementById('ja-assisti-grid');
             const inputJaAssisti = document.getElementById('pesquisa-ja-assisti');
             const termoFiltro = inputJaAssisti ? inputJaAssisti.value.toLowerCase().trim() : '';
@@ -855,7 +867,6 @@
                 cJa.innerHTML = htmlJa;
             }
 
-            // 3. Renderizar Playlists
             const pGrid = document.getElementById('playlists-grid');
             Array.from(pGrid.children).forEach(child => { if(child.id !== 'btn-abrir-criar-playlist') child.remove(); });
             
@@ -873,8 +884,12 @@
             mapearBotoesGrid();
         }
 
-        function abrirModal(id) { filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; document.getElementById('lista-playlists-escolha').style.display = 'none'; document.getElementById('modal-escolha').style.display = 'flex'; }
-        function fecharModal() { document.getElementById('modal-escolha').style.display = 'none'; filmeSelecionadoTemporario = null; }
+        function abrirModal(id) { 
+            filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); 
+            document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; 
+            document.getElementById('lista-playlists-escolha').style.display = 'none'; 
+            abrirModalSeguro('modal-escolha'); 
+        }
 
         async function abrirDetalhes(id) {
             const filme = bancoDeFilmesLocal.get(id); if (!filme) return;
@@ -891,7 +906,7 @@
             btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
 
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
-            document.getElementById('modal-detalhes').style.display = 'flex';
+            abrirModalSeguro('modal-detalhes');
 
             try {
                 let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
@@ -919,7 +934,7 @@
                 }
             } catch (err) {}
         }
-        document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { document.getElementById('modal-detalhes').style.display = 'none'; });
+        document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
         // === SOCIAL / AMIGOS ===
         let meuPerfil = null;
@@ -1008,11 +1023,11 @@
         });
 
         document.getElementById('btn-abrir-busca').addEventListener('click', () => {
-            document.getElementById('modal-buscar-amigo').style.display = 'flex';
             document.getElementById('resultado-busca-amigo').innerHTML = '';
             document.getElementById('input-busca-amigo').value = '';
+            abrirModalSeguro('modal-buscar-amigo');
         });
-        document.getElementById('btn-fechar-busca-amigo').addEventListener('click', () => { document.getElementById('modal-buscar-amigo').style.display = 'none'; });
+        document.getElementById('btn-fechar-busca-amigo').addEventListener('click', () => { fecharModalSeguro('modal-buscar-amigo'); });
         document.getElementById('btn-pesquisar-amigo').addEventListener('click', buscarAmigo);
         document.getElementById('input-busca-amigo').addEventListener('keyup', (e) => { if (e.key === 'Enter') buscarAmigo(); });
 
@@ -1046,20 +1061,17 @@
         async function rejeitarPedido(id) { await supabaseClient.from('amizades').delete().eq('id', id); carregarAmigos(); }
 
         async function abrirPerfilAmigo(userId, username) {
-            document.getElementById('modal-perfil-amigo').style.display = 'flex';
+            abrirModalSeguro('modal-perfil-amigo');
             document.getElementById('perfil-amigo-titulo').innerText = '@' + username;
             document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
             
-            // Abas
             document.getElementById('tab-amigo-assisti').classList.add('ativo');
             document.getElementById('tab-amigo-quero').classList.remove('ativo');
             document.getElementById('tab-amigo-playlists').classList.remove('ativo');
 
-            // Carregar Filmes do Amigo
             const { data: fData } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
             const filmesAmigo = fData || [];
             
-            // Carregar Playlists do Amigo
             const { data: pData } = await supabaseClient.from('playlists').select('*').eq('user_id', userId);
             playlistsAmigoAtual = pData || [];
 
@@ -1100,7 +1112,7 @@
                 </div>`).join('')}</div>`;
         }
         
-        document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { document.getElementById('modal-perfil-amigo').style.display = 'none'; });
+        document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { fecharModalSeguro('modal-perfil-amigo'); });
 
         // === IA GROQ ===
         const btnChatFab = document.getElementById('btn-chat-fab');
@@ -1111,8 +1123,16 @@
         const chatMessages = document.getElementById('chat-messages');
         let historicoChat = [];
 
-        btnChatFab.addEventListener('click', () => { chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex'; if (chatWindow.style.display === 'flex') chatInput.focus(); });
-        btnFecharChat.addEventListener('click', () => { chatWindow.style.display = 'none'; });
+        btnChatFab.addEventListener('click', () => { 
+            if (chatWindow.style.display !== 'flex') {
+                abrirModalSeguro('chat-window');
+                chatInput.focus();
+            } else {
+                fecharModalSeguro('chat-window');
+            }
+        });
+        
+        btnFecharChat.addEventListener('click', () => { fecharModalSeguro('chat-window'); });
         btnEnviarChat.addEventListener('click', processarMensagemUtilizador);
         chatInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') processarMensagemUtilizador(); });
 

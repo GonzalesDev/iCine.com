@@ -89,7 +89,7 @@
         .movie-card-overlay { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.2s ease-in-out; padding: 0.75rem; pointer-events: none; }
         .movie-card.aberto .movie-card-overlay { opacity: 1; pointer-events: auto; }
         @media (hover: hover) and (pointer: fine) { .movie-card:hover .movie-card-overlay { opacity: 1; pointer-events: auto; } }
-
+        
         .btn-action { width: 100%; padding: 0.5rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .btn-add { background-color: var(--purple); color: white; }
         .btn-watched { background-color: var(--pink); color: white; }
@@ -197,7 +197,7 @@
             <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Já Assisti</h2>
+                <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Assistidos Recentemente</h2>
                 <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar assistidos..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 170px; max-width: 45%;">
             </div>
             <div class="movies-slider" id="ja-assisti-grid"></div>
@@ -279,9 +279,9 @@
             <div id="modal-nome-filme" class="modal-movie-title">Nome do Filme</div>
             <div class="modal-buttons">
                 <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
-                <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Já Assisti</button>
+                <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Assistidos Recentemente</button>
                 <button id="btn-toggle-playlists" class="btn-modal" style="background-color: var(--blue); color: white;">➕ Adicionar a uma Playlist</button>
-
+                
                 <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;">
                 </div>
 
@@ -370,7 +370,7 @@
         <div class="modal-content modal-detalhes-content">
             <h3 id="perfil-amigo-titulo" style="margin-bottom: 1rem; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent;">@amigo</h3>
             <div class="perfil-amigo-tabs">
-                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Já Assistiu</button>
+                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Assistidos Recentemente</button>
                 <button class="perfil-amigo-tab" id="tab-amigo-quero">✨ Quer Assistir</button>
                 <button class="perfil-amigo-tab" id="tab-amigo-playlists">📂 Playlists</button>
             </div>
@@ -413,11 +413,10 @@
         let filmeSelecionadoTemporario = null;
         let paginaAtual = 1;
         let filmesExplorarAcumulados = [];
-
+        
         let mostrarTodosQueroAssistir = false;
         let mostrarTodosJaAssisti = false;
-
-        // Novas Variáveis Globais
+        
         let playlistSendoEditadaId = null;
         let playlistsAmigoAtual = [];
 
@@ -477,7 +476,7 @@
         }
 
         document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
-
+        
         document.getElementById('pesquisa-ja-assisti').addEventListener('input', () => {
             mostrarTodosJaAssisti = false;
             renderizarMinhasListas();
@@ -597,9 +596,6 @@
             }
         }
 
-        // ==========================================
-        // === LÓGICA DAS PLAYLISTS ===
-        // ==========================================
         async function carregarPlaylistsDaNuvem() {
             const { data } = await supabaseClient.from('playlists').select('*').eq('user_id', usuarioAtual.id);
             if (data) {
@@ -651,7 +647,6 @@
             }
         });
 
-        // EDICAO E EXCLUSAO DE PLAYLISTS
         document.getElementById('btn-cancelar-edicao-playlist').addEventListener('click', () => {
             document.getElementById('modal-editar-playlist').style.display = 'none';
         });
@@ -673,7 +668,7 @@
                     const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
                     const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
                     if (uploadError) throw uploadError;
-
+                    
                     const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
                     updateData.capa_url = urlData.publicUrl;
                 }
@@ -683,7 +678,7 @@
 
                 await carregarPlaylistsDaNuvem();
                 document.getElementById('modal-editar-playlist').style.display = 'none';
-                abrirVerPlaylist(playlistSendoEditadaId, false); // Atualiza o ecrã com a foto nova
+                abrirVerPlaylist(playlistSendoEditadaId, false); 
             } catch (err) {
                 console.error(err);
                 msg.innerText = "Erro ao guardar as alterações.";
@@ -724,7 +719,7 @@
         async function adicionarFilmeNaPlaylist(playlistId) {
             if (!filmeSelecionadoTemporario) return;
             const playlist = minhasPlaylists.find(p => String(p.id) === String(playlistId));
-
+            
             if (!playlist) { alert('Erro: Playlist não encontrada.'); return; }
 
             const jaExiste = playlist.filmes.some(f => String(f.id) === String(filmeSelecionadoTemporario.id));
@@ -732,7 +727,7 @@
 
             const filmeLimpo = { id: filmeSelecionadoTemporario.id, titulo: filmeSelecionadoTemporario.titulo, ano: filmeSelecionadoTemporario.ano, notaTmdb: filmeSelecionadoTemporario.notaTmdb, notaImdb: filmeSelecionadoTemporario.notaImdb, capa: filmeSelecionadoTemporario.capa, sinopse: filmeSelecionadoTemporario.sinopse };
             const novosFilmes = [...playlist.filmes, filmeLimpo];
-
+            
             const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
             if (!error) {
                 alert('🎬 Adicionado à playlist com sucesso!');
@@ -746,13 +741,13 @@
         function abrirVerPlaylist(playlistId, isAmigo = false) {
             const p = isAmigo ? playlistsAmigoAtual.find(p => String(p.id) === String(playlistId)) : minhasPlaylists.find(p => String(p.id) === String(playlistId));
             if (!p) return;
-
+            
             document.getElementById('titulo-ver-playlist').innerText = p.nome;
             document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`;
-
+            
             const btnEdit = document.getElementById('btn-editar-ver-playlist');
             if (isAmigo) {
-                btnEdit.style.display = 'none'; // Não deixa editar a playlist do amigo
+                btnEdit.style.display = 'none'; 
             } else {
                 btnEdit.style.display = 'block';
                 btnEdit.onclick = () => {
@@ -763,7 +758,7 @@
                     document.getElementById('modal-editar-playlist').style.display = 'flex';
                 };
             }
-
+            
             const grid = document.getElementById('grid-ver-playlist');
             if (p.filmes.length === 0) {
                 document.getElementById('msg-playlist-vazia').style.display = 'block';
@@ -824,7 +819,7 @@
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
-
+                    
                 if (!mostrarTodosQueroAssistir && listaQueroAssistir.length > 15) {
                     htmlQuero += `<div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 1rem 0;"><button onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();" class="btn-carregar-mais" style="display:block; margin:0;">Mostrar mais (${listaQueroAssistir.length - 15})</button></div>`;
                 }
@@ -838,7 +833,7 @@
             const filmesFiltrados = termoFiltro !== '' ? listaJaAssisti.filter(f => f.titulo.toLowerCase().includes(termoFiltro)) : listaJaAssisti;
 
             if (listaJaAssisti.length === 0) {
-                cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido.</p>`;
+                cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido recentemente.</p>`;
             } else if (filmesFiltrados.length === 0) {
                 cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado.</p>`;
             } else {
@@ -853,7 +848,7 @@
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
-
+                    
                 if (!mostrarTodosJaAssisti && filmesFiltrados.length > 15) {
                     htmlJa += `<div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 1rem 0;"><button onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();" class="btn-carregar-mais" style="display:block; margin:0;">Mostrar mais (${filmesFiltrados.length - 15})</button></div>`;
                 }
@@ -863,7 +858,7 @@
             // 3. Renderizar Playlists
             const pGrid = document.getElementById('playlists-grid');
             Array.from(pGrid.children).forEach(child => { if(child.id !== 'btn-abrir-criar-playlist') child.remove(); });
-
+            
             minhasPlaylists.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'playlist-card';
@@ -1029,7 +1024,7 @@
 
             const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).single();
             if (!data) return resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
-
+            
             const jaAmigo = listaAmigos.some(a => a.user_id === data.user_id);
             resultado.innerHTML = `
                 <div class="amigo-item" style="cursor:default;">
@@ -1054,7 +1049,7 @@
             document.getElementById('modal-perfil-amigo').style.display = 'flex';
             document.getElementById('perfil-amigo-titulo').innerText = '@' + username;
             document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
-
+            
             // Abas
             document.getElementById('tab-amigo-assisti').classList.add('ativo');
             document.getElementById('tab-amigo-quero').classList.remove('ativo');
@@ -1063,7 +1058,7 @@
             // Carregar Filmes do Amigo
             const { data: fData } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
             const filmesAmigo = fData || [];
-
+            
             // Carregar Playlists do Amigo
             const { data: pData } = await supabaseClient.from('playlists').select('*').eq('user_id', userId);
             playlistsAmigoAtual = pData || [];
@@ -1087,7 +1082,7 @@
         function renderizarFilmesAmigo(filmes, grupo) {
             const lista = filmes.filter(f => f.grupo === grupo);
             const container = document.getElementById('perfil-amigo-conteudo');
-            if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido.' : 'Watchlist vazia.'}</p>`;
+            if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;
             container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `
                 <div style="background:#111827;border-radius:10px;overflow:hidden;">
                     <img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;">
@@ -1104,7 +1099,7 @@
                     <div style="position:absolute;bottom:0;left:0;right:0;padding:0.4rem;font-size:0.75rem;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9); z-index:2;">${p.nome}</div>
                 </div>`).join('')}</div>`;
         }
-
+        
         document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { document.getElementById('modal-perfil-amigo').style.display = 'none'; });
 
         // === IA GROQ ===

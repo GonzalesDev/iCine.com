@@ -613,8 +613,10 @@
                         e.stopPropagation();
                         const id = parseInt(btn.getAttribute('data-id'));
                         const acao = btn.getAttribute('data-action');
+                        
                         if (acao === 'sinopse') abrirDetalhes(id);
-                        else if (acao === 'organizar') abrirModal(id);
+                        else if (acao === 'organizar') abrirModal(id, 'explorar');
+                        else if (acao === 'add-playlist') abrirModal(id, 'listas');
                         else if (acao === 'mover-ja') moverFilme(id, 'ja');
                         else if (acao === 'mover-quero') moverFilme(id, 'quero');
                         else if (acao === 'remover') removerFilme(id);
@@ -878,7 +880,7 @@
                         <div class="movie-card-overlay">
                             <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
                             <button class="btn-action btn-watched" data-id="${f.tmdb_id}" data-action="mover-ja">⬇ Assistido</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="organizar">➕ Playlist</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕ Playlist</button>
                             <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
@@ -907,7 +909,7 @@
                         <div class="movie-card-overlay">
                             <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
                             <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆ Watchlist</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="organizar">➕ Playlist</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕ Playlist</button>
                             <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
@@ -936,10 +938,37 @@
             mapearBotoesGrid();
         }
 
-        function abrirModal(id) { 
+        function abrirModal(id, contexto = 'explorar') { 
             filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); 
             document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; 
-            document.getElementById('lista-playlists-escolha').style.display = 'none'; 
+            
+            const btnQuero = document.getElementById('btn-salvar-quero');
+            const btnJa = document.getElementById('btn-salvar-ja');
+            const btnToggle = document.getElementById('btn-toggle-playlists');
+            const listaDiv = document.getElementById('lista-playlists-escolha');
+
+            if (contexto === 'explorar') {
+                btnQuero.style.display = 'block';
+                btnJa.style.display = 'block';
+                btnToggle.style.display = 'block';
+                listaDiv.style.display = 'none';
+            } else {
+                btnQuero.style.display = 'none';
+                btnJa.style.display = 'none';
+                btnToggle.style.display = 'none';
+                listaDiv.style.display = 'flex';
+                
+                if (minhasPlaylists.length === 0) {
+                    listaDiv.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Não tens playlists criadas.</p>`;
+                } else {
+                    listaDiv.innerHTML = minhasPlaylists.map(p => `
+                        <button class="btn-modal" style="background:#1f2937; color:white; border: 1px solid #374151; font-size:0.85rem;" onclick="adicionarFilmeNaPlaylist('${p.id}')">
+                            ${p.nome}
+                        </button>
+                    `).join('');
+                }
+            }
+
             abrirModalSeguro('modal-escolha'); 
         }
 

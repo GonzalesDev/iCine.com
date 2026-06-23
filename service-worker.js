@@ -1,38 +1,39 @@
-const CACHE_NAME = 'icine-cache-v6';
+const CACHE_NAME = 'icine-v2';
 const ASSETS = [
-  './manifest.json',
-  './icon-512.png'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting(); // Força a atualização imediata no telemóvel
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      })
+    ))
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
+  // Ignora chamadas a APIs (Supabase, Groq, etc)
+  if (e.request.method !== 'GET') return;
 
-  // index.html — sempre busca da rede (nunca cache)
-  if (url.pathname === '/' || url.pathname.endsWith('index.html')) {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  // Outros recursos — cache primeiro
+  // ESTRATÉGIA NETWORK FIRST: Tenta a internet primeiro. Se falhar, usa o cache.
   e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+    fetch(e.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
 });

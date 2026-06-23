@@ -574,12 +574,18 @@
 
         // Nova Lógica de Geração de Botões consoante a visão (Explorar, Playlist Minha, Playlist Amigo)
         function gerarCartaoFilmeHTML(f, context = 'explorar') {
-            let acoesHtml = `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
-            
+            let acoesHtml = '';
+
             if (context === 'explorar') {
+                // Na aba Explorar, mostra Sinopse e Adicionar à Lista
+                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
                 acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">+ Lista</button>`;
             } else if (context === 'minha-playlist') {
+                // Nas SUAS playlists, mostra APENAS o botão de Remover
                 acoesHtml += `<button class="btn-action btn-delete" data-id="${f.id || f.tmdb_id}" data-action="remover-playlist">🗑️ Remover</button>`;
+            } else if (context === 'playlist-amigo') {
+                // Na playlist de um AMIGO, mostra apenas a Sinopse (pois não pode remover os filmes dele)
+                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
             }
 
             return `

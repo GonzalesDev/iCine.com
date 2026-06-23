@@ -28,39 +28,21 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-top: 60px; padding-bottom: 80px; }
 
-        /* === HEADER FIXO SUPERIOR === */
-        header {
-            position: fixed; top: 0; left: 0; right: 0; height: 60px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 1.5rem; background-color: rgba(3, 7, 18, 0.8);
-            backdrop-filter: blur(12px); border-bottom: 1px solid #1f2937; z-index: 150;
-        }
+        header { position: fixed; top: 0; left: 0; right: 0; height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem; background-color: rgba(3, 7, 18, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid #1f2937; z-index: 150; }
         .logo { font-size: 1.5rem; font-weight: 900; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent; }
         .btn-sair { font-size: 0.85rem; color: var(--red); padding: 0.3rem 0.6rem; border: 1px solid var(--red); border-radius: 6px; background: none; cursor: pointer; font-weight: bold; }
 
-        /* === NAVBAR FIXA INFERIOR === */
-        nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
-            background-color: rgba(17, 24, 39, 0.95); backdrop-filter: blur(12px);
-            border-top: 1px solid #1f2937; display: flex; justify-content: space-around;
-            align-items: center; z-index: 150; padding-bottom: max(0px, env(safe-area-inset-bottom));
-        }
-        .nav-btn {
-            background: none; border: none; color: var(--text-muted);
-            font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s;
-            display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; justify-content: center;
-        }
+        nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background-color: rgba(17, 24, 39, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #1f2937; display: flex; justify-content: space-around; align-items: center; z-index: 150; padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+        .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; justify-content: center; position: relative; }
         .nav-btn .icon { font-size: 1.2rem; }
         .nav-btn.active { color: var(--purple); }
 
-        /* === BARRA DE FILTROS === */
         .filters-container { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-direction: column; }
         .filter-input { padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.95rem; outline: none; width: 100%; }
         .filter-input:focus { border-color: var(--purple); }
         .filters-row { display: flex; gap: 0.75rem; width: 100%; }
         .filters-row select { flex: 1; }
 
-        /* === CONTEÚDO PRINCIPAL === */
         main { padding: 1.5rem 1rem; max-width: 1200px; margin: 0 auto; overflow: hidden; }
         .aba { display: none; animation: fadeIn 0.3s ease-out; }
         .aba.ativa { display: block; }
@@ -69,61 +51,40 @@
         h2 { font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
         .h2-detail { width: 5px; height: 22px; background-color: var(--purple); border-radius: 4px; }
 
-        /* === SCROLL HORIZONTAL (APENAS CELULAR) === */
-        .movies-slider {
-            display: flex;
-            overflow-x: auto;
-            gap: 1rem;
-            padding-bottom: 1rem;
-            scrollbar-width: none;
-        }
+        .movies-slider { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 1rem; scrollbar-width: none; }
         .movies-slider::-webkit-scrollbar { display: none; } 
+        .movies-slider .movie-card { flex-shrink: 0; width: calc((100% - 1rem) / 2.15); }
+        .movies-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
-        .movies-slider .movie-card {
-            flex-shrink: 0;
-            width: calc((100% - 1rem) / 2.15); 
-        }
+        /* === Estilos das Playlists === */
+        .playlist-slider { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 1rem; scrollbar-width: none; }
+        .playlist-slider::-webkit-scrollbar { display: none; }
+        .playlist-card { background: var(--card-bg); border: 1px solid #374151; border-radius: 12px; min-width: 140px; height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0;}
+        .playlist-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; transition: opacity 0.2s; }
+        .playlist-card:active img { opacity: 0.3; }
+        .playlist-card .title { position: relative; z-index: 10; font-weight: bold; font-size: 0.9rem; text-align: center; padding: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+        .btn-criar-playlist { font-size: 2rem; color: var(--purple); background: rgba(139, 92, 246, 0.1); border: 2px dashed var(--purple); width: 140px; height: 140px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-criar-playlist:active { transform: scale(0.95); }
 
-        /* === GRID VERTICAL (Aba Explorar) === */
-        .movies-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 1rem; 
-        }
-
-        /* Responsividade para Tablets e PCs */
         @media (min-width: 600px) { 
-            .movies-slider { 
-                display: grid; 
-                grid-template-columns: repeat(3, 1fr); 
-                overflow-x: visible;
-                padding-bottom: 0;
-            }
-            .movies-slider .movie-card { width: 100%; }
+            .movies-slider, .playlist-slider { display: grid; grid-template-columns: repeat(3, 1fr); overflow-x: visible; padding-bottom: 0; }
+            .movies-slider .movie-card, .btn-criar-playlist, .playlist-card { width: 100%; }
             .movies-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (min-width: 900px) { 
-            .movies-slider { grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
-            .movies-grid { grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
-        }
 
-        /* === CARDS E LAYOUT === */
         .movie-card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); transition: transform 0.2s; cursor: pointer; }
         .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
-
         .movie-info { padding: 0.6rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .movie-title { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .movie-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; align-items: flex-start; }
-
         .movie-rating { font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
         .rt-score { color: var(--rotten); }
         .imdb-score { color: var(--imdb); }
         .tmdb-score { color: var(--tmdb); }
-
         .movie-card-overlay { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.2s ease-in-out; padding: 0.75rem; pointer-events: none; }
         .movie-card.aberto .movie-card-overlay { opacity: 1; pointer-events: auto; }
         @media (hover: hover) and (pointer: fine) { .movie-card:hover .movie-card-overlay { opacity: 1; pointer-events: auto; } }
-
+        
         .btn-action { width: 100%; padding: 0.5rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .btn-add { background-color: var(--purple); color: white; }
         .btn-watched { background-color: var(--pink); color: white; }
@@ -131,131 +92,48 @@
         .btn-info { background-color: var(--blue); color: white; }
         .btn-carregar-mais { display: none; margin: 2rem auto 1rem auto; padding: 0.8rem 2rem; background-color: transparent; border: 2px solid var(--purple); color: var(--purple); border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer; width: 100%; max-width: 300px; text-align: center; }
 
-        /* === CHAT FLUTUANTE DE IA RESPONSIVO === */
-        .chat-fab {
-            position: fixed;
-            bottom: 85px; 
-            right: 20px;
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--purple), var(--pink));
-            color: white;
-            border: none;
-            font-size: 1.8rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
-            z-index: 1000;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .chat-fab:active { transform: scale(0.9); }
-
-        .chat-window {
-            position: fixed;
-            bottom: 150px; 
-            right: 20px;
-            width: 360px;
-            height: 500px;
-            max-height: calc(100vh - 160px); 
-            background-color: var(--card-bg);
-            border: 1px solid #374151;
-            border-radius: 16px;
-            display: none; 
-            flex-direction: column;
-            z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            overflow: hidden;
-            animation: fadeInChat 0.2s ease-out;
-        }
-
-        @media (max-width: 600px) {
-            .chat-window {
-                bottom: 80px; 
-                right: 10px;
-                width: calc(100vw - 20px); 
-                height: 65vh; 
-                max-height: none;
-            }
-            .chat-fab { bottom: 80px; right: 15px; }
-        }
-
-        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .chat-header {
-            background-color: #1f2937;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #374151;
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
-        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
-        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
-
-        .chat-movie-card { display: flex; align-items: stretch; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; width: 100%; min-height: 95px; }
-        .chat-movie-card img { width: 65px; min-width: 65px; height: 95px; object-fit: cover; flex-shrink: 0; display: block; }
-        .chat-movie-info { padding: 10px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
-        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
-
-        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
-        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
-        .chat-input-area input:focus { border-color: var(--purple); }
-        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
-
         /* MODAIS */
         .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: flex-end; z-index: 2000; backdrop-filter: blur(8px); animation: slideUp 0.2s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
         .modal-content { background-color: var(--card-bg); padding: 1.5rem; border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; text-align: center; border-top: 1px solid #374151; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); margin: 0 auto; }
         .modal-detalhes-content { max-height: 80vh; overflow-y: auto; text-align: left; }
         .modal-content h3 { margin-bottom: 0.5rem; font-size: 1.2rem; font-weight: 800; }
         .modal-movie-title { color: var(--purple); font-weight: 600; margin-bottom: 1.2rem; font-size: 0.95rem; }
         .modal-buttons { display: flex; flex-direction: column; gap: 0.6rem; }
-
         .btn-modal { width: 100%; padding: 0.8rem; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; text-decoration: none; display: inline-block; }
         .btn-modal-quero { background-color: var(--purple); color: white; }
         .btn-modal-ja { background-color: var(--pink); color: white; }
         .btn-modal-youtube { background-color: #dc2626; color: white; display: none; } 
         .btn-modal-shorts { background-color: var(--youtube); color: white; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .btn-modal-cancel { background-color: #374151; color: #d1d5db; }
-
         .empty-msg { color: var(--text-muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; grid-column: 1 / -1; text-align: center; }
-
-        /* === SOCIAL / AMIGOS === */
-        .nav-btn { position: relative; }
-        .badge-notif { position: absolute; top: 8px; right: calc(50% - 24px); background: var(--pink); color: white; font-size: 0.6rem; font-weight: 900; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; pointer-events: none; }
-        .perfil-setup-card { background: var(--card-bg); border: 1px solid #374151; border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
-        .amigo-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: var(--card-bg); border: 1px solid #1f2937; border-radius: 12px; margin-bottom: 0.6rem; cursor: pointer; transition: border-color 0.2s; }
-        .amigo-item:active { border-color: var(--purple); }
-        .amigo-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; color: white; flex-shrink: 0; }
-        .amigo-info { flex: 1; min-width: 0; }
-        .amigo-username { font-weight: 700; font-size: 0.95rem; }
-        .amigo-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
-        .amigo-actions { display: flex; gap: 0.4rem; }
-        .btn-aceitar { background: var(--purple); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
-        .btn-rejeitar { background: #374151; color: var(--text-muted); border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
-        .secao-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 1.25rem 0 0.6rem 0; }
-        .perfil-amigo-tabs { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
-        .perfil-amigo-tab { flex: 1; padding: 0.6rem; text-align: center; border-radius: 8px; border: 1px solid #374151; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-muted); background: none; }
-        .perfil-amigo-tab.ativo { background: var(--purple); color: white; border-color: var(--purple); }
-        .meu-perfil-card { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
-        .btn-add-amigo { margin-left: auto; background: var(--purple); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
         /* TELA DE LOGIN */
         #tela-login { position: fixed; inset: 0; background: var(--bg-color); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { padding: 2rem; width: 100%; max-width: 360px; text-align: center; }
         .login-input { width: 100%; padding: 0.85rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 1rem; }
         .login-input:focus { outline: none; border-color: var(--purple); }
+
+        /* CHAT FLUTUANTE DE IA */
+        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 1000; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .chat-fab:active { transform: scale(0.9); }
+        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
+        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
+        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-header { background-color: #1f2937; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; font-weight: bold; font-size: 0.95rem; }
+        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
+        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
+        .chat-movie-card { display: flex; align-items: stretch; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; width: 100%; min-height: 95px; }
+        .chat-movie-card img { width: 65px; min-width: 65px; height: 95px; object-fit: cover; flex-shrink: 0; display: block; }
+        .chat-movie-info { padding: 10px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
+        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
+        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
+        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
+        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -264,10 +142,8 @@
         <div class="login-box">
             <h1 class="logo" style="margin-bottom: 0.5rem; font-size: 3rem;">iCine</h1>
             <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Seu diário de filmes pessoal e sincronizado na nuvem.</p>
-
             <input type="email" id="email-login" class="login-input" placeholder="Seu e-mail">
             <input type="password" id="senha-login" class="login-input" placeholder="Sua senha">
-
             <button id="btn-entrar-acao" class="btn-action btn-add" style="margin-bottom: 0.75rem; padding: 0.85rem; font-size: 1rem;">Entrar</button>
             <button id="btn-registrar-acao" class="btn-action btn-watched" style="padding: 0.85rem; font-size: 1rem;">Criar Conta Grátis</button>
             <p id="login-msg" style="color: var(--red); font-size: 0.85rem; margin-top: 1rem;"></p>
@@ -280,19 +156,8 @@
     </header>
 
     <nav>
-        <button id="btn-inicio" class="nav-btn active">
-            <span class="icon">🍿</span>
-            <span>Minhas Listas</span>
-        </button>
-        <button id="btn-explorar" class="nav-btn">
-            <span class="icon">🔍</span>
-            <span>Explorar</span>
-        </button>
-        <button id="btn-amigos" class="nav-btn">
-            <span class="icon">👥</span>
-            <span>Amigos</span>
-            <span id="badge-amigos" class="badge-notif"></span>
-        </button>
+        <button id="btn-inicio" class="nav-btn active"><span class="icon">🍿</span><span>Minhas Listas</span></button>
+        <button id="btn-explorar" class="nav-btn"><span class="icon">🔍</span><span>Explorar</span></button>
     </nav>
 
     <main>
@@ -307,114 +172,33 @@
                 <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar assistidos..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 170px; max-width: 45%;">
             </div>
             <div class="movies-slider" id="ja-assisti-grid"></div>
+
+            <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+            <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Minhas Playlists</h2>
+            <div class="playlist-slider" id="playlists-grid">
+                <div class="btn-criar-playlist" id="btn-abrir-criar-playlist">+</div>
+                </div>
         </div>
 
         <div id="aba-explorar" class="aba">
             <h2><div class="h2-detail"></div> Explorar Catálogo</h2>
-
             <div class="filters-container">
                 <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome... (Enter)">
                 <div class="filters-row">
                     <select id="select-genero" class="filter-input">
                         <option value="todos">🎭 Todos Gêneros</option>
-                        <option value="28">Ação</option>
-                        <option value="12">Aventura</option>
-                        <option value="35">Comédia</option>
-                        <option value="18">Drama</option>
-                        <option value="878">Ficção Científica</option>
-                        <option value="27">Terror</option>
+                        <option value="28">Ação</option><option value="12">Aventura</option><option value="35">Comédia</option>
+                        <option value="18">Drama</option><option value="878">Ficção Científica</option><option value="27">Terror</option>
                     </select>
                     <select id="select-ordem" class="filter-input">
-                        <option value="populares">🔥 Populares</option>
-                        <option value="lancamentos">🆕 Lançamentos</option>
-                        <option value="nota_desc">⭐ Maior Nota</option>
+                        <option value="populares">🔥 Populares</option><option value="lancamentos">🆕 Lançamentos</option><option value="nota_desc">⭐ Maior Nota</option>
                     </select>
                 </div>
             </div>
-
             <div class="movies-grid" id="explorar-grid"></div>
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais">⬇ Carregar Mais</button></div>
         </div>
-
-        <div id="aba-amigos" class="aba">
-            <!-- Username setup (sem perfil) -->
-            <div id="setup-username-card" class="perfil-setup-card" style="display:none;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👤</div>
-                <h3 style="margin-bottom: 0.4rem;">Escolhe o teu @username</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">Os teus amigos usam este nome para te encontrar.</p>
-                <input type="text" id="input-username" class="filter-input" placeholder="ex: joao_cinefilo" style="margin-bottom: 0.8rem; text-align: center; text-transform: lowercase;">
-                <button id="btn-salvar-username" class="btn-modal btn-modal-quero" style="width: 100%;">✓ Confirmar Username</button>
-                <p id="username-msg" style="color: var(--red); font-size: 0.8rem; margin-top: 0.6rem; min-height: 1rem;"></p>
-            </div>
-
-            <!-- Meu perfil (com perfil criado) -->
-            <div id="meu-perfil-card" class="meu-perfil-card" style="display:none;">
-                <div class="amigo-avatar" id="meu-avatar">?</div>
-                <div>
-                    <div style="font-weight: 900; font-size: 1rem;" id="meu-username-display">@username</div>
-                    <div style="font-size: 0.78rem; color: var(--text-muted);">O teu perfil público</div>
-                </div>
-                <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
-            </div>
-
-            <!-- Pedidos pendentes -->
-            <div id="secao-pedidos" style="display:none;">
-                <div class="secao-label">📬 Pedidos Pendentes</div>
-                <div id="lista-pedidos"></div>
-            </div>
-
-            <!-- Lista de amigos -->
-            <div id="secao-amigos-lista">
-                <div class="secao-label">👥 Os teus Amigos</div>
-                <div id="lista-amigos"><p class="empty-msg">Ainda não tens amigos no iCine.</p></div>
-            </div>
-        </div>
     </main>
-
-    <button id="btn-chat-fab" class="chat-fab">✨</button>
-
-    <div id="chat-window" class="chat-window">
-        <div class="chat-header">
-            <div class="title">✨ IA do iCine</div>
-            <button id="btn-fechar-chat">&times;</button>
-        </div>
-
-        <div id="chat-messages" class="chat-messages">
-            <div class="chat-msg msg-bot">Olá! Sou o cérebro cinéfilo do iCine. Diga-me a "vibe" que procura e eu encontro o filme perfeito para si! 🍿</div>
-        </div>
-
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios...">
-            <button id="btn-enviar-chat">➤</button>
-        </div>
-    </div>
-
-    <!-- Modal: Buscar Amigo -->
-    <div id="modal-buscar-amigo" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>🔍 Encontrar Amigo</h3>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Pesquisa pelo @username do teu amigo</p>
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                <input type="text" id="input-busca-amigo" class="filter-input" placeholder="@username" style="flex: 1;">
-                <button id="btn-pesquisar-amigo" class="btn-modal btn-modal-quero" style="width: auto; padding: 0 1rem;">Buscar</button>
-            </div>
-            <div id="resultado-busca-amigo"></div>
-            <button id="btn-fechar-busca-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
-        </div>
-    </div>
-
-    <!-- Modal: Perfil do Amigo -->
-    <div id="modal-perfil-amigo" class="modal" style="display:none;">
-        <div class="modal-content modal-detalhes-content">
-            <h3 id="perfil-amigo-titulo" style="margin-bottom: 1rem; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent;">@amigo</h3>
-            <div class="perfil-amigo-tabs">
-                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Já Assistiu</button>
-                <button class="perfil-amigo-tab" id="tab-amigo-quero">✨ Quer Assistir</button>
-            </div>
-            <div id="perfil-amigo-conteudo"></div>
-            <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
-        </div>
-    </div>
 
     <div id="modal-escolha" class="modal">
         <div class="modal-content">
@@ -423,7 +207,42 @@
             <div class="modal-buttons">
                 <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
                 <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Já Assisti</button>
-                <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel">Cancelar</button>
+                <button id="btn-toggle-playlists" class="btn-modal" style="background-color: var(--blue); color: white;">➕ Adicionar a uma Playlist</button>
+                
+                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;">
+                    </div>
+
+                <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel" style="margin-top: 0.5rem;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-criar-playlist" class="modal">
+        <div class="modal-content">
+            <h3>Criar Nova Playlist</h3>
+            <input type="text" id="input-nome-playlist" class="login-input" placeholder="Ex: Maratona de Terror">
+            <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left;">Capa da Playlist (Sua Galeria):</label>
+            <input type="file" id="input-capa-playlist" accept="image/*" class="login-input" style="padding: 0.5rem; background: #111827;">
+            <div class="modal-buttons">
+                <button id="btn-salvar-playlist" class="btn-modal btn-modal-quero">Criar Playlist</button>
+                <button id="btn-cancelar-criar-playlist" class="btn-modal btn-modal-cancel">Cancelar</button>
+            </div>
+            <p id="msg-criar-playlist" style="color: var(--pink); font-size: 0.85rem; margin-top: 1rem;"></p>
+        </div>
+    </div>
+
+    <div id="modal-ver-playlist" class="modal" style="align-items: flex-start; overflow-y: auto; z-index: 2500;">
+        <div style="background: var(--bg-color); width: 100%; min-height: 100vh; position: relative; padding-bottom: 80px;">
+            <button id="btn-fechar-ver-playlist" style="position: absolute; top: 15px; right: 15px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            
+            <div id="capa-ver-playlist" style="width: 100%; height: 280px; background-size: cover; background-position: center; position: relative;">
+                <div style="position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color), transparent);"></div>
+                <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
+            </div>
+            
+            <div style="padding: 1.5rem 1rem;">
+                <p id="msg-playlist-vazia" class="empty-msg" style="display:none;">Esta playlist ainda não tem filmes.</p>
+                <div class="movies-grid" id="grid-ver-playlist"></div>
             </div>
         </div>
     </div>
@@ -446,14 +265,19 @@
         </div>
     </div>
 
+    <button id="btn-chat-fab" class="chat-fab">✨</button>
+    <div id="chat-window" class="chat-window">
+        <div class="chat-header"><div class="title">✨ IA do iCine</div><button id="btn-fechar-chat">&times;</button></div>
+        <div id="chat-messages" class="chat-messages"><div class="chat-msg msg-bot">Olá! Sou o cérebro cinéfilo do iCine. Diga-me a "vibe" que procura e eu encontro o filme perfeito para si! 🍿</div></div>
+        <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios..."><button id="btn-enviar-chat">➤</button></div>
+    </div>
+
     <script>
         console.log("iCine Full Stack Core Active!");
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('PWA: Service Worker Ativo!', reg))
-                    .catch(err => console.error('PWA: Erro no Service Worker', err));
+                navigator.serviceWorker.register('./service-worker.js').catch(() => {});
             });
         }
 
@@ -461,7 +285,6 @@
         const TMDB_KEY = '583c7b5c219b1edbfc6a76210b4ade05'; 
         const URL_BASE = 'https://api.themoviedb.org/3';
         const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
-
         const SUPABASE_URL = 'https://ihbutfwdkkkykwqoaahx.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_9GWFmch4e7hH9uijg577jQ_UoKzImDH';
         const OMDB_KEY = '8a9cb300'; 
@@ -472,6 +295,7 @@
         const bancoDeFilmesLocal = new Map();
         let listaQueroAssistir = [];
         let listaJaAssisti = [];
+        let minhasPlaylists = []; // Array das playlists
         let filmeSelecionadoTemporario = null;
         let paginaAtual = 1;
         let filmesExplorarAcumulados = [];
@@ -483,8 +307,8 @@
                     usuarioAtual = session.user;
                     document.getElementById('tela-login').style.display = 'none';
                     carregarFilmesDaNuvem(); 
+                    carregarPlaylistsDaNuvem(); // Carrega playlists no inicio
                     aplicarFiltros(true);
-                    verificarPerfil();
                 } else {
                     document.getElementById('tela-login').style.display = 'flex';
                 }
@@ -496,7 +320,7 @@
             const senha = document.getElementById('senha-login').value;
             const msg = document.getElementById('login-msg');
             msg.innerText = "A carregar...";
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
             if (error) msg.innerText = "Erro: " + error.message;
             else checarSessao();
         });
@@ -506,29 +330,26 @@
             const senha = document.getElementById('senha-login').value;
             const msg = document.getElementById('login-msg');
             msg.innerText = "A criar conta...";
-            const { data, error } = await supabaseClient.auth.signUp({ email, password: senha });
+            const { error } = await supabaseClient.auth.signUp({ email, password: senha });
             if (error) msg.innerText = "Erro: " + error.message;
             else msg.innerText = "Conta criada com sucesso! Já pode entrar.";
         });
 
         document.getElementById('btn-sair-acao').addEventListener('click', async () => {
             await supabaseClient.auth.signOut();
-            listaQueroAssistir = []; listaJaAssisti = []; bancoDeFilmesLocal.clear();
+            listaQueroAssistir = []; listaJaAssisti = []; minhasPlaylists = []; bancoDeFilmesLocal.clear();
             checarSessao();
         });
 
         document.getElementById('btn-inicio').addEventListener('click', () => mudarAba('inicio'));
         document.getElementById('btn-explorar').addEventListener('click', () => mudarAba('explorar'));
-        document.getElementById('btn-amigos').addEventListener('click', () => mudarAba('amigos'));
 
         function mudarAba(abaId) {
             document.querySelectorAll('.aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-
             document.getElementById(`aba-${abaId}`).classList.add('ativa');
             document.getElementById(`btn-${abaId}`).classList.add('active');
             if (abaId === 'inicio') renderizarMinhasListas();
-            if (abaId === 'amigos') renderizarAbaAmigos();
         }
 
         document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
@@ -538,27 +359,15 @@
         document.getElementById('btn-carregar-mais').addEventListener('click', () => { paginaAtual++; aplicarFiltros(false); });
 
         function renderScoreBadge(filme) {
-            let badgePrimario = filme.notaImdb && filme.notaImdb !== 'N/A' 
-                ? `<span class="imdb-score">⭐ ${filme.notaImdb}</span>` 
-                : `<span class="tmdb-score">🎬 ${filme.notaTmdb || filme.nota || '0.0'}</span>`;
-
-            let badgeRt = filme.notaRt && filme.notaRt !== 'N/A' 
-                ? `<span class="rt-score">🍅 ${filme.notaRt}</span>` 
-                : '';
-
+            let badgePrimario = filme.notaImdb && filme.notaImdb !== 'N/A' ? `<span class="imdb-score">⭐ ${filme.notaImdb}</span>` : `<span class="tmdb-score">🎬 ${filme.notaTmdb || filme.nota || '0.0'}</span>`;
+            let badgeRt = filme.notaRt && filme.notaRt !== 'N/A' ? `<span class="rt-score">🍅 ${filme.notaRt}</span>` : '';
             return `${badgePrimario} ${badgeRt}`;
         }
 
-        function getScoreParaOrdem(filme) {
-            let nota = filme.notaImdb !== 'N/A' ? filme.notaImdb : filme.notaTmdb;
-            return parseFloat(nota) || 0;
-        }
+        function getScoreParaOrdem(filme) { return parseFloat(filme.notaImdb !== 'N/A' ? filme.notaImdb : filme.notaTmdb) || 0; }
 
         async function aplicarFiltros(resetarPagina = false) {
-            if (resetarPagina) {
-                paginaAtual = 1;
-                filmesExplorarAcumulados = [];
-            }
+            if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
             const termoBusca = document.getElementById('input-pesquisa').value.trim();
             const generoId = document.getElementById('select-genero').value;
             const ordem = document.getElementById('select-ordem').value;
@@ -567,57 +376,32 @@
             let url = '';
             if (termoBusca !== '') url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}`;
             else {
-                if (ordem === 'nota_desc') {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
-                } else if (ordem === 'lancamentos') {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHoje}&page=${paginaAtual}`;
-                } else {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
-                }
+                if (ordem === 'nota_desc') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
+                else if (ordem === 'lancamentos') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHoje}&page=${paginaAtual}`;
+                else url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
                 if (generoId !== 'todos') url += `&with_genres=${generoId}`;
             }
 
             try {
                 const resposta = await fetch(url);
                 const dados = await resposta.json();
-
                 let novasCapas = dados.results.filter(f => f.poster_path).map(filme => ({
-                    id: filme.id, 
-                    titulo: filme.title, 
-                    tituloOriginal: filme.original_title, 
-                    ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', 
-                    notaTmdb: filme.vote_average.toFixed(1),
-                    notaImdb: 'N/A',
-                    notaRt: 'N/A',
-                    capa: `${IMG_BASE}${filme.poster_path}`, 
-                    sinopse: filme.overview || 'Sinopse não disponibilizada.'
+                    id: filme.id, titulo: filme.title, tituloOriginal: filme.original_title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: `${IMG_BASE}${filme.poster_path}`, sinopse: filme.overview || 'Sinopse não disponibilizada.'
                 }));
 
                 if (OMDB_KEY !== '') {
                     novasCapas = await Promise.all(novasCapas.map(async (filme) => {
                         try {
-                            const omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(filme.tituloOriginal)}&y=${filme.ano}`;
-                            const respOmdb = await fetch(omdbUrl);
+                            const respOmdb = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(filme.tituloOriginal)}&y=${filme.ano}`);
                             const dadosOmdb = await respOmdb.json();
-
-                            if (dadosOmdb && dadosOmdb.imdbRating && dadosOmdb.imdbRating !== 'N/A') {
-                                filme.notaImdb = dadosOmdb.imdbRating;
-                            }
-                            if (dadosOmdb && dadosOmdb.Ratings) {
-                                const rtRating = dadosOmdb.Ratings.find(r => r.Source === "Rotten Tomatoes");
-                                if (rtRating && rtRating.Value !== 'N/A') filme.notaRt = rtRating.Value;
-                            }
-                        } catch (e) {}
-                        return filme;
+                            if (dadosOmdb && dadosOmdb.imdbRating && dadosOmdb.imdbRating !== 'N/A') filme.notaImdb = dadosOmdb.imdbRating;
+                            if (dadosOmdb && dadosOmdb.Ratings) { const rtRating = dadosOmdb.Ratings.find(r => r.Source === "Rotten Tomatoes"); if (rtRating && rtRating.Value !== 'N/A') filme.notaRt = rtRating.Value; }
+                        } catch (e) {} return filme;
                     }));
                 }
 
                 filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
-
-                if (ordem === 'nota_desc') {
-                    filmesExplorarAcumulados.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
-                }
-
+                if (ordem === 'nota_desc') filmesExplorarAcumulados.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
                 filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
 
                 renderizarGridExplorar(filmesExplorarAcumulados);
@@ -626,47 +410,42 @@
         }
 
         function renderizarGridExplorar(listaDeFilmes) {
-            const container = document.getElementById('explorar-grid');
-            container.innerHTML = listaDeFilmes.map(filme => `
+            document.getElementById('explorar-grid').innerHTML = listaDeFilmes.map(filme => gerarCartaoFilmeHTML(filme)).join('');
+            mapearBotoesGrid();
+        }
+
+        function gerarCartaoFilmeHTML(f, isPlaylistView = false) {
+            return `
                 <div class="movie-card">
-                    <img src="${filme.capa}" alt="${filme.titulo}">
+                    <img src="${f.capa}" alt="${f.titulo}">
                     <div class="movie-card-overlay">
-                        <button class="btn-action btn-info" data-id="${filme.id}" data-action="sinopse">ℹ️ Sinopse</button>
-                        <button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">+ Lista</button>
+                        <button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
+                        ${isPlaylistView ? '' : `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">+ Lista</button>`}
                     </div>
                     <div class="movie-info">
-                        <div class="movie-title">${filme.titulo}</div>
+                        <div class="movie-title">${f.titulo}</div>
                         <div class="movie-meta">
-                            <span>${filme.ano}</span>
-                            <div class="movie-rating">${renderScoreBadge(filme)}</div>
+                            <span>${f.ano}</span>
+                            <div class="movie-rating">${renderScoreBadge(f)}</div>
                         </div>
                     </div>
-                </div>`).join('');
-            mapearBotoesGrid();
+                </div>`;
         }
 
         function mapearBotoesGrid() {
             document.querySelectorAll('.movie-card').forEach(card => {
                 const novoCard = card.cloneNode(true);
                 card.parentNode.replaceChild(novoCard, card);
-
                 novoCard.addEventListener('click', (e) => {
                     if (e.target.tagName === 'BUTTON' || e.target.closest('a')) return;
-
-                    if (novoCard.classList.contains('aberto')) {
-                        novoCard.classList.remove('aberto');
-                    } else {
-                        document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('aberto'));
-                        novoCard.classList.add('aberto');
-                    }
+                    if (novoCard.classList.contains('aberto')) novoCard.classList.remove('aberto');
+                    else { document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('aberto')); novoCard.classList.add('aberto'); }
                 });
-
                 novoCard.querySelectorAll('[data-action]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const id = parseInt(btn.getAttribute('data-id'));
                         const acao = btn.getAttribute('data-action');
-
                         if (acao === 'sinopse') abrirDetalhes(id);
                         else if (acao === 'organizar') abrirModal(id);
                         else if (acao === 'mover-ja') moverFilme(id, 'ja');
@@ -677,77 +456,153 @@
             });
         }
 
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.movie-card')) {
-                document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('aberto'));
-            }
-        });
+        document.addEventListener('click', (e) => { if (!e.target.closest('.movie-card')) document.querySelectorAll('.movie-card').forEach(c => c.classList.remove('aberto')); });
 
         async function carregarFilmesDaNuvem() {
             const { data } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', usuarioAtual.id);
             if (data) {
-                const dataSanitizada = await Promise.all(data.map(async (f) => {
-                    let notaTmdb = f.nota || '0.0'; 
-                    let notaImdb = 'N/A';
-                    let notaRt = 'N/A';
-
-                    try {
-                        const respTmdb = await fetch(`${URL_BASE}/movie/${f.tmdb_id}?api_key=${TMDB_KEY}`);
-                        const dadosTmdb = await respTmdb.json();
-
-                        if (dadosTmdb) {
-                            notaTmdb = dadosTmdb.vote_average.toFixed(1);
-                            if (dadosTmdb.original_title) {
-                                let omdbUrl = `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(dadosTmdb.original_title)}&y=${f.ano}`;
-                                let respOmdb = await fetch(omdbUrl);
-                                let dadosOmdb = await respOmdb.json();
-
-                                if (dadosOmdb && dadosOmdb.imdbRating && dadosOmdb.imdbRating !== 'N/A') {
-                                    notaImdb = dadosOmdb.imdbRating;
-                                }
-                                if (dadosOmdb && dadosOmdb.Ratings) {
-                                    const rtRating = dadosOmdb.Ratings.find(r => r.Source === "Rotten Tomatoes");
-                                    if (rtRating && rtRating.Value !== 'N/A') notaRt = rtRating.Value;
-                                }
-                            }
-                        }
-                    } catch (e) { console.error(e); }
-
-                    return { ...f, notaTmdb, notaImdb, notaRt };
-                }));
-
-                dataSanitizada.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
-
-                listaQueroAssistir = dataSanitizada.filter(f => f.grupo === 'quero');
-                listaJaAssisti = dataSanitizada.filter(f => f.grupo === 'ja');
-
-                dataSanitizada.forEach(f => {
-                    bancoDeFilmesLocal.set(f.tmdb_id, { id: f.tmdb_id, titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse });
-                });
+                listaQueroAssistir = data.filter(f => f.grupo === 'quero');
+                listaJaAssisti = data.filter(f => f.grupo === 'ja');
+                data.forEach(f => bancoDeFilmesLocal.set(f.tmdb_id, { id: f.tmdb_id, titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse }));
                 renderizarMinhasListas();
             }
         }
 
+        // ==========================================
+        // === LÓGICA DAS PLAYLISTS ===
+        // ==========================================
+        async function carregarPlaylistsDaNuvem() {
+            const { data } = await supabaseClient.from('playlists').select('*').eq('user_id', usuarioAtual.id);
+            if (data) {
+                minhasPlaylists = data;
+                renderizarMinhasListas();
+            }
+        }
+
+        document.getElementById('btn-abrir-criar-playlist').addEventListener('click', () => {
+            document.getElementById('input-nome-playlist').value = '';
+            document.getElementById('input-capa-playlist').value = '';
+            document.getElementById('msg-criar-playlist').innerText = '';
+            document.getElementById('modal-criar-playlist').style.display = 'flex';
+        });
+
+        document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => {
+            document.getElementById('modal-criar-playlist').style.display = 'none';
+        });
+
+        document.getElementById('btn-salvar-playlist').addEventListener('click', async () => {
+            const nome = document.getElementById('input-nome-playlist').value.trim();
+            const fileInput = document.getElementById('input-capa-playlist');
+            const msg = document.getElementById('msg-criar-playlist');
+
+            if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
+            if (!fileInput.files || fileInput.files.length === 0) return msg.innerText = "Escolha uma imagem de capa da sua galeria.";
+
+            msg.innerText = "A enviar capa e a criar playlist... ⏳";
+            const file = fileInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
+
+            try {
+                // Upload da foto para o Supabase Storage (Bucket "capas")
+                const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
+                const publicUrl = urlData.publicUrl;
+
+                // Salvar a Playlist na tabela
+                const novaPlaylist = { user_id: usuarioAtual.id, nome: nome, capa_url: publicUrl, filmes: [] };
+                const { error: dbError } = await supabaseClient.from('playlists').insert([novaPlaylist]);
+                if (dbError) throw dbError;
+
+                await carregarPlaylistsDaNuvem();
+                document.getElementById('modal-criar-playlist').style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Erro ao criar playlist. Verifique se criou a tabela e o bucket no Supabase!";
+            }
+        });
+
+        // Alternar lista de playlists no modal de adicionar filme
+        document.getElementById('btn-toggle-playlists').addEventListener('click', () => {
+            const listaDiv = document.getElementById('lista-playlists-escolha');
+            if (listaDiv.style.display === 'flex') {
+                listaDiv.style.display = 'none';
+            } else {
+                listaDiv.style.display = 'flex';
+                if (minhasPlaylists.length === 0) {
+                    listaDiv.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Não tens playlists criadas.</p>`;
+                } else {
+                    listaDiv.innerHTML = minhasPlaylists.map(p => `
+                        <button class="btn-modal" style="background:#1f2937; color:white; border: 1px solid #374151; font-size:0.85rem;" onclick="adicionarFilmeNaPlaylist('${p.id}')">
+                            ${p.nome}
+                        </button>
+                    `).join('');
+                }
+            }
+        });
+
+        async function adicionarFilmeNaPlaylist(playlistId) {
+            if (!filmeSelecionadoTemporario) return;
+            const playlist = minhasPlaylists.find(p => p.id === playlistId);
+            
+            const jaExiste = playlist.filmes.some(f => f.id === filmeSelecionadoTemporario.id);
+            if (jaExiste) { alert('Este filme já está nesta playlist!'); return; }
+
+            const filmeLimpo = {
+                id: filmeSelecionadoTemporario.id, titulo: filmeSelecionadoTemporario.titulo, ano: filmeSelecionadoTemporario.ano, notaTmdb: filmeSelecionadoTemporario.notaTmdb, notaImdb: filmeSelecionadoTemporario.notaImdb, capa: filmeSelecionadoTemporario.capa, sinopse: filmeSelecionadoTemporario.sinopse
+            };
+
+            const novosFilmes = [...playlist.filmes, filmeLimpo];
+            
+            const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlistId);
+            if (!error) {
+                alert('🎬 Adicionado à playlist com sucesso!');
+                carregarPlaylistsDaNuvem();
+                fecharModal();
+            } else {
+                alert('Erro ao guardar na playlist.');
+            }
+        }
+
+        // Abrir a Playlist em Tela Cheia
+        function abrirVerPlaylist(playlistId) {
+            const p = minhasPlaylists.find(p => p.id === playlistId);
+            if (!p) return;
+            document.getElementById('titulo-ver-playlist').innerText = p.nome;
+            document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`;
+            
+            const grid = document.getElementById('grid-ver-playlist');
+            if (p.filmes.length === 0) {
+                document.getElementById('msg-playlist-vazia').style.display = 'block';
+                grid.innerHTML = '';
+            } else {
+                document.getElementById('msg-playlist-vazia').style.display = 'none';
+                grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, true)).join('');
+            }
+            
+            document.getElementById('modal-ver-playlist').style.display = 'flex';
+            mapearBotoesGrid();
+        }
+
+        document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { document.getElementById('modal-ver-playlist').style.display = 'none'; });
+
+        // ==========================================
+
         document.getElementById('btn-salvar-quero').addEventListener('click', () => salvarNoGrupo('quero'));
         document.getElementById('btn-salvar-ja').addEventListener('click', () => salvarNoGrupo('ja'));
         document.getElementById('btn-cancelar-modal').addEventListener('click', fecharModal);
-        document.getElementById('btn-fechar-detalhes').addEventListener('click', fecharDetalhes);
 
         async function salvarNoGrupo(grupo) {
             if (!filmeSelecionadoTemporario) return;
             const filme = filmeSelecionadoTemporario;
-
             const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id == filme.id);
             if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModal(); return; }
 
             const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, grupo: grupo };
-            const { error } = await supabaseClient.from('meus_filmes').insert([novoFilme]);
-            if (error) {
-                console.error('Erro ao salvar filme:', error);
-                alert('Erro ao salvar o filme. Tenta novamente.');
-            } else {
-                carregarFilmesDaNuvem();
-            }
+            await supabaseClient.from('meus_filmes').insert([novoFilme]);
+            carregarFilmesDaNuvem();
             fecharModal();
         }
 
@@ -764,6 +619,7 @@
         }
 
         function renderizarMinhasListas() {
+            // Render Watchlist
             const cWatch = document.getElementById('watchlist-grid');
             cWatch.innerHTML = listaQueroAssistir.length === 0 ? `<p class="empty-msg">Sua Watchlist está vazia.</p>` : listaQueroAssistir.map(f => `
                 <div class="movie-card">
@@ -773,27 +629,18 @@
                         <button class="btn-action btn-watched" data-id="${f.tmdb_id}" data-action="mover-ja">⬇ Assistido</button>
                         <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
                     </div>
-                    <div class="movie-info">
-                        <div class="movie-title">${f.titulo}</div>
-                        <div class="movie-meta">
-                            <span>${f.ano}</span>
-                            <div class="movie-rating">${renderScoreBadge(f)}</div>
-                        </div>
-                    </div>
+                    <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                 </div>`).join('');
 
+            // Render Já Assisti com Pesquisa Local
             const cJa = document.getElementById('ja-assisti-grid');
             const inputJaAssisti = document.getElementById('pesquisa-ja-assisti');
             const termoFiltro = inputJaAssisti ? inputJaAssisti.value.toLowerCase().trim() : '';
-            const filmesFiltrados = termoFiltro !== ''
-                ? listaJaAssisti.filter(f => f.titulo.toLowerCase().includes(termoFiltro))
-                : listaJaAssisti;
+            const filmesFiltrados = termoFiltro !== '' ? listaJaAssisti.filter(f => f.titulo.toLowerCase().includes(termoFiltro)) : listaJaAssisti;
 
-            if (listaJaAssisti.length === 0) {
-                cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido.</p>`;
-            } else if (filmesFiltrados.length === 0) {
-                cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado nos seus assistidos.</p>`;
-            } else {
+            if (listaJaAssisti.length === 0) cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido.</p>`;
+            else if (filmesFiltrados.length === 0) cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado.</p>`;
+            else {
                 cJa.innerHTML = filmesFiltrados.map(f => `
                 <div class="movie-card">
                     <img src="${f.capa}" alt="${f.titulo}">
@@ -802,19 +649,30 @@
                         <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆ Watchlist</button>
                         <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
                     </div>
-                    <div class="movie-info">
-                        <div class="movie-title">${f.titulo}</div>
-                        <div class="movie-meta">
-                            <span>${f.ano}</span>
-                            <div class="movie-rating">${renderScoreBadge(f)}</div>
-                        </div>
-                    </div>
+                    <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                 </div>`).join('');
             }
+
+            // Render Playlists
+            const pGrid = document.getElementById('playlists-grid');
+            // Remove as antigas antes de renderizar para não duplicar, mantendo só o botão +
+            Array.from(pGrid.children).forEach(child => { if(child.id !== 'btn-abrir-criar-playlist') child.remove(); });
+            
+            minhasPlaylists.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'playlist-card';
+                div.onclick = () => abrirVerPlaylist(p.id);
+                div.innerHTML = `
+                    <img src="${p.capa_url}" alt="${p.nome}">
+                    <div class="title">${p.nome}</div>
+                `;
+                pGrid.appendChild(div);
+            });
+
             mapearBotoesGrid();
         }
 
-        function abrirModal(id) { filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; document.getElementById('modal-escolha').style.display = 'flex'; }
+        function abrirModal(id) { filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; document.getElementById('lista-playlists-escolha').style.display = 'none'; document.getElementById('modal-escolha').style.display = 'flex'; }
         function fecharModal() { document.getElementById('modal-escolha').style.display = 'none'; filmeSelecionadoTemporario = null; }
 
         async function abrirDetalhes(id) {
@@ -860,26 +718,19 @@
                 }
             } catch (err) { console.log("Erro ao buscar streamings:", err); }
         }
-        function fecharDetalhes() { document.getElementById('modal-detalhes').style.display = 'none'; }
+        document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { document.getElementById('modal-detalhes').style.display = 'none'; });
 
-
-        // === MOTOR REAL DO INTELECTO DA IA GEMINI ===
+        // === IA GROQ ===
         const btnChatFab = document.getElementById('btn-chat-fab');
         const chatWindow = document.getElementById('chat-window');
         const btnFecharChat = document.getElementById('btn-fechar-chat');
         const chatInput = document.getElementById('chat-input');
         const btnEnviarChat = document.getElementById('btn-enviar-chat');
         const chatMessages = document.getElementById('chat-messages');
-
         let historicoChat = [];
 
-        btnChatFab.addEventListener('click', () => {
-            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
-            if (chatWindow.style.display === 'flex') chatInput.focus();
-        });
-
+        btnChatFab.addEventListener('click', () => { chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex'; if (chatWindow.style.display === 'flex') chatInput.focus(); });
         btnFecharChat.addEventListener('click', () => { chatWindow.style.display = 'none'; });
-
         btnEnviarChat.addEventListener('click', processarMensagemUtilizador);
         chatInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') processarMensagemUtilizador(); });
 
@@ -895,34 +746,21 @@
         async function processarMensagemUtilizador() {
             const textoUser = chatInput.value.trim();
             if (textoUser === '') return;
-
             chatInput.value = '';
             adicionarMensagem(textoUser, 'msg-user');
             historicoChat.push({ role: "user", content: textoUser });
-
             const loadingMsg = adicionarMensagem("A procurar nos meus arquivos... 🎬", 'msg-bot');
-
             const SYSTEM_PROMPT = "Você é o assistente inteligente do app iCine, focado estritamente em responder ao que o usuário perguntou de forma amigável e direta. NÃO dê recomendações extras de outros filmes se o usuário não tiver pedido por recomendações. Se o usuário perguntar sobre a sinopse, história ou curiosidade de um filme específico, foque APENAS em responder sobre esse filme e encerre a resposta. A REGRA DE OURO: SE (e somente se) você indicar ou citar algum filme, é OBRIGATÓRIO escrever o título e o ano no formato exato: [Título do Filme | Ano] para que o sistema gere o card.";
 
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-                    body: JSON.stringify({
-                        model: 'llama-3.3-70b-versatile',
-                        messages: [
-                            { role: 'system', content: SYSTEM_PROMPT },
-                            ...historicoChat
-                        ]
-                    })
+                    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historicoChat] })
                 });
 
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(`HTTP ${response.status}: ${errData.error?.message || response.statusText}`);
-                }
+                if (!response.ok) throw new Error("Erro API");
                 const data = await response.json();
-
                 const botText = data.choices?.[0]?.message?.content;
                 if (!botText) throw new Error("Sem resposta da IA.");
                 historicoChat.push({ role: "assistant", content: botText });
@@ -936,286 +774,29 @@
                     filmesParaProcurar.push({ titulo: match[1].trim(), ano: match[2] });
                     textoDeExibicao = textoDeExibicao.replace(match[0], `<strong>${match[1].trim()} (${match[2]})</strong>`);
                 }
-
                 loadingMsg.innerHTML = textoDeExibicao;
-
-                for (const f of filmesParaProcurar) {
-                    buscarERenderizarFilmeChat(f.titulo, f.ano);
-                }
-
+                for (const f of filmesParaProcurar) { buscarERenderizarFilmeChat(f.titulo, f.ano); }
             } catch (e) {
-                console.error(e);
                 loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial.";
             }
         }
-
-        // ============================================================
-        // === SISTEMA SOCIAL: AMIGOS ===
-        // ============================================================
-        let meuPerfil = null;
-        let pedidosPendentes = [];
-        let listaAmigos = [];
-
-        async function verificarPerfil() {
-            const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).single();
-            if (data) {
-                meuPerfil = data;
-            } else {
-                meuPerfil = null;
-            }
-            carregarAmigos();
-        }
-
-        async function carregarAmigos() {
-            // Pedidos pendentes recebidos por mim
-            const { data: pedidosRaw } = await supabaseClient
-                .from('amizades').select('*')
-                .eq('destinatario_id', usuarioAtual.id).eq('status', 'pendente');
-
-            pedidosPendentes = [];
-            for (const p of (pedidosRaw || [])) {
-                const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', p.solicitante_id).single();
-                pedidosPendentes.push({ ...p, username_solicitante: perf?.username || 'utilizador' });
-            }
-
-            // Amizades aceites
-            const { data: aceites } = await supabaseClient
-                .from('amizades').select('*').eq('status', 'aceite')
-                .or(`solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${usuarioAtual.id}`);
-
-            listaAmigos = [];
-            for (const a of (aceites || [])) {
-                const amigoId = a.solicitante_id === usuarioAtual.id ? a.destinatario_id : a.solicitante_id;
-                const { data: perf } = await supabaseClient.from('perfis').select('username, user_id').eq('user_id', amigoId).single();
-                if (perf) listaAmigos.push({ ...perf, amizade_id: a.id });
-            }
-
-            atualizarBadgeAmigos();
-            // Re-renderiza só se a aba estiver visível
-            if (document.getElementById('aba-amigos').classList.contains('ativa')) {
-                renderizarAbaAmigos();
-            }
-        }
-
-        function atualizarBadgeAmigos() {
-            const badge = document.getElementById('badge-amigos');
-            if (pedidosPendentes.length > 0) {
-                badge.innerText = pedidosPendentes.length;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function renderizarAbaAmigos() {
-            if (!meuPerfil) {
-                document.getElementById('setup-username-card').style.display = 'block';
-                document.getElementById('meu-perfil-card').style.display = 'none';
-                document.getElementById('lista-amigos').innerHTML = '<p class="empty-msg">Define o teu username para começar.</p>';
-                document.getElementById('secao-pedidos').style.display = 'none';
-                return;
-            }
-
-            // Meu perfil
-            document.getElementById('setup-username-card').style.display = 'none';
-            document.getElementById('meu-perfil-card').style.display = 'flex';
-            document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username;
-            document.getElementById('meu-avatar').innerText = meuPerfil.username.charAt(0).toUpperCase();
-
-            // Pedidos pendentes
-            const secPedidos = document.getElementById('secao-pedidos');
-            if (pedidosPendentes.length > 0) {
-                secPedidos.style.display = 'block';
-                document.getElementById('lista-pedidos').innerHTML = pedidosPendentes.map(p => `
-                    <div class="amigo-item" style="cursor: default;">
-                        <div class="amigo-avatar">${p.username_solicitante.charAt(0).toUpperCase()}</div>
-                        <div class="amigo-info">
-                            <div class="amigo-username">@${p.username_solicitante}</div>
-                            <div class="amigo-sub">quer ser teu amigo no iCine</div>
-                        </div>
-                        <div class="amigo-actions">
-                            <button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button>
-                            <button class="btn-rejeitar" onclick="rejeitarPedido('${p.id}')">✕</button>
-                        </div>
-                    </div>`).join('');
-            } else {
-                secPedidos.style.display = 'none';
-            }
-
-            // Lista de amigos
-            const listaEl = document.getElementById('lista-amigos');
-            if (listaAmigos.length === 0) {
-                listaEl.innerHTML = '<p class="empty-msg">Ainda não tens amigos no iCine. Usa o botão + Amigo!</p>';
-            } else {
-                listaEl.innerHTML = listaAmigos.map(a => `
-                    <div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')">
-                        <div class="amigo-avatar">${a.username.charAt(0).toUpperCase()}</div>
-                        <div class="amigo-info">
-                            <div class="amigo-username">@${a.username}</div>
-                            <div class="amigo-sub">Toca para ver as listas 🎬</div>
-                        </div>
-                        <span style="color: var(--text-muted); font-size: 1.3rem; margin-left: auto;">›</span>
-                    </div>`).join('');
-            }
-        }
-
-        // Salvar username
-        document.getElementById('btn-salvar-username').addEventListener('click', async () => {
-            const raw = document.getElementById('input-username').value.trim().toLowerCase();
-            const username = raw.replace(/[^a-z0-9_]/g, '');
-            const msg = document.getElementById('username-msg');
-            if (username.length < 3) { msg.innerText = 'O username deve ter pelo menos 3 caracteres.'; return; }
-            msg.innerText = 'A guardar...';
-            const { error } = await supabaseClient.from('perfis').insert([{ user_id: usuarioAtual.id, username }]);
-            if (error) {
-                msg.innerText = error.code === '23505' ? 'Username já está em uso. Tenta outro!' : 'Erro ao guardar. Tenta novamente.';
-            } else {
-                meuPerfil = { user_id: usuarioAtual.id, username };
-                msg.innerText = '';
-                carregarAmigos();
-            }
-        });
-
-        // Buscar amigo — abrir modal
-        document.getElementById('btn-abrir-busca').addEventListener('click', () => {
-            document.getElementById('modal-buscar-amigo').style.display = 'flex';
-            document.getElementById('resultado-busca-amigo').innerHTML = '';
-            document.getElementById('input-busca-amigo').value = '';
-        });
-        document.getElementById('btn-fechar-busca-amigo').addEventListener('click', () => {
-            document.getElementById('modal-buscar-amigo').style.display = 'none';
-        });
-
-        document.getElementById('btn-pesquisar-amigo').addEventListener('click', buscarAmigo);
-        document.getElementById('input-busca-amigo').addEventListener('keyup', (e) => { if (e.key === 'Enter') buscarAmigo(); });
-
-        async function buscarAmigo() {
-            const termo = document.getElementById('input-busca-amigo').value.trim().toLowerCase().replace('@', '');
-            const resultado = document.getElementById('resultado-busca-amigo');
-            if (!termo) return;
-            resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">A pesquisar...</p>';
-
-            const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).single();
-            if (!data) {
-                resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
-                return;
-            }
-            const jaAmigo = listaAmigos.some(a => a.user_id === data.user_id);
-            resultado.innerHTML = `
-                <div class="amigo-item" style="cursor:default;">
-                    <div class="amigo-avatar">${data.username.charAt(0).toUpperCase()}</div>
-                    <div class="amigo-info">
-                        <div class="amigo-username">@${data.username}</div>
-                    </div>
-                    ${jaAmigo
-                        ? '<span style="color:var(--purple);font-size:0.8rem;font-weight:bold;">✓ Já é amigo</span>'
-                        : `<button class="btn-aceitar" id="btn-enviar-pedido-resultado">+ Adicionar</button>`}
-                </div>`;
-            if (!jaAmigo) {
-                document.getElementById('btn-enviar-pedido-resultado').addEventListener('click', () => enviarPedido(data.user_id));
-            }
-        }
-
-        async function enviarPedido(destinatario_id) {
-            const { error } = await supabaseClient.from('amizades').insert([{ solicitante_id: usuarioAtual.id, destinatario_id, status: 'pendente' }]);
-            const resultado = document.getElementById('resultado-busca-amigo');
-            if (error) {
-                resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>';
-            } else {
-                resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido enviado com sucesso!</p>';
-            }
-        }
-
-        async function aceitarPedido(id) {
-            await supabaseClient.from('amizades').update({ status: 'aceite' }).eq('id', id);
-            carregarAmigos();
-        }
-
-        async function rejeitarPedido(id) {
-            await supabaseClient.from('amizades').delete().eq('id', id);
-            carregarAmigos();
-        }
-
-        // Ver perfil do amigo
-        async function abrirPerfilAmigo(userId, username) {
-            document.getElementById('modal-perfil-amigo').style.display = 'flex';
-            document.getElementById('perfil-amigo-titulo').innerText = '@' + username;
-            document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
-            document.getElementById('tab-amigo-assisti').classList.add('ativo');
-            document.getElementById('tab-amigo-quero').classList.remove('ativo');
-
-            const { data } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
-            const filmes = data || [];
-
-            renderizarFilmesAmigo(filmes, 'ja');
-
-            document.getElementById('tab-amigo-assisti').onclick = () => {
-                document.getElementById('tab-amigo-assisti').classList.add('ativo');
-                document.getElementById('tab-amigo-quero').classList.remove('ativo');
-                renderizarFilmesAmigo(filmes, 'ja');
-            };
-            document.getElementById('tab-amigo-quero').onclick = () => {
-                document.getElementById('tab-amigo-quero').classList.add('ativo');
-                document.getElementById('tab-amigo-assisti').classList.remove('ativo');
-                renderizarFilmesAmigo(filmes, 'quero');
-            };
-        }
-
-        function renderizarFilmesAmigo(filmes, grupo) {
-            const lista = filmes.filter(f => f.grupo === grupo);
-            const container = document.getElementById('perfil-amigo-conteudo');
-            if (lista.length === 0) {
-                container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido.' : 'Watchlist vazia.'}</p>`;
-                return;
-            }
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `
-                <div style="background:#111827;border-radius:10px;overflow:hidden;">
-                    <img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;">
-                    <div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div>
-                </div>`).join('')}</div>`;
-        }
-
-        document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => {
-            document.getElementById('modal-perfil-amigo').style.display = 'none';
-        });
 
         async function buscarERenderizarFilmeChat(titulo, ano) {
             try {
                 const resp = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(titulo)}&year=${ano}&language=pt-BR`);
                 const dados = await resp.json();
-
                 if (dados.results && dados.results.length > 0) {
                     const filmeAchado = dados.results[0];
-
-                    const filmeChat = {
-                        id: filmeAchado.id,
-                        titulo: filmeAchado.title,
-                        ano: filmeAchado.release_date ? filmeAchado.release_date.split('-')[0] : 'N/A',
-                        notaTmdb: filmeAchado.vote_average.toFixed(1),
-                        notaImdb: 'N/A',
-                        notaRt: 'N/A',
-                        capa: filmeAchado.poster_path ? `${IMG_BASE}${filmeAchado.poster_path}` : 'https://via.placeholder.com/65x95?text=Sem+Capa',
-                        sinopse: filmeAchado.overview
-                    };
-
+                    const filmeChat = { id: filmeAchado.id, titulo: filmeAchado.title, ano: filmeAchado.release_date ? filmeAchado.release_date.split('-')[0] : 'N/A', notaTmdb: filmeAchado.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: filmeAchado.poster_path ? `${IMG_BASE}${filmeAchado.poster_path}` : 'https://via.placeholder.com/65x95?text=Sem+Capa', sinopse: filmeAchado.overview };
                     bancoDeFilmesLocal.set(filmeChat.id, filmeChat);
 
                     const cardDiv = document.createElement('div');
                     cardDiv.className = 'chat-movie-card';
-                    cardDiv.innerHTML = `
-                        <img src="${filmeChat.capa}" alt="capa">
-                        <div class="chat-movie-info">
-                            <div class="chat-movie-title">${filmeChat.titulo}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">🎬 ${filmeChat.notaTmdb}</div>
-                            <button class="chat-movie-btn" onclick="abrirDetalhes(${filmeChat.id})">🔍 Ver Detalhes</button>
-                        </div>
-                    `;
+                    cardDiv.innerHTML = `<img src="${filmeChat.capa}" alt="capa"><div class="chat-movie-info"><div class="chat-movie-title">${filmeChat.titulo}</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">🎬 ${filmeChat.notaTmdb}</div><button class="chat-movie-btn" onclick="abrirDetalhes(${filmeChat.id})">🔍 Ver Detalhes</button></div>`;
                     chatMessages.appendChild(cardDiv);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
-            } catch (err) {
-                console.log("Erro ao injetar cartão do filme no chat.", err);
-            }
+            } catch (err) {}
         }
 
         checarSessao();

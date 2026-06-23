@@ -217,8 +217,20 @@
                 <div class="filters-row">
                     <select id="select-genero" class="filter-input">
                         <option value="todos">🎭 Todos Gêneros</option>
-                        <option value="28">Ação</option><option value="12">Aventura</option><option value="35">Comédia</option>
-                        <option value="18">Drama</option><option value="878">Ficção Científica</option><option value="27">Terror</option>
+                        <option value="28">Ação</option>
+                        <option value="16">Animação</option>
+                        <option value="12">Aventura</option>
+                        <option value="35">Comédia</option>
+                        <option value="80">Crime</option>
+                        <option value="99">Documentário</option>
+                        <option value="18">Drama</option>
+                        <option value="10751">Família</option>
+                        <option value="14">Fantasia</option>
+                        <option value="878">Ficção Científica</option>
+                        <option value="9648">Mistério</option>
+                        <option value="10749">Romance</option>
+                        <option value="27">Terror</option>
+                        <option value="53">Thriller</option>
                     </select>
                     <select id="select-ordem" class="filter-input">
                         <option value="populares">🔥 Populares</option><option value="lancamentos">🆕 Lançamentos</option><option value="nota_desc">⭐ Maior Nota</option>
@@ -292,9 +304,26 @@
         </div>
     </div>
 
+    <div id="modal-editar-playlist" class="modal" style="z-index: 2600;">
+        <div class="modal-content">
+            <h3>Editar Playlist</h3>
+            <input type="text" id="edit-nome-playlist" class="login-input" placeholder="Novo nome da playlist">
+            <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left;">Nova Capa (Opcional):</label>
+            <input type="file" id="edit-capa-playlist" accept="image/*" class="login-input" style="padding: 0.5rem; background: #111827;">
+            <div class="modal-buttons">
+                <button id="btn-salvar-edicao-playlist" class="btn-modal btn-modal-quero">Guardar Alterações</button>
+                <button id="btn-apagar-playlist" class="btn-modal" style="background-color: var(--red); color: white;">🗑️ Apagar Playlist</button>
+                <button id="btn-cancelar-edicao-playlist" class="btn-modal btn-modal-cancel">Cancelar</button>
+            </div>
+            <p id="msg-editar-playlist" style="color: var(--pink); font-size: 0.85rem; margin-top: 1rem;"></p>
+        </div>
+    </div>
+
     <div id="modal-ver-playlist" class="modal" style="align-items: flex-start; overflow-y: auto; z-index: 2500;">
         <div style="background: var(--bg-color); width: 100%; min-height: 100vh; position: relative; padding-bottom: 80px;">
             <button id="btn-fechar-ver-playlist" style="position: absolute; top: 15px; right: 15px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            <button id="btn-editar-ver-playlist" style="position: absolute; top: 15px; right: 65px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: none;">✏️</button>
+
             <div id="capa-ver-playlist" style="width: 100%; height: 280px; background-size: cover; background-position: center; position: relative;">
                 <div style="position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color), transparent);"></div>
                 <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
@@ -343,6 +372,7 @@
             <div class="perfil-amigo-tabs">
                 <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Já Assistiu</button>
                 <button class="perfil-amigo-tab" id="tab-amigo-quero">✨ Quer Assistir</button>
+                <button class="perfil-amigo-tab" id="tab-amigo-playlists">📂 Playlists</button>
             </div>
             <div id="perfil-amigo-conteudo"></div>
             <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
@@ -384,9 +414,12 @@
         let paginaAtual = 1;
         let filmesExplorarAcumulados = [];
         
-        // Variaveis de Memória "Mostrar Mais"
         let mostrarTodosQueroAssistir = false;
         let mostrarTodosJaAssisti = false;
+        
+        // Novas Variáveis Globais
+        let playlistSendoEditadaId = null;
+        let playlistsAmigoAtual = [];
 
         async function checarSessao() {
             try {
@@ -445,7 +478,6 @@
 
         document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
         
-        // Resetar "Mostrar Mais" do Já Assisti ao digitar pesquisa
         document.getElementById('pesquisa-ja-assisti').addEventListener('input', () => {
             mostrarTodosJaAssisti = false;
             renderizarMinhasListas();
@@ -619,6 +651,58 @@
             }
         });
 
+        // EDICAO E EXCLUSAO DE PLAYLISTS
+        document.getElementById('btn-cancelar-edicao-playlist').addEventListener('click', () => {
+            document.getElementById('modal-editar-playlist').style.display = 'none';
+        });
+
+        document.getElementById('btn-salvar-edicao-playlist').addEventListener('click', async () => {
+            const nome = document.getElementById('edit-nome-playlist').value.trim();
+            const fileInput = document.getElementById('edit-capa-playlist');
+            const msg = document.getElementById('msg-editar-playlist');
+
+            if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
+            msg.innerText = "A guardar alterações... ⏳";
+
+            let updateData = { nome: nome };
+
+            try {
+                if (fileInput.files && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
+                    const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+                    
+                    const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
+                    updateData.capa_url = urlData.publicUrl;
+                }
+
+                const { error: dbError } = await supabaseClient.from('playlists').update(updateData).eq('id', playlistSendoEditadaId);
+                if (dbError) throw dbError;
+
+                await carregarPlaylistsDaNuvem();
+                document.getElementById('modal-editar-playlist').style.display = 'none';
+                abrirVerPlaylist(playlistSendoEditadaId, false); // Atualiza o ecrã com a foto nova
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Erro ao guardar as alterações.";
+            }
+        });
+
+        document.getElementById('btn-apagar-playlist').addEventListener('click', async () => {
+            if(confirm('Tem a certeza que quer apagar esta playlist? Os filmes não serão apagados da sua conta, apenas esta pasta sumirá.')) {
+                const { error } = await supabaseClient.from('playlists').delete().eq('id', playlistSendoEditadaId);
+                if (!error) {
+                    await carregarPlaylistsDaNuvem();
+                    document.getElementById('modal-editar-playlist').style.display = 'none';
+                    document.getElementById('modal-ver-playlist').style.display = 'none';
+                } else {
+                    alert('Erro ao apagar playlist.');
+                }
+            }
+        });
+
         document.getElementById('btn-toggle-playlists').addEventListener('click', () => {
             const listaDiv = document.getElementById('lista-playlists-escolha');
             if (listaDiv.style.display === 'flex') {
@@ -639,21 +723,16 @@
 
         async function adicionarFilmeNaPlaylist(playlistId) {
             if (!filmeSelecionadoTemporario) return;
-
-            // CORREÇÃO: Forçar a conversão para String para que o ID bata perfeitamente
             const playlist = minhasPlaylists.find(p => String(p.id) === String(playlistId));
+            
+            if (!playlist) { alert('Erro: Playlist não encontrada.'); return; }
 
-            if (!playlist) {
-                alert('Erro: Playlist não encontrada no sistema.');
-                return;
-            }
-
-            const jaExiste = playlist.filmes.some(f => f.id === filmeSelecionadoTemporario.id);
+            const jaExiste = playlist.filmes.some(f => String(f.id) === String(filmeSelecionadoTemporario.id));
             if (jaExiste) { alert('Este filme já está nesta playlist!'); return; }
 
             const filmeLimpo = { id: filmeSelecionadoTemporario.id, titulo: filmeSelecionadoTemporario.titulo, ano: filmeSelecionadoTemporario.ano, notaTmdb: filmeSelecionadoTemporario.notaTmdb, notaImdb: filmeSelecionadoTemporario.notaImdb, capa: filmeSelecionadoTemporario.capa, sinopse: filmeSelecionadoTemporario.sinopse };
             const novosFilmes = [...playlist.filmes, filmeLimpo];
-
+            
             const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
             if (!error) {
                 alert('🎬 Adicionado à playlist com sucesso!');
@@ -664,11 +743,26 @@
             }
         }
 
-        function abrirVerPlaylist(playlistId) {
-            const p = minhasPlaylists.find(p => p.id === playlistId);
+        function abrirVerPlaylist(playlistId, isAmigo = false) {
+            const p = isAmigo ? playlistsAmigoAtual.find(p => String(p.id) === String(playlistId)) : minhasPlaylists.find(p => String(p.id) === String(playlistId));
             if (!p) return;
+            
             document.getElementById('titulo-ver-playlist').innerText = p.nome;
             document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`;
+            
+            const btnEdit = document.getElementById('btn-editar-ver-playlist');
+            if (isAmigo) {
+                btnEdit.style.display = 'none'; // Não deixa editar a playlist do amigo
+            } else {
+                btnEdit.style.display = 'block';
+                btnEdit.onclick = () => {
+                    playlistSendoEditadaId = p.id;
+                    document.getElementById('edit-nome-playlist').value = p.nome;
+                    document.getElementById('edit-capa-playlist').value = '';
+                    document.getElementById('msg-editar-playlist').innerText = '';
+                    document.getElementById('modal-editar-playlist').style.display = 'flex';
+                };
+            }
             
             const grid = document.getElementById('grid-ver-playlist');
             if (p.filmes.length === 0) {
@@ -773,7 +867,7 @@
             minhasPlaylists.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'playlist-card';
-                div.onclick = () => abrirVerPlaylist(p.id);
+                div.onclick = () => abrirVerPlaylist(p.id, false);
                 div.innerHTML = `
                     <img src="${p.capa_url}" alt="${p.nome}">
                     <div class="title">${p.nome}</div>
@@ -960,20 +1054,33 @@
             document.getElementById('modal-perfil-amigo').style.display = 'flex';
             document.getElementById('perfil-amigo-titulo').innerText = '@' + username;
             document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
+            
+            // Abas
             document.getElementById('tab-amigo-assisti').classList.add('ativo');
             document.getElementById('tab-amigo-quero').classList.remove('ativo');
+            document.getElementById('tab-amigo-playlists').classList.remove('ativo');
 
-            const { data } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
-            const filmes = data || [];
-            renderizarFilmesAmigo(filmes, 'ja');
+            // Carregar Filmes do Amigo
+            const { data: fData } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
+            const filmesAmigo = fData || [];
+            
+            // Carregar Playlists do Amigo
+            const { data: pData } = await supabaseClient.from('playlists').select('*').eq('user_id', userId);
+            playlistsAmigoAtual = pData || [];
+
+            renderizarFilmesAmigo(filmesAmigo, 'ja');
 
             document.getElementById('tab-amigo-assisti').onclick = () => {
-                document.getElementById('tab-amigo-assisti').classList.add('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo');
-                renderizarFilmesAmigo(filmes, 'ja');
+                document.getElementById('tab-amigo-assisti').classList.add('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo');
+                renderizarFilmesAmigo(filmesAmigo, 'ja');
             };
             document.getElementById('tab-amigo-quero').onclick = () => {
-                document.getElementById('tab-amigo-quero').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo');
-                renderizarFilmesAmigo(filmes, 'quero');
+                document.getElementById('tab-amigo-quero').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo');
+                renderizarFilmesAmigo(filmesAmigo, 'quero');
+            };
+            document.getElementById('tab-amigo-playlists').onclick = () => {
+                document.getElementById('tab-amigo-playlists').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo');
+                renderizarPlaylistsAmigo();
             };
         }
 
@@ -987,6 +1094,17 @@
                     <div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div>
                 </div>`).join('')}</div>`;
         }
+
+        function renderizarPlaylistsAmigo() {
+            const container = document.getElementById('perfil-amigo-conteudo');
+            if (playlistsAmigoAtual.length === 0) return container.innerHTML = `<p class="empty-msg">Nenhuma playlist criada.</p>`;
+            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${playlistsAmigoAtual.map(p => `
+                <div style="background:#111827;border-radius:10px;overflow:hidden; cursor:pointer; position:relative; aspect-ratio:1/1;" onclick="abrirVerPlaylist('${p.id}', true)">
+                    <img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.6;">
+                    <div style="position:absolute;bottom:0;left:0;right:0;padding:0.4rem;font-size:0.75rem;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9); z-index:2;">${p.nome}</div>
+                </div>`).join('')}</div>`;
+        }
+        
         document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { document.getElementById('modal-perfil-amigo').style.display = 'none'; });
 
         // === IA GROQ ===

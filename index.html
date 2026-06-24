@@ -65,14 +65,18 @@
         .btn-criar-playlist { font-size: 2rem; color: var(--purple); background: rgba(139, 92, 246, 0.1); border: 2px dashed var(--purple); width: 140px; height: 140px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .btn-criar-playlist:active { transform: scale(0.95); }
 
+        .comunidade-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+
         @media (min-width: 600px) { 
             .movies-slider, .playlist-slider { display: grid; grid-template-columns: repeat(3, 1fr); overflow-x: visible; padding-bottom: 0; }
             .movies-slider .movie-card, .btn-criar-playlist, .playlist-card { width: 100%; }
             .movies-grid { grid-template-columns: repeat(3, 1fr); }
+            .comunidade-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (min-width: 900px) { 
             .movies-slider, .playlist-slider { grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
             .movies-grid { grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
+            .comunidade-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
         .movie-card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); transition: transform 0.2s; cursor: pointer; }
@@ -118,28 +122,6 @@
         .login-input { width: 100%; padding: 0.85rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 1rem; }
         .login-input:focus { outline: none; border-color: var(--purple); }
 
-        /* CHAT FLUTUANTE DE IA */
-        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 1000; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .chat-fab:active { transform: scale(0.9); }
-        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
-        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
-        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .chat-header { background-color: #1f2937; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; font-weight: bold; font-size: 0.95rem; }
-        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
-        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
-        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
-        .chat-movie-card { display: flex; align-items: stretch; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; width: 100%; min-height: 95px; }
-        .chat-movie-card img { width: 65px; min-width: 65px; height: 95px; object-fit: cover; flex-shrink: 0; display: block; }
-        .chat-movie-info { padding: 10px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
-        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
-        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
-        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
-        .chat-input-area input:focus { border-color: var(--purple); }
-        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
-
         /* === SOCIAL / AMIGOS === */
         .badge-notif { position: absolute; top: 8px; right: calc(50% - 24px); background: var(--pink); color: white; font-size: 0.6rem; font-weight: 900; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; pointer-events: none; }
         .perfil-setup-card { background: var(--card-bg); border: 1px solid #374151; border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
@@ -166,10 +148,8 @@
         <div class="login-box">
             <h1 class="logo" style="margin-bottom: 0.5rem; font-size: 3rem;">iCine</h1>
             <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Seu diário de filmes pessoal e sincronizado na nuvem.</p>
-
             <input type="email" id="email-login" class="login-input" placeholder="Seu e-mail">
             <input type="password" id="senha-login" class="login-input" placeholder="Sua senha">
-
             <button id="btn-entrar-acao" class="btn-action btn-add" style="margin-bottom: 0.75rem; padding: 0.85rem; font-size: 1rem;">Entrar</button>
             <button id="btn-registrar-acao" class="btn-action btn-watched" style="padding: 0.85rem; font-size: 1rem;">Criar Conta Grátis</button>
             <p id="login-msg" style="color: var(--red); font-size: 0.85rem; margin-top: 1rem;"></p>
@@ -182,8 +162,9 @@
     </header>
 
     <nav>
-        <button id="btn-inicio" class="nav-btn active"><span class="icon">🍿</span><span>Minhas Listas</span></button>
+        <button id="btn-inicio" class="nav-btn active"><span class="icon">🍿</span><span>Listas</span></button>
         <button id="btn-explorar" class="nav-btn"><span class="icon">🔍</span><span>Explorar</span></button>
+        <button id="btn-comunidade" class="nav-btn"><span class="icon">🌍</span><span>Feed</span></button>
         <button id="btn-amigos" class="nav-btn"><span class="icon">👥</span><span>Amigos</span><span id="badge-amigos" class="badge-notif"></span></button>
     </nav>
 
@@ -196,7 +177,7 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Assistidos Recentemente</h2>
-                <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar assistidos..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 170px; max-width: 45%;">
+                <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 140px; max-width: 45%;">
             </div>
             <div class="movies-slider" id="ja-assisti-grid"></div>
 
@@ -209,35 +190,30 @@
 
         <div id="aba-explorar" class="aba">
             <h2><div class="h2-detail"></div> Explorar Catálogo</h2>
-
             <div class="filters-container">
                 <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome... (Enter)">
                 <div class="filters-row">
                     <select id="select-genero" class="filter-input">
                         <option value="todos">🎭 Todos Gêneros</option>
-                        <option value="28">Ação</option>
-                        <option value="16">Animação</option>
-                        <option value="12">Aventura</option>
-                        <option value="35">Comédia</option>
-                        <option value="80">Crime</option>
-                        <option value="99">Documentário</option>
-                        <option value="18">Drama</option>
-                        <option value="10751">Família</option>
-                        <option value="14">Fantasia</option>
-                        <option value="878">Ficção Científica</option>
-                        <option value="9648">Mistério</option>
-                        <option value="10749">Romance</option>
-                        <option value="27">Terror</option>
-                        <option value="53">Thriller</option>
+                        <option value="28">Ação</option><option value="16">Animação</option><option value="12">Aventura</option>
+                        <option value="35">Comédia</option><option value="80">Crime</option><option value="99">Documentário</option>
+                        <option value="18">Drama</option><option value="10751">Família</option><option value="14">Fantasia</option>
+                        <option value="878">Ficção Científica</option><option value="9648">Mistério</option><option value="10749">Romance</option>
+                        <option value="27">Terror</option><option value="53">Thriller</option>
                     </select>
                     <select id="select-ordem" class="filter-input">
                         <option value="populares">🔥 Populares</option><option value="lancamentos">🆕 Lançamentos</option><option value="nota_desc">⭐ Maior Nota</option>
                     </select>
                 </div>
             </div>
-
             <div class="movies-grid" id="explorar-grid"></div>
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" style="display: none;">⬇ Carregar Mais</button></div>
+        </div>
+
+        <div id="aba-comunidade" class="aba">
+            <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Comunidade iCine</h2>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 1.5rem;">Descobre as playlists mais populares partilhadas pelos cinéfilos de todo o mundo.</p>
+            <div id="comunidade-grid" class="comunidade-grid"></div>
         </div>
 
         <div id="aba-amigos" class="aba">
@@ -279,10 +255,7 @@
                 <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
                 <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Assistidos Recentemente</button>
                 <button id="btn-toggle-playlists" class="btn-modal" style="background-color: var(--blue); color: white;">➕ Adicionar a uma Playlist</button>
-                
-                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;">
-                </div>
-
+                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;"></div>
                 <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel" style="margin-top: 0.5rem;">Cancelar</button>
             </div>
         </div>
@@ -294,6 +267,15 @@
             <input type="text" id="input-nome-playlist" class="login-input" placeholder="Ex: Maratona de Terror">
             <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left;">Capa da Playlist (Sua Galeria):</label>
             <input type="file" id="input-capa-playlist" accept="image/*" class="login-input" style="padding: 0.5rem; background: #111827;">
+            
+            <div style="margin: 1rem 0; text-align: left; background: #1f2937; padding: 12px; border-radius: 10px; border: 1px solid #374151;">
+                <label style="display:flex; align-items:center; gap:10px; font-size: 0.9rem; cursor:pointer; color: white;">
+                    <input type="checkbox" id="input-publica-playlist" style="width:18px; height:18px; accent-color: var(--purple);">
+                    🌍 Partilhar no Feed Público
+                </label>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px; margin-left:28px;">Todos na aba Comunidade poderão ver, dar like e descobrir os seus filmes.</p>
+            </div>
+
             <div class="modal-buttons">
                 <button id="btn-salvar-playlist" class="btn-modal btn-modal-quero">Criar Playlist</button>
                 <button id="btn-cancelar-criar-playlist" class="btn-modal btn-modal-cancel">Cancelar</button>
@@ -308,6 +290,14 @@
             <input type="text" id="edit-nome-playlist" class="login-input" placeholder="Novo nome da playlist">
             <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left;">Nova Capa (Opcional):</label>
             <input type="file" id="edit-capa-playlist" accept="image/*" class="login-input" style="padding: 0.5rem; background: #111827;">
+            
+            <div style="margin: 1rem 0; text-align: left; background: #1f2937; padding: 12px; border-radius: 10px; border: 1px solid #374151;">
+                <label style="display:flex; align-items:center; gap:10px; font-size: 0.9rem; cursor:pointer; color: white;">
+                    <input type="checkbox" id="edit-publica-playlist" style="width:18px; height:18px; accent-color: var(--purple);">
+                    🌍 Partilhar no Feed Público
+                </label>
+            </div>
+
             <div class="modal-buttons">
                 <button id="btn-salvar-edicao-playlist" class="btn-modal btn-modal-quero">Guardar Alterações</button>
                 <button id="btn-apagar-playlist" class="btn-modal" style="background-color: var(--red); color: white;">🗑️ Apagar Playlist</button>
@@ -415,6 +405,8 @@
         let playlistSendoEditadaId = null;
         let playlistsAmigoAtual = [];
         let playlistAbertaAtualId = null;
+        
+        let playlistsComunidadeAtual = [];
 
         // =======================================================
         // LÓGICA DO BOTÃO VOLTAR NATIVO (STACK DE MODAIS)
@@ -493,6 +485,7 @@
 
         document.getElementById('btn-inicio').addEventListener('click', () => mudarAba('inicio'));
         document.getElementById('btn-explorar').addEventListener('click', () => mudarAba('explorar'));
+        document.getElementById('btn-comunidade').addEventListener('click', () => mudarAba('comunidade'));
         document.getElementById('btn-amigos').addEventListener('click', () => mudarAba('amigos'));
 
         function mudarAba(abaId) {
@@ -500,7 +493,9 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`aba-${abaId}`).classList.add('ativa');
             document.getElementById(`btn-${abaId}`).classList.add('active');
+            
             if (abaId === 'inicio') renderizarMinhasListas();
+            if (abaId === 'comunidade') carregarComunidade();
             if (abaId === 'amigos') renderizarAbaAmigos();
         }
 
@@ -574,7 +569,7 @@
         function gerarCartaoFilmeHTML(f, context = 'explorar') {
             let acoesHtml = '';
             
-            if (context === 'explorar') {
+            if (context === 'explorar' || context === 'comunidade') {
                 acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
                 acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">+ Lista</button>`;
             } else if (context === 'minha-playlist') {
@@ -649,6 +644,7 @@
         document.getElementById('btn-abrir-criar-playlist').addEventListener('click', () => {
             document.getElementById('input-nome-playlist').value = '';
             document.getElementById('input-capa-playlist').value = '';
+            document.getElementById('input-publica-playlist').checked = false;
             document.getElementById('msg-criar-playlist').innerText = '';
             abrirModalSeguro('modal-criar-playlist');
         });
@@ -658,6 +654,7 @@
         document.getElementById('btn-salvar-playlist').addEventListener('click', async () => {
             const nome = document.getElementById('input-nome-playlist').value.trim();
             const fileInput = document.getElementById('input-capa-playlist');
+            const isPublica = document.getElementById('input-publica-playlist').checked;
             const msg = document.getElementById('msg-criar-playlist');
 
             if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
@@ -675,7 +672,15 @@
                 const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
                 const publicUrl = urlData.publicUrl;
 
-                const novaPlaylist = { user_id: usuarioAtual.id, nome: nome, capa_url: publicUrl, filmes: [] };
+                const novaPlaylist = { 
+                    user_id: usuarioAtual.id, 
+                    nome: nome, 
+                    capa_url: publicUrl, 
+                    filmes: [],
+                    publica: isPublica,
+                    curtidas: []
+                };
+                
                 const { error: dbError } = await supabaseClient.from('playlists').insert([novaPlaylist]);
                 if (dbError) throw dbError;
 
@@ -683,7 +688,7 @@
                 fecharModalSeguro('modal-criar-playlist');
             } catch (err) {
                 console.error(err);
-                msg.innerText = "Erro ao criar playlist. Verifique se criou a tabela e o bucket no Supabase!";
+                msg.innerText = "Erro. Verifique se criou as colunas 'publica' e 'curtidas' no Supabase!";
             }
         });
 
@@ -692,12 +697,13 @@
         document.getElementById('btn-salvar-edicao-playlist').addEventListener('click', async () => {
             const nome = document.getElementById('edit-nome-playlist').value.trim();
             const fileInput = document.getElementById('edit-capa-playlist');
+            const isPublica = document.getElementById('edit-publica-playlist').checked;
             const msg = document.getElementById('msg-editar-playlist');
 
             if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
             msg.innerText = "A guardar alterações... ⏳";
 
-            let updateData = { nome: nome };
+            let updateData = { nome: nome, publica: isPublica };
 
             try {
                 if (fileInput.files && fileInput.files.length > 0) {
@@ -759,11 +765,11 @@
             const playlist = minhasPlaylists.find(p => String(p.id) === String(playlistId));
             if (!playlist) { alert('Erro: Playlist não encontrada.'); return; }
 
-            const jaExiste = playlist.filmes.some(f => String(f.id) === String(filmeSelecionadoTemporario.id));
+            const jaExiste = (playlist.filmes || []).some(f => String(f.id) === String(filmeSelecionadoTemporario.id));
             if (jaExiste) { alert('Este filme já está nesta playlist!'); return; }
 
             const filmeLimpo = { id: filmeSelecionadoTemporario.id, titulo: filmeSelecionadoTemporario.titulo, ano: filmeSelecionadoTemporario.ano, notaTmdb: filmeSelecionadoTemporario.notaTmdb, notaImdb: filmeSelecionadoTemporario.notaImdb, capa: filmeSelecionadoTemporario.capa, sinopse: filmeSelecionadoTemporario.sinopse };
-            const novosFilmes = [...playlist.filmes, filmeLimpo];
+            const novosFilmes = [...(playlist.filmes || []), filmeLimpo];
             
             const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
             if (!error) {
@@ -781,7 +787,7 @@
             if (!playlist) return;
 
             if (confirm('Deseja remover este filme da sua playlist?')) {
-                const novosFilmes = playlist.filmes.filter(f => parseInt(f.id || f.tmdb_id) !== parseInt(filmeId));
+                const novosFilmes = (playlist.filmes || []).filter(f => parseInt(f.id || f.tmdb_id) !== parseInt(filmeId));
                 
                 const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
                 if (!error) {
@@ -798,7 +804,7 @@
             const p = isAmigo ? playlistsAmigoAtual.find(p => String(p.id) === String(playlistId)) : minhasPlaylists.find(p => String(p.id) === String(playlistId));
             if (!p) return;
             
-            p.filmes.forEach(f => {
+            (p.filmes || []).forEach(f => {
                 bancoDeFilmesLocal.set(parseInt(f.id || f.tmdb_id), f);
             });
             
@@ -814,13 +820,14 @@
                     playlistSendoEditadaId = p.id;
                     document.getElementById('edit-nome-playlist').value = p.nome;
                     document.getElementById('edit-capa-playlist').value = '';
+                    document.getElementById('edit-publica-playlist').checked = p.publica || false;
                     document.getElementById('msg-editar-playlist').innerText = '';
                     abrirModalSeguro('modal-editar-playlist');
                 };
             }
             
             const grid = document.getElementById('grid-ver-playlist');
-            if (p.filmes.length === 0) {
+            if (!p.filmes || p.filmes.length === 0) {
                 document.getElementById('msg-playlist-vazia').style.display = 'block';
                 grid.innerHTML = '';
             } else {
@@ -838,7 +845,118 @@
         
         document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
 
+
         // ==========================================
+        // === COMUNIDADE GLOBAL ===
+        // ==========================================
+        async function carregarComunidade() {
+            const container = document.getElementById('comunidade-grid');
+            container.innerHTML = '<p class="empty-msg" style="grid-column: 1/-1;">A procurar as melhores playlists do mundo... 🌍</p>';
+
+            const { data: publicPlaylists, error } = await supabaseClient.from('playlists').select('*').eq('publica', true);
+            
+            if (error || !publicPlaylists || publicPlaylists.length === 0) {
+                container.innerHTML = '<p class="empty-msg" style="grid-column: 1/-1;">Nenhuma playlist pública ainda. Seja o primeiro a partilhar na aba Minhas Listas!</p>';
+                return;
+            }
+
+            const { data: perfis } = await supabaseClient.from('perfis').select('user_id, username');
+            const perfisMap = new Map();
+            (perfis || []).forEach(p => perfisMap.set(p.user_id, p.username));
+
+            playlistsComunidadeAtual = publicPlaylists.map(p => {
+                p.username_criador = perfisMap.get(p.user_id) || 'cinefilo_oculto';
+                return p;
+            });
+
+            renderizarComunidade();
+        }
+
+        function renderizarComunidade() {
+            const container = document.getElementById('comunidade-grid');
+            
+            // Ordenar: Mais Curtidas primeiro, depois Ordem Alfabética (A-Z)
+            playlistsComunidadeAtual.sort((a, b) => {
+                const likesA = (a.curtidas || []).length;
+                const likesB = (b.curtidas || []).length;
+                if (likesB !== likesA) return likesB - likesA; 
+                return a.nome.localeCompare(b.nome); 
+            });
+
+            container.innerHTML = playlistsComunidadeAtual.map(p => {
+                const likes = (p.curtidas || []).length;
+                const jaCurtiu = (p.curtidas || []).includes(usuarioAtual.id);
+                const corLike = jaCurtiu ? 'var(--pink)' : 'var(--text-muted)';
+                const iconeLike = jaCurtiu ? '💖' : '🤍';
+
+                return `
+                    <div style="background:var(--card-bg); border:1px solid #374151; border-radius:16px; overflow:hidden; display:flex; flex-direction:column;">
+                        <div style="position:relative; aspect-ratio:16/9; cursor:pointer;" onclick="abrirVerPlaylistGlobal('${p.id}')">
+                            <img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.75; transition:0.2s;">
+                            <div style="position:absolute;inset:0;background:linear-gradient(to top, #030712, transparent);"></div>
+                            <h3 style="position:absolute;bottom:12px;left:15px;margin:0;font-size:1.15rem;text-shadow:0 2px 4px rgba(0,0,0,0.9);z-index:2;color:white;">${p.nome}</h3>
+                        </div>
+                        <div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:0.85rem; color:var(--text-muted);">
+                                👤 @${p.username_criador}<br>
+                                <span style="font-size:0.75rem;">${(p.filmes || []).length} filmes na lista</span>
+                            </div>
+                            <button onclick="alternarLikePlaylist('${p.id}')" style="background:rgba(255,255,255,0.05); border:1px solid #374151; padding:6px 14px; border-radius:20px; display:flex; align-items:center; gap:6px; cursor:pointer; color:${corLike}; transition:0.2s;">
+                                <span style="font-size:1.1rem;">${iconeLike}</span> <span style="font-weight:bold;">${likes}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function alternarLikePlaylist(playlistId) {
+            const playlist = playlistsComunidadeAtual.find(p => p.id === playlistId);
+            if (!playlist) return;
+
+            let curtidas = playlist.curtidas || [];
+            if (curtidas.includes(usuarioAtual.id)) {
+                curtidas = curtidas.filter(id => id !== usuarioAtual.id);
+            } else {
+                curtidas.push(usuarioAtual.id);
+            }
+
+            // Atualiza UI instantaneamente
+            playlist.curtidas = curtidas;
+            renderizarComunidade();
+
+            // Grava no Supabase em background
+            await supabaseClient.from('playlists').update({ curtidas }).eq('id', playlistId);
+        }
+
+        function abrirVerPlaylistGlobal(playlistId) {
+            playlistAbertaAtualId = null; 
+            const p = playlistsComunidadeAtual.find(x => String(x.id) === String(playlistId));
+            if (!p) return;
+
+            (p.filmes || []).forEach(f => {
+                bancoDeFilmesLocal.set(parseInt(f.id || f.tmdb_id), f);
+            });
+
+            document.getElementById('titulo-ver-playlist').innerText = p.nome;
+            document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`;
+            document.getElementById('btn-editar-ver-playlist').style.display = 'none';
+
+            const grid = document.getElementById('grid-ver-playlist');
+            if (!p.filmes || p.filmes.length === 0) {
+                document.getElementById('msg-playlist-vazia').style.display = 'block';
+                grid.innerHTML = '';
+            } else {
+                document.getElementById('msg-playlist-vazia').style.display = 'none';
+                // Usar 'comunidade' para aparecer "Sinopse" e "+ Lista"
+                grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, 'comunidade')).join('');
+            }
+
+            abrirModalSeguro('modal-ver-playlist');
+            mapearBotoesGrid();
+        }
+        // ==========================================
+
 
         document.getElementById('btn-salvar-quero').addEventListener('click', () => salvarNoGrupo('quero'));
         document.getElementById('btn-salvar-ja').addEventListener('click', () => salvarNoGrupo('ja'));

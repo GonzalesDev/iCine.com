@@ -101,7 +101,7 @@
         .btn-carregar-mais:hover { background-color: rgba(139, 92, 246, 0.1); }
 
         /* MODAIS */
-        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: flex-end; z-index: 2000; backdrop-filter: blur(8px); animation: slideUp 0.2s ease-out; }
+        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: flex-end; backdrop-filter: blur(8px); animation: slideUp 0.2s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-content { background-color: var(--card-bg); padding: 1.5rem; border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; text-align: center; border-top: 1px solid #374151; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); margin: 0 auto; }
         .modal-detalhes-content { max-height: 80vh; overflow-y: auto; text-align: left; }
@@ -117,10 +117,32 @@
         .empty-msg { color: var(--text-muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; grid-column: 1 / -1; text-align: center; }
 
         /* TELA DE LOGIN */
-        #tela-login { position: fixed; inset: 0; background: var(--bg-color); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #tela-login { position: fixed; inset: 0; background: var(--bg-color); z-index: 3500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { padding: 2rem; width: 100%; max-width: 360px; text-align: center; }
         .login-input { width: 100%; padding: 0.85rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 1rem; }
         .login-input:focus { outline: none; border-color: var(--purple); }
+
+        /* CHAT FLUTUANTE DE IA */
+        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 3100; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .chat-fab:active { transform: scale(0.9); }
+        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 3100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
+        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
+        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-header { background-color: #1f2937; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; font-weight: bold; font-size: 0.95rem; }
+        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
+        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
+        .chat-movie-card { display: flex; align-items: stretch; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; width: 100%; min-height: 95px; }
+        .chat-movie-card img { width: 65px; min-width: 65px; height: 95px; object-fit: cover; flex-shrink: 0; display: block; }
+        .chat-movie-info { padding: 10px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
+        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
+        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
+        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
+        .chat-input-area input:focus { border-color: var(--purple); }
+        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
 
         /* === SOCIAL / AMIGOS === */
         .badge-notif { position: absolute; top: 8px; right: calc(50% - 24px); background: var(--pink); color: white; font-size: 0.6rem; font-weight: 900; border-radius: 50%; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; pointer-events: none; }
@@ -140,28 +162,6 @@
         .perfil-amigo-tab.ativo { background: var(--purple); color: white; border-color: var(--purple); }
         .meu-perfil-card { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
         .btn-add-amigo { margin-left: auto; background: var(--purple); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
-
-        /* === CHAT FLUTUANTE DE IA (RECUPERADO!) === */
-        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 1000; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .chat-fab:active { transform: scale(0.9); }
-        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
-        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
-        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .chat-header { background-color: #1f2937; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; font-weight: bold; font-size: 0.95rem; }
-        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
-        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
-        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
-        .chat-movie-card { display: flex; align-items: stretch; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; width: 100%; min-height: 95px; }
-        .chat-movie-card img { width: 65px; min-width: 65px; height: 95px; object-fit: cover; flex-shrink: 0; display: block; }
-        .chat-movie-info { padding: 10px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
-        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
-        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
-        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
-        .chat-input-area input:focus { border-color: var(--purple); }
-        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -214,22 +214,33 @@
 
         <div id="aba-explorar" class="aba">
             <h2><div class="h2-detail"></div> Explorar Catálogo</h2>
+
             <div class="filters-container">
                 <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome... (Enter)">
                 <div class="filters-row">
                     <select id="select-genero" class="filter-input">
                         <option value="todos">🎭 Todos Gêneros</option>
-                        <option value="28">Ação</option><option value="16">Animação</option><option value="12">Aventura</option>
-                        <option value="35">Comédia</option><option value="80">Crime</option><option value="99">Documentário</option>
-                        <option value="18">Drama</option><option value="10751">Família</option><option value="14">Fantasia</option>
-                        <option value="878">Ficção Científica</option><option value="9648">Mistério</option><option value="10749">Romance</option>
-                        <option value="27">Terror</option><option value="53">Thriller</option>
+                        <option value="28">Ação</option>
+                        <option value="16">Animação</option>
+                        <option value="12">Aventura</option>
+                        <option value="35">Comédia</option>
+                        <option value="80">Crime</option>
+                        <option value="99">Documentário</option>
+                        <option value="18">Drama</option>
+                        <option value="10751">Família</option>
+                        <option value="14">Fantasia</option>
+                        <option value="878">Ficção Científica</option>
+                        <option value="9648">Mistério</option>
+                        <option value="10749">Romance</option>
+                        <option value="27">Terror</option>
+                        <option value="53">Thriller</option>
                     </select>
                     <select id="select-ordem" class="filter-input">
                         <option value="populares">🔥 Populares</option><option value="lancamentos">🆕 Lançamentos</option><option value="nota_desc">⭐ Maior Nota</option>
                     </select>
                 </div>
             </div>
+
             <div class="movies-grid" id="explorar-grid"></div>
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" style="display: none;">⬇ Carregar Mais</button></div>
         </div>
@@ -271,7 +282,7 @@
         </div>
     </main>
 
-    <div id="modal-escolha" class="modal">
+    <div id="modal-escolha" class="modal" style="z-index: 2700;">
         <div class="modal-content">
             <h3>Organizar Filme</h3>
             <div id="modal-nome-filme" class="modal-movie-title">Nome do Filme</div>
@@ -279,13 +290,16 @@
                 <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
                 <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Assistidos Recentemente</button>
                 <button id="btn-toggle-playlists" class="btn-modal" style="background-color: var(--blue); color: white;">➕ Adicionar a uma Playlist</button>
-                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;"></div>
+                
+                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;">
+                </div>
+
                 <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel" style="margin-top: 0.5rem;">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-criar-playlist" class="modal">
+    <div id="modal-criar-playlist" class="modal" style="z-index: 2600;">
         <div class="modal-content">
             <h3>Criar Nova Playlist</h3>
             <input type="text" id="input-nome-playlist" class="login-input" placeholder="Ex: Maratona de Terror">
@@ -335,6 +349,7 @@
         <div style="background: var(--bg-color); width: 100%; min-height: 100vh; position: relative; padding-bottom: 80px;">
             <button id="btn-fechar-ver-playlist" style="position: absolute; top: 15px; right: 15px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">&times;</button>
             <button id="btn-editar-ver-playlist" style="position: absolute; top: 15px; right: 65px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: none;">✏️</button>
+            
             <div id="capa-ver-playlist" style="width: 100%; height: 280px; background-size: cover; background-position: center; position: relative;">
                 <div style="position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color), transparent);"></div>
                 <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
@@ -346,7 +361,7 @@
         </div>
     </div>
 
-    <div id="modal-detalhes" class="modal">
+    <div id="modal-detalhes" class="modal" style="z-index: 2800;">
         <div class="modal-content modal-detalhes-content">
             <h3 id="detalhe-titulo" style="font-size: 1.4rem; margin-bottom: 0.2rem; color: var(--purple);">Título</h3>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
@@ -364,7 +379,7 @@
         </div>
     </div>
 
-    <div id="modal-buscar-amigo" class="modal" style="display:none;">
+    <div id="modal-buscar-amigo" class="modal" style="z-index: 2600; display:none;">
         <div class="modal-content">
             <h3>🔍 Encontrar Amigo</h3>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Pesquisa pelo @username do teu amigo</p>
@@ -377,24 +392,17 @@
         </div>
     </div>
 
-    <div id="modal-perfil-amigo" class="modal" style="display:none;">
+    <div id="modal-perfil-amigo" class="modal" style="z-index: 2400; display:none;">
         <div class="modal-content modal-detalhes-content">
             <h3 id="perfil-amigo-titulo" style="margin-bottom: 1rem; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent;">@amigo</h3>
             <div class="perfil-amigo-tabs">
-                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Assistidos Recentemente</button>
+                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Assistidos</button>
                 <button class="perfil-amigo-tab" id="tab-amigo-quero">✨ Quer Assistir</button>
                 <button class="perfil-amigo-tab" id="tab-amigo-playlists">📂 Playlists</button>
             </div>
             <div id="perfil-amigo-conteudo"></div>
             <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
         </div>
-    </div>
-
-    <button id="btn-chat-fab" class="chat-fab">✨</button>
-    <div id="chat-window" class="chat-window">
-        <div class="chat-header"><div class="title">✨ IA do iCine</div><button id="btn-fechar-chat">&times;</button></div>
-        <div id="chat-messages" class="chat-messages"><div class="chat-msg msg-bot">Olá! Sou o cérebro cinéfilo do iCine. Diga-me a "vibe" que procura e eu encontro o filme perfeito para si! 🍿</div></div>
-        <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios..."><button id="btn-enviar-chat">➤</button></div>
     </div>
 
     <script>
@@ -593,13 +601,11 @@
         function gerarCartaoFilmeHTML(f, context = 'explorar') {
             let acoesHtml = '';
             
-            if (context === 'explorar' || context === 'comunidade') {
+            if (context === 'explorar' || context === 'comunidade' || context === 'playlist-amigo') {
                 acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
                 acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">+ Lista</button>`;
             } else if (context === 'minha-playlist') {
                 acoesHtml += `<button class="btn-action btn-delete" data-id="${f.id || f.tmdb_id}" data-action="remover-playlist">🗑️ Remover</button>`;
-            } else if (context === 'playlist-amigo') {
-                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
             }
 
             return `

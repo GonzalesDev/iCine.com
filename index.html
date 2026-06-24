@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iCine | Seu Diário de Filmes na Nuvem</title>
+    <title>iCine | Um diário para cinéfilos</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -122,7 +122,7 @@
         .login-input { width: 100%; padding: 0.85rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 1rem; }
         .login-input:focus { outline: none; border-color: var(--purple); }
 
-        /* CHAT FLUTUANTE DE IA */
+        /* === CHAT FLUTUANTE DE IA === */
         .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 3100; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .chat-fab:active { transform: scale(0.9); }
         .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 3100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
@@ -216,24 +216,15 @@
             <h2><div class="h2-detail"></div> Explorar Catálogo</h2>
 
             <div class="filters-container">
-                <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome... (Enter)">
+                <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome...">
                 <div class="filters-row">
                     <select id="select-genero" class="filter-input">
                         <option value="todos">🎭 Todos Gêneros</option>
-                        <option value="28">Ação</option>
-                        <option value="16">Animação</option>
-                        <option value="12">Aventura</option>
-                        <option value="35">Comédia</option>
-                        <option value="80">Crime</option>
-                        <option value="99">Documentário</option>
-                        <option value="18">Drama</option>
-                        <option value="10751">Família</option>
-                        <option value="14">Fantasia</option>
-                        <option value="878">Ficção Científica</option>
-                        <option value="9648">Mistério</option>
-                        <option value="10749">Romance</option>
-                        <option value="27">Terror</option>
-                        <option value="53">Thriller</option>
+                        <option value="28">Ação</option><option value="16">Animação</option><option value="12">Aventura</option>
+                        <option value="35">Comédia</option><option value="80">Crime</option><option value="99">Documentário</option>
+                        <option value="18">Drama</option><option value="10751">Família</option><option value="14">Fantasia</option>
+                        <option value="878">Ficção Científica</option><option value="9648">Mistério</option><option value="10749">Romance</option>
+                        <option value="27">Terror</option><option value="53">Thriller</option>
                     </select>
                     <select id="select-ordem" class="filter-input">
                         <option value="populares">🔥 Populares</option><option value="lancamentos">🆕 Lançamentos</option><option value="nota_desc">⭐ Maior Nota</option>
@@ -290,10 +281,7 @@
                 <button id="btn-salvar-quero" class="btn-modal btn-modal-quero">✨ Quero Assistir</button>
                 <button id="btn-salvar-ja" class="btn-modal btn-modal-ja">🍿 Assistidos Recentemente</button>
                 <button id="btn-toggle-playlists" class="btn-modal" style="background-color: var(--blue); color: white;">➕ Adicionar a uma Playlist</button>
-                
-                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;">
-                </div>
-
+                <div id="lista-playlists-escolha" style="display: none; margin-top: 0.5rem; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto; border-top: 1px solid #374151; padding-top: 1rem;"></div>
                 <button id="btn-cancelar-modal" class="btn-modal btn-modal-cancel" style="margin-top: 0.5rem;">Cancelar</button>
             </div>
         </div>
@@ -405,6 +393,13 @@
         </div>
     </div>
 
+    <button id="btn-chat-fab" class="chat-fab">✨</button>
+    <div id="chat-window" class="chat-window">
+        <div class="chat-header"><div class="title">✨ IA do iCine</div><button id="btn-fechar-chat">&times;</button></div>
+        <div id="chat-messages" class="chat-messages"><div class="chat-msg msg-bot">Olá! Sou o cérebro cinéfilo do iCine. Diga-me a "vibe" que procura e eu encontro o filme perfeito para si! 🍿</div></div>
+        <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios..."><button id="btn-enviar-chat">➤</button></div>
+    </div>
+
     <script>
         console.log("iCine Full Stack Core Active!");
 
@@ -437,7 +432,6 @@
         let playlistSendoEditadaId = null;
         let playlistsAmigoAtual = [];
         let playlistAbertaAtualId = null;
-        
         let playlistsComunidadeAtual = [];
 
         // =======================================================
@@ -531,8 +525,26 @@
             if (abaId === 'amigos') renderizarAbaAmigos();
         }
 
-        document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { if (e.key === 'Enter') aplicarFiltros(true); });
-        
+        // ==========================================
+        // NOVO: SISTEMA DE PESQUISA COM DEBOUNCE
+        // ==========================================
+        let timeoutPesquisa;
+        document.getElementById('input-pesquisa').addEventListener('input', () => {
+            clearTimeout(timeoutPesquisa);
+            timeoutPesquisa = setTimeout(() => {
+                aplicarFiltros(true);
+            }, 600); 
+        });
+
+        // Caso o utilizador tecle ENTER antes do meio segundo, pesquisa imediatamente
+        document.getElementById('input-pesquisa').addEventListener('keyup', (e) => { 
+            if (e.key === 'Enter') {
+                clearTimeout(timeoutPesquisa);
+                aplicarFiltros(true); 
+            }
+        });
+        // ==========================================
+
         document.getElementById('pesquisa-ja-assisti').addEventListener('input', () => {
             mostrarTodosJaAssisti = false;
             renderizarMinhasListas();

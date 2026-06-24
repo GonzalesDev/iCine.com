@@ -140,6 +140,28 @@
         .perfil-amigo-tab.ativo { background: var(--purple); color: white; border-color: var(--purple); }
         .meu-perfil-card { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
         .btn-add-amigo { margin-left: auto; background: var(--purple); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+
+        /* === CHAT FLUTUANTE DE IA (RECUPERADO!) === */
+        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 1000; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .chat-fab:active { transform: scale(0.9); }
+        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
+        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
+        @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-header { background-color: #1f2937; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; font-weight: bold; font-size: 0.95rem; }
+        .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; }
+        .chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .msg-user { background-color: var(--purple); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-bot { background-color: #1f2937; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #374151; }
+        .chat-movie-card { display: flex; align-items: stretch; background: #111827; border: 1px solid var(--purple); border-radius: 8px; overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; width: 100%; min-height: 95px; }
+        .chat-movie-card img { width: 65px; min-width: 65px; height: 95px; object-fit: cover; flex-shrink: 0; display: block; }
+        .chat-movie-info { padding: 10px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .chat-movie-title { font-weight: bold; font-size: 0.9rem; color: var(--text-main); line-height: 1.2; }
+        .chat-movie-btn { background: var(--purple); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: fit-content; margin-top: 4px; }
+        .chat-input-area { display: flex; padding: 10px; background-color: #1f2937; border-top: 1px solid #374151; gap: 8px; }
+        .chat-input-area input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #4b5563; background-color: #111827; color: white; font-size: 0.95rem; outline: none; }
+        .chat-input-area input:focus { border-color: var(--purple); }
+        .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -148,8 +170,10 @@
         <div class="login-box">
             <h1 class="logo" style="margin-bottom: 0.5rem; font-size: 3rem;">iCine</h1>
             <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Seu diário de filmes pessoal e sincronizado na nuvem.</p>
+
             <input type="email" id="email-login" class="login-input" placeholder="Seu e-mail">
             <input type="password" id="senha-login" class="login-input" placeholder="Sua senha">
+
             <button id="btn-entrar-acao" class="btn-action btn-add" style="margin-bottom: 0.75rem; padding: 0.85rem; font-size: 1rem;">Entrar</button>
             <button id="btn-registrar-acao" class="btn-action btn-watched" style="padding: 0.85rem; font-size: 1rem;">Criar Conta Grátis</button>
             <p id="login-msg" style="color: var(--red); font-size: 0.85rem; margin-top: 1rem;"></p>
@@ -875,7 +899,6 @@
         function renderizarComunidade() {
             const container = document.getElementById('comunidade-grid');
             
-            // Ordenar: Mais Curtidas primeiro, depois Ordem Alfabética (A-Z)
             playlistsComunidadeAtual.sort((a, b) => {
                 const likesA = (a.curtidas || []).length;
                 const likesB = (b.curtidas || []).length;
@@ -921,11 +944,9 @@
                 curtidas.push(usuarioAtual.id);
             }
 
-            // Atualiza UI instantaneamente
             playlist.curtidas = curtidas;
             renderizarComunidade();
 
-            // Grava no Supabase em background
             await supabaseClient.from('playlists').update({ curtidas }).eq('id', playlistId);
         }
 
@@ -948,7 +969,6 @@
                 grid.innerHTML = '';
             } else {
                 document.getElementById('msg-playlist-vazia').style.display = 'none';
-                // Usar 'comunidade' para aparecer "Sinopse" e "+ Lista"
                 grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, 'comunidade')).join('');
             }
 

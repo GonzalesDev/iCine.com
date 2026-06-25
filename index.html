@@ -1242,6 +1242,14 @@
             
             // LOGICA DE CURADORIA DIRETA VIA MODAL
             const btnRadar = document.getElementById('btn-fixar-radar');
+            // Linha temporária para testar no F12 do navegador:
+            console.log("O teu ID atual é:", usuarioAtual?.id, "O ID do Admin é:", SEU_ID_DE_ADMIN);
+
+            if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) {
+                btnRadar.style.display = 'block';
+            } else {
+                btnRadar.style.display = 'none';
+            }
             if (btnRadar) {
                 // Lembre-se de colocar o seu User UID do Supabase aqui entre as aspas:
                 const SEU_ID_DE_ADMIN = "0508a7bc-a3b2-40b7-96fe-49a3f5bdc528"; 

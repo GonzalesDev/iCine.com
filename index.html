@@ -584,63 +584,76 @@
             return parseFloat(filme.notaTmdb || filme.nota) || 0; 
         }
 
+        // ========================================================
+        // ATUALIZADO: BLINDAGEM DE FILMES DESCONHECIDOS E DATAS LONGAS
+        // ========================================================
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
             const termoBusca = document.getElementById('input-pesquisa').value.trim();
             const generoId = document.getElementById('select-genero').value;
             const ordem = document.getElementById('select-ordem').value;
+            
             const dataHoje = new Date();
             const dataHojeStr = dataHoje.toISOString().split('T')[0];
 
-            let url = '';
-            let isSearching = termoBusca !== '';
+            const dataAmanha = new Date();
+            dataAmanha.setDate(dataHoje.getDate() + 1);
+            const dataAmanhaStr = dataAmanha.toISOString().split('T')[0];
 
-            if (isSearching) {
-                // A API pesquisa apenas por texto base, trazemos tudo e filtramos datas localmente se preciso
-                url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}&region=BR`;
+            const data60DiasAtras = new Date();
+            data60DiasAtras.setDate(dataHoje.getDate() - 60);
+            const data60DiasAtrasStr = data60DiasAtras.toISOString().split('T')[0];
+
+            let url = '';
+            if (termoBusca !== '') {
+                url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}`;
             } else {
-                if (ordem === 'no_cinema') url = `${URL_BASE}/movie/now_playing?api_key=${TMDB_KEY}&language=pt-BR&page=${paginaAtual}&region=BR`;
-                else if (ordem === 'brevemente') url = `${URL_BASE}/movie/upcoming?api_key=${TMDB_KEY}&language=pt-BR&page=${paginaAtual}&region=BR`;
-                else if (ordem === 'nota_desc') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
-                else if (ordem === 'lancamentos') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHojeStr}&page=${paginaAtual}`;
-                else url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
+                // Usando o motor completo discover para injetar filtros rígidos de região BR e popularidade
+                if (ordem === 'no_cinema') {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&region=BR&with_release_type=2|3&release_date.gte=${data60DiasAtrasStr}&release_date.lte=${dataHojeStr}&sort_by=release_date.desc&popularity.gte=12&page=${paginaAtual}`;
+                } else if (ordem === 'brevemente') {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&region=BR&with_release_type=2|3&release_date.gte=${dataAmanhaStr}&release_date.lte=2027-12-31&sort_by=release_date.asc&popularity.gte=8&page=${paginaAtual}`;
+                } else if (ordem === 'nota_desc') {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
+                } else if (ordem === 'lancamentos') {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHojeStr}&page=${paginaAtual}`;
+                } else {
+                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
+                }
                 
-                if (generoId !== 'todos' && ordem !== 'no_cinema' && ordem !== 'brevemente') url += `&with_genres=${generoId}`;
+                if (generoId !== 'todos') url += `&with_genres=${generoId}`;
             }
 
             try {
                 const resposta = await fetch(url);
                 const dados = await resposta.json();
-                
                 let resultadosBrutos = dados.results || [];
 
-                // FILTRAGEM DE DATA LOCAL QUANDO PESQUISA ESTÁ ATIVA
-                if (isSearching) {
+                // Filtragem local inteligente caso seja uma pesquisa ativa por palavra-chave
+                if (termoBusca !== '') {
                     if (ordem === 'no_cinema') {
-                        const sessentaDiasAtras = new Date();
-                        sessentaDiasAtras.setDate(dataHoje.getDate() - 60);
                         resultadosBrutos = resultadosBrutos.filter(f => {
                             if(!f.release_date) return false;
                             const d = new Date(f.release_date);
-                            return d >= sessentaDiasAtras && d <= dataHoje;
+                            return d >= data60DiasAtras && d <= dataHoje && parseFloat(f.popularity || 0) >= 12;
                         });
                     } else if (ordem === 'brevemente') {
                         const limiteFim = new Date('2027-12-31');
                         resultadosBrutos = resultadosBrutos.filter(f => {
                             if(!f.release_date) return false;
                             const d = new Date(f.release_date);
-                            return d > dataHoje && d <= limiteFim;
+                            return d > dataHoje && d <= limiteFim && parseFloat(f.popularity || 0) >= 8;
                         });
                     }
-                }
-
-                // ORDENAÇÃO DE DATAS LOCAL
-                if (ordem === 'brevemente') {
-                    resultadosBrutos.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-                } else if (ordem === 'no_cinema' || ordem === 'lancamentos') {
-                    resultadosBrutos.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
-                } else if (isSearching && ordem === 'nota_desc') {
-                    resultadosBrutos.sort((a, b) => b.vote_average - a.vote_average);
+                    if (generoId !== 'todos') {
+                        resultadosBrutos = resultadosBrutos.filter(f => f.genre_ids && f.genre_ids.includes(parseInt(generoId)));
+                    }
+                    // Ordenar os resultados locais da pesquisa por data
+                    if (ordem === 'brevemente') {
+                        resultadosBrutos.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+                    } else if (ordem === 'no_cinema' || ordem === 'lancamentos') {
+                        resultadosBrutos.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+                    }
                 }
 
                 let novasCapas = resultadosBrutos.filter(f => f.poster_path).map(filme => {
@@ -656,7 +669,7 @@
                 filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
 
                 renderizarGridExplorar(filmesExplorarAcumulados);
-                document.getElementById('btn-carregar-mais').style.display = (dados.total_pages > paginaAtual) ? 'block' : 'none';
+                document.getElementById('btn-carregar-mais').style.display = (dados.total_pages > paginaAtual && termoBusca === '') ? 'block' : 'none';
             } catch (erro) { console.error(erro); }
         }
 
@@ -779,14 +792,6 @@
                 renderizarMinhasListas();
             }
         }
-
-        document.getElementById('btn-abrir-criar-playlist').addEventListener('click', () => {
-            document.getElementById('input-nome-playlist').value = '';
-            document.getElementById('input-capa-playlist').value = '';
-            document.getElementById('input-publica-playlist').checked = false;
-            document.getElementById('msg-criar-playlist').innerText = '';
-            abrirModalSeguro('modal-criar-playlist');
-        });
 
         document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => { fecharModalSeguro('modal-criar-playlist'); });
 
@@ -983,7 +988,6 @@
         }
         
         document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
-
 
         async function carregarComunidade() {
             const container = document.getElementById('comunidade-grid');
@@ -1346,7 +1350,7 @@
             else { meuPerfil = { user_id: usuarioAtual.id, username }; msg.innerText = ''; carregarAmigos(); }
         });
 
-        document.getElementById('btn-abrir-busca').addEventListener('click', () => {
+        document.getElementById('btn-add-amigo').addEventListener('click', () => {
             document.getElementById('resultado-busca-amigo').innerHTML = '';
             document.getElementById('input-busca-amigo').value = '';
             abrirModalSeguro('modal-buscar-amigo');
@@ -1415,7 +1419,7 @@
             };
         }
 
-        function renderizarFilmesAmigo(filmes, grupo) {
+        function renderizarFilmesAmigo(filmes, group) {
             const lista = filmes.filter(f => f.grupo === grupo);
             const container = document.getElementById('perfil-amigo-conteudo');
             if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;

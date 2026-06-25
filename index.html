@@ -67,7 +67,7 @@
 
         .comunidade-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
 
-        /* === NOVO: ESTILOS STREAMING TOP 10 === */
+        /* === ESTILOS STREAMING TOP 10 === */
         .streaming-row { display: flex; overflow-x: auto; gap: 0.85rem; padding-bottom: 0.6rem; margin-bottom: 1rem; scrollbar-width: none; }
         .streaming-row::-webkit-scrollbar { display: none; }
         .streaming-pill { background: #111827; border: 1px solid #374151; padding: 8px 16px; border-radius: 25px; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
@@ -368,6 +368,7 @@
         <div style="background: var(--bg-color); width: 100%; min-height: 100vh; position: relative; padding-bottom: 80px;">
             <button id="btn-fechar-ver-playlist" style="position: absolute; top: 15px; right: 15px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">&times;</button>
             <button id="btn-editar-ver-playlist" style="position: absolute; top: 15px; right: 65px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: none;">✏️</button>
+            
             <div id="capa-ver-playlist" style="width: 100%; height: 280px; background-size: cover; background-position: center; position: relative;">
                 <div style="position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color), transparent);"></div>
                 <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
@@ -445,7 +446,6 @@
         const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
         const SUPABASE_URL = 'https://ihbutfwdkkkykwqoaahx.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_9GWFmch4e7hH9uijg577jQ_UoKzImDH';
-        const OMDB_KEY = '8a9cb300'; 
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -464,9 +464,6 @@
         let playlistAbertaAtualId = null;
         let playlistsComunidadeAtual = [];
 
-        // =======================================================
-        // LÓGICA DO BOTÃO VOLTAR NATIVO (STACK DE MODAIS)
-        // =======================================================
         let pilhaModais = [];
 
         window.addEventListener('load', () => {
@@ -495,7 +492,6 @@
                 if (modalEl) modalEl.style.display = 'none';
             }
         });
-        // =======================================================
 
         async function checarSessao() {
             try {
@@ -506,7 +502,7 @@
                     carregarFilmesDaNuvem(); 
                     carregarPlaylistsDaNuvem();
                     aplicarFiltros(true);
-                    carregarTop10(8, "Netflix"); // Inicializa o Top 10 com a Netflix por padrão
+                    carregarTop10(8, "Netflix"); 
                     verificarPerfil();
                 } else {
                     document.getElementById('tela-login').style.display = 'flex';
@@ -580,13 +576,16 @@
         document.getElementById('select-ordem').addEventListener('change', () => aplicarFiltros(true));
         document.getElementById('btn-carregar-mais').addEventListener('click', () => { paginaAtual++; aplicarFiltros(false); });
 
+        // === CORREÇÃO: "filme" no lugar de "f" e nota unificada (IMDB Style para TMDB) ===
         function renderScoreBadge(filme) {
-            let badgePrimario = filme.notaImdb && filme.notaImdb !== 'N/A' ? `<span class="imdb-score">⭐ ${filme.notaImdb}</span>` : `<span class="tmdb-score">🎬 ${filme.notaTmdb || f.nota || '0.0'}</span>`;
-            let badgeRt = f.notaRt && f.notaRt !== 'N/A' ? `<span class="rt-score">🍅 ${filme.notaRt}</span>` : '';
-            return `${badgePrimario} ${badgeRt}`;
+            const notaReal = filme.notaTmdb || filme.nota || '0.0';
+            return `<span class="imdb-score">⭐ ${notaReal}</span>`;
         }
 
-        function getScoreParaOrdem(filme) { return parseFloat(filme.notaImdb !== 'N/A' ? filme.notaImdb : f.notaTmdb) || 0; }
+        function getScoreParaOrdem(filme) { 
+            return parseFloat(filme.notaTmdb || filme.nota) || 0; 
+        }
+        // =================================================================================
 
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
@@ -620,17 +619,8 @@
                     };
                 });
 
-                if (OMDB_KEY !== '' && ordem !== 'brevemente' && termoBusca === '') {
-                    novasCapas = await Promise.all(novasCapas.map(async (filme) => {
-                        try {
-                            const respOmdb = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(filme.tituloOriginal)}`);
-                            const dadosOmdb = await respOmdb.json();
-                            if (dadosOmdb && dadosOmdb.imdbRating && dadosOmdb.imdbRating !== 'N/A') filme.notaImdb = dadosOmdb.imdbRating;
-                        } catch (e) {} return filme;
-                    }));
-                }
-
                 filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
+                if (ordem === 'nota_desc') filmesExplorarAcumulados.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
                 filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
 
                 renderizarGridExplorar(filmesExplorarAcumulados);
@@ -638,15 +628,11 @@
             } catch (erro) { console.error(erro); }
         }
 
-        // ========================================================
-        // NOVO: SISTEMA DE CARREGAMENTO DO TOP 10 (ESTILO REELS)
-        // ========================================================
         async function carregarTop10(providerId, providerNome) {
             const grid = document.getElementById('top10-grid');
             document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - ${providerNome}`;
             grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar o ranking... ⏳</p>';
 
-            // Endpoint do TMDB para descobrir os mais populares filtrados por streaming e região Brasil/Portugal
             const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&page=1`;
 
             try {
@@ -683,7 +669,6 @@
             elemento.classList.add('active');
             carregarTop10(id, elemento.innerText.split(' ')[1]);
         }
-        // ========================================================
 
         function renderizarGridExplorar(listaDeFilmes) {
             document.getElementById('explorar-grid').innerHTML = listaDeFilmes.map(filme => gerarCartaoFilmeHTML(filme, 'explorar')).join('');
@@ -762,6 +747,14 @@
                 renderizarMinhasListas();
             }
         }
+
+        document.getElementById('btn-abrir-criar-playlist').addEventListener('click', () => {
+            document.getElementById('input-nome-playlist').value = '';
+            document.getElementById('input-capa-playlist').value = '';
+            document.getElementById('input-publica-playlist').checked = false;
+            document.getElementById('msg-criar-playlist').innerText = '';
+            abrirModalSeguro('modal-criar-playlist');
+        });
 
         document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => { fecharModalSeguro('modal-criar-playlist'); });
 
@@ -960,9 +953,6 @@
         document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
 
 
-        // ==========================================
-        // === COMUNIDADE GLOBAL ===
-        // ==========================================
         async function carregarComunidade() {
             const container = document.getElementById('comunidade-grid');
             container.innerHTML = '<p class="empty-msg" style="grid-column: 1/-1;">A procurar as melhores playlists do mundo... 🌍</p>';
@@ -1065,8 +1055,6 @@
             abrirModalSeguro('modal-ver-playlist');
             mapearBotoesGrid();
         }
-        // ==========================================
-
 
         document.getElementById('btn-salvar-quero').addEventListener('click', () => salvarNoGrupo('quero'));
         document.getElementById('btn-salvar-ja').addEventListener('click', () => salvarNoGrupo('ja'));
@@ -1078,7 +1066,7 @@
             const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id == filme.id);
             if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModalSeguro('modal-escolha'); return; }
 
-            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, group: grupo };
+            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, grupo: grupo };
             await supabaseClient.from('meus_filmes').insert([novoFilme]);
             carregarFilmesDaNuvem();
             fecharModalSeguro('modal-escolha');
@@ -1245,11 +1233,6 @@
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
-        // === SOCIAL / AMIGOS ===
-        let meuPerfil = null;
-        let pedidosPendentes = [];
-        let listaAmigos = [];
-
         async function verificarPerfil() {
             const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).single();
             if (data) meuPerfil = data;
@@ -1331,7 +1314,7 @@
             else { meuPerfil = { user_id: usuarioAtual.id, username }; msg.innerText = ''; carregarAmigos(); }
         });
 
-        document.getElementById('btn-add-amigo').addEventListener('click', () => {
+        document.getElementById('btn-abrir-busca').addEventListener('click', () => {
             document.getElementById('resultado-busca-amigo').innerHTML = '';
             document.getElementById('input-busca-amigo').value = '';
             abrirModalSeguro('modal-buscar-amigo');

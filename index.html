@@ -368,7 +368,6 @@
         <div style="background: var(--bg-color); width: 100%; min-height: 100vh; position: relative; padding-bottom: 80px;">
             <button id="btn-fechar-ver-playlist" style="position: absolute; top: 15px; right: 15px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer;">&times;</button>
             <button id="btn-editar-ver-playlist" style="position: absolute; top: 15px; right: 65px; z-index: 200; background: rgba(0,0,0,0.6); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: none;">✏️</button>
-            
             <div id="capa-ver-playlist" style="width: 100%; height: 280px; background-size: cover; background-position: center; position: relative;">
                 <div style="position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color), transparent);"></div>
                 <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
@@ -576,7 +575,6 @@
         document.getElementById('select-ordem').addEventListener('change', () => aplicarFiltros(true));
         document.getElementById('btn-carregar-mais').addEventListener('click', () => { paginaAtual++; aplicarFiltros(false); });
 
-        // === CORREÇÃO: "filme" no lugar de "f" e nota unificada (IMDB Style para TMDB) ===
         function renderScoreBadge(filme) {
             const notaReal = filme.notaTmdb || filme.nota || '0.0';
             return `<span class="imdb-score">⭐ ${notaReal}</span>`;
@@ -585,23 +583,26 @@
         function getScoreParaOrdem(filme) { 
             return parseFloat(filme.notaTmdb || filme.nota) || 0; 
         }
-        // =================================================================================
 
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
             const termoBusca = document.getElementById('input-pesquisa').value.trim();
             const generoId = document.getElementById('select-genero').value;
             const ordem = document.getElementById('select-ordem').value;
-            const dataHoje = new Date().toISOString().split('T')[0];
+            const dataHoje = new Date();
+            const dataHojeStr = dataHoje.toISOString().split('T')[0];
 
             let url = '';
-            if (termoBusca !== '') {
-                url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}`;
+            let isSearching = termoBusca !== '';
+
+            if (isSearching) {
+                // A API pesquisa apenas por texto base, trazemos tudo e filtramos datas localmente se preciso
+                url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}&region=BR`;
             } else {
                 if (ordem === 'no_cinema') url = `${URL_BASE}/movie/now_playing?api_key=${TMDB_KEY}&language=pt-BR&page=${paginaAtual}&region=BR`;
                 else if (ordem === 'brevemente') url = `${URL_BASE}/movie/upcoming?api_key=${TMDB_KEY}&language=pt-BR&page=${paginaAtual}&region=BR`;
                 else if (ordem === 'nota_desc') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
-                else if (ordem === 'lancamentos') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHoje}&page=${paginaAtual}`;
+                else if (ordem === 'lancamentos') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHojeStr}&page=${paginaAtual}`;
                 else url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
                 
                 if (generoId !== 'todos' && ordem !== 'no_cinema' && ordem !== 'brevemente') url += `&with_genres=${generoId}`;
@@ -610,7 +611,39 @@
             try {
                 const resposta = await fetch(url);
                 const dados = await resposta.json();
-                let novasCapas = dados.results.filter(f => f.poster_path).map(filme => {
+                
+                let resultadosBrutos = dados.results || [];
+
+                // FILTRAGEM DE DATA LOCAL QUANDO PESQUISA ESTÁ ATIVA
+                if (isSearching) {
+                    if (ordem === 'no_cinema') {
+                        const sessentaDiasAtras = new Date();
+                        sessentaDiasAtras.setDate(dataHoje.getDate() - 60);
+                        resultadosBrutos = resultadosBrutos.filter(f => {
+                            if(!f.release_date) return false;
+                            const d = new Date(f.release_date);
+                            return d >= sessentaDiasAtras && d <= dataHoje;
+                        });
+                    } else if (ordem === 'brevemente') {
+                        const limiteFim = new Date('2027-12-31');
+                        resultadosBrutos = resultadosBrutos.filter(f => {
+                            if(!f.release_date) return false;
+                            const d = new Date(f.release_date);
+                            return d > dataHoje && d <= limiteFim;
+                        });
+                    }
+                }
+
+                // ORDENAÇÃO DE DATAS LOCAL
+                if (ordem === 'brevemente') {
+                    resultadosBrutos.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+                } else if (ordem === 'no_cinema' || ordem === 'lancamentos') {
+                    resultadosBrutos.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
+                } else if (isSearching && ordem === 'nota_desc') {
+                    resultadosBrutos.sort((a, b) => b.vote_average - a.vote_average);
+                }
+
+                let novasCapas = resultadosBrutos.filter(f => f.poster_path).map(filme => {
                     let dataFormatada = filme.release_date ? filme.release_date.split('-').reverse().join('/') : 'N/A';
                     let exibicaoAno = (ordem === 'brevemente' || ordem === 'no_cinema') ? dataFormatada : (filme.release_date ? filme.release_date.split('-')[0] : 'N/A');
 
@@ -620,7 +653,6 @@
                 });
 
                 filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
-                if (ordem === 'nota_desc') filmesExplorarAcumulados.sort((a, b) => getScoreParaOrdem(b) - getScoreParaOrdem(a));
                 filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
 
                 renderizarGridExplorar(filmesExplorarAcumulados);

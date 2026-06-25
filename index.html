@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iCine | Seu Diário de Filmes na Nuvem</title>
+    <title>iCine | Seu parceiro cinematográfico</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -255,8 +255,7 @@
                     </select>
                     <select id="select-ordem" class="filter-input">
                         <option value="populares">🔥 Populares</option>
-                        <option value="no_cinema">🍿 Nos Cinemas</option>
-                        <option value="brevemente">🗓️ Próximos Lançamentos</option>
+                        <option value="radar_curado">🗓️ Próximos Lançamentos</option>
                         <option value="lancamentos">🆕 Recém-Lançados</option>
                         <option value="nota_desc">⭐ Maior Nota</option>
                     </select>
@@ -390,6 +389,7 @@
             <h4 id="titulo-streaming" style="margin-bottom: 0.5rem; font-size: 1rem; display: none; margin-top: 1rem;">🎬 Onde Assistir (Streaming):</h4>
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
+                <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white;">📌 Fixar nos Lançamentos</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
                 <button id="btn-fechar-detalhes" class="btn-modal btn-modal-cancel">Fechar</button>
@@ -585,43 +585,66 @@
         }
 
         // ========================================================
-        // ATUALIZADO: BLINDAGEM DE FILMES DESCONHECIDOS E DATAS LONGAS
+        // ATUALIZADO: LOGICA EXCLUSIVA DO RADAR CURADO MANUAL
         // ========================================================
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
             const termoBusca = document.getElementById('input-pesquisa').value.trim();
             const generoId = document.getElementById('select-genero').value;
             const ordem = document.getElementById('select-ordem').value;
-            
-            const dataHoje = new Date();
-            const dataHojeStr = dataHoje.toISOString().split('T')[0];
-
-            const dataAmanha = new Date();
-            dataAmanha.setDate(dataHoje.getDate() + 1);
-            const dataAmanhaStr = dataAmanha.toISOString().split('T')[0];
-
-            const data60DiasAtras = new Date();
-            data60DiasAtras.setDate(dataHoje.getDate() - 60);
-            const data60DiasAtrasStr = data60DiasAtras.toISOString().split('T')[0];
+            const dataHojeStr = new Date().toISOString().split('T')[0];
 
             let url = '';
             if (termoBusca !== '') {
                 url = `${URL_BASE}/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}`;
             } else {
-                // Usando o motor completo discover para injetar filtros rígidos de região BR e popularidade
-                if (ordem === 'no_cinema') {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&region=BR&with_release_type=2|3&release_date.gte=${data60DiasAtrasStr}&release_date.lte=${dataHojeStr}&sort_by=release_date.desc&popularity.gte=12&page=${paginaAtual}`;
-                } else if (ordem === 'brevemente') {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&region=BR&with_release_type=2|3&release_date.gte=${dataAmanhaStr}&release_date.lte=2027-12-31&sort_by=release_date.asc&popularity.gte=8&page=${paginaAtual}`;
-                } else if (ordem === 'nota_desc') {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
-                } else if (ordem === 'lancamentos') {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHojeStr}&page=${paginaAtual}`;
+                if (ordem === 'radar_curado') {
+                    const { data: radarIds, error } = await supabaseClient
+                        .from('radar_curado')
+                        .select('*')
+                        .order('data_estreia', { ascending: true });
+
+                    let novasCapas = [];
+                    if (radarIds && radarIds.length > 0) {
+                        novasCapas = await Promise.all(radarIds.map(async (item) => {
+                            try {
+                                const r = await fetch(`${URL_BASE}/movie/${item.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
+                                const filme = await r.json();
+                                
+                                // Filtro local de gênero estruturado
+                                if (generoId !== 'todos' && (!filme.genres || !filme.genres.some(g => String(g.id) === String(generoId)))) {
+                                    return null;
+                                }
+
+                                let dataFormatada = item.data_estreia ? item.data_estreia.split('-').reverse().join('/') : 'N/A';
+                                
+                                return {
+                                    id: filme.id,
+                                    titulo: filme.title,
+                                    tituloOriginal: filme.original_title,
+                                    ano: `🗓️ ${dataFormatada}`,
+                                    notaTmdb: filme.vote_average ? filme.vote_average.toFixed(1) : '0.0',
+                                    notaImdb: 'N/A',
+                                    capa: filme.poster_path ? `${IMG_BASE}${filme.poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Capa',
+                                    sinopse: filme.overview || 'Sinopse não disponibilizada.'
+                                };
+                            } catch(e) { return null; }
+                        }));
+                        novasCapas = novasCapas.filter(f => f !== null);
+                    }
+                    
+                    filmesExplorarAcumulados = novasCapas;
+                    filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
+                    renderizarGridExplorar(filmesExplorarAcumulados);
+                    document.getElementById('btn-carregar-mais').style.display = 'none';
+                    return;
                 } else {
-                    url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
+                    if (ordem === 'nota_desc') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=1000&sort_by=vote_average.desc&page=${paginaAtual}`;
+                    else if (ordem === 'lancamentos') url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=primary_release_date.desc&primary_release_date.lte=${dataHojeStr}&page=${paginaAtual}`;
+                    else url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
+                    
+                    if (generoId !== 'todos') url += `&with_genres=${generoId}`;
                 }
-                
-                if (generoId !== 'todos') url += `&with_genres=${generoId}`;
             }
 
             try {
@@ -629,39 +652,13 @@
                 const dados = await resposta.json();
                 let resultadosBrutos = dados.results || [];
 
-                // Filtragem local inteligente caso seja uma pesquisa ativa por palavra-chave
-                if (termoBusca !== '') {
-                    if (ordem === 'no_cinema') {
-                        resultadosBrutos = resultadosBrutos.filter(f => {
-                            if(!f.release_date) return false;
-                            const d = new Date(f.release_date);
-                            return d >= data60DiasAtras && d <= dataHoje && parseFloat(f.popularity || 0) >= 12;
-                        });
-                    } else if (ordem === 'brevemente') {
-                        const limiteFim = new Date('2027-12-31');
-                        resultadosBrutos = resultadosBrutos.filter(f => {
-                            if(!f.release_date) return false;
-                            const d = new Date(f.release_date);
-                            return d > dataHoje && d <= limiteFim && parseFloat(f.popularity || 0) >= 8;
-                        });
-                    }
-                    if (generoId !== 'todos') {
-                        resultadosBrutos = resultadosBrutos.filter(f => f.genre_ids && f.genre_ids.includes(parseInt(generoId)));
-                    }
-                    // Ordenar os resultados locais da pesquisa por data
-                    if (ordem === 'brevemente') {
-                        resultadosBrutos.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-                    } else if (ordem === 'no_cinema' || ordem === 'lancamentos') {
-                        resultadosBrutos.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
-                    }
+                if (termoBusca !== '' && generoId !== 'todos') {
+                    resultadosBrutos = resultadosBrutos.filter(f => f.genre_ids && f.genre_ids.includes(parseInt(generoId)));
                 }
 
                 let novasCapas = resultadosBrutos.filter(f => f.poster_path).map(filme => {
-                    let dataFormatada = filme.release_date ? filme.release_date.split('-').reverse().join('/') : 'N/A';
-                    let exibicaoAno = (ordem === 'brevemente' || ordem === 'no_cinema') ? dataFormatada : (filme.release_date ? filme.release_date.split('-')[0] : 'N/A');
-
                     return {
-                        id: filme.id, titulo: filme.title, tituloOriginal: filme.original_title, ano: exibicaoAno, notaTmdb: filme.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: `${IMG_BASE}${filme.poster_path}`, sinopse: filme.overview || 'Sinopse não disponibilizada.'
+                        id: filme.id, titulo: filme.title, tituloOriginal: filme.original_title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: `${IMG_BASE}${filme.poster_path}`, sinopse: filme.overview || 'Sinopse não disponibilizada.'
                     };
                 });
 
@@ -669,7 +666,7 @@
                 filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
 
                 renderizarGridExplorar(filmesExplorarAcumulados);
-                document.getElementById('btn-carregar-mais').style.display = (dados.total_pages > paginaAtual && termoBusca === '') ? 'block' : 'none';
+                document.getElementById('btn-carregar-mais').style.display = (dados && dados.total_pages > paginaAtual && ordem !== 'radar_curado' && termoBusca === '') ? 'block' : 'none';
             } catch (erro) { console.error(erro); }
         }
 
@@ -1224,6 +1221,9 @@
             abrirModalSeguro('modal-escolha'); 
         }
 
+        // ========================================================
+        // ATUALIZADO: DETALHES + BOTÃO SECRETO DE ADMIN CURADORIA
+        // ========================================================
         async function abrirDetalhes(id) {
             const filme = bancoDeFilmesLocal.get(id); if (!filme) return;
             document.getElementById('detalhe-titulo').innerText = filme.titulo; document.getElementById('detalhe-ano').innerText = filme.ano; 
@@ -1239,20 +1239,42 @@
             btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
 
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
+            
+            // LOGICA DE CURADORIA DIRETA VIA MODAL
+            const btnRadar = document.getElementById('btn-fixar-radar');
+            if (btnRadar) {
+                btnRadar.style.display = 'block';
+                btnRadar.onclick = async () => {
+                    const dataInput = prompt("Digite a data de estreia oficial no Brasil (AAAA-MM-DD):", "2026-12-25");
+                    if (!dataInput) return;
+                    
+                    const { error } = await supabaseClient
+                        .from('radar_curado')
+                        .insert([{ tmdb_id: id, data_estreia: dataInput }]);
+                        
+                    if (!error) {
+                        alert("📌 Perfeito! Filme fixado nos Próximos Lançamentos.");
+                        if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true);
+                    } else {
+                        if (error.code === '23505') {
+                            if(confirm("Este filme já está listado. Deseja atualizar a data de estreia anterior?")) {
+                                await supabaseClient.from('radar_curado').update({ data_estreia: dataInput }).eq('tmdb_id', id);
+                                alert("🗓️ Data de lançamento atualizada!");
+                                if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true);
+                            }
+                        } else {
+                            alert("Erro ao salvar: " + error.message);
+                        }
+                    }
+                };
+            }
+
             abrirModalSeguro('modal-detalhes');
 
             try {
-                let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
-                let dados = await resp.json();
-                if (dados.results.length === 0) { resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); dados = await resp.json(); }
-                const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
-                if (trailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'block'; }
-            } catch (e) {}
-
-            try {
-                const respProviders = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`);
-                const dadosProviders = await respProviders.json();
-                const provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
+                let resp = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`);
+                let dadosProviders = await resp.json();
+                let provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
                 if (provedoresRegiao && provedoresRegiao.flatrate) {
                     if (txtStreaming) txtStreaming.style.display = 'block';
                     if (containerStreaming) {
@@ -1266,6 +1288,14 @@
                     }
                 }
             } catch (err) {}
+
+            try {
+                let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
+                let dados = await resp.json();
+                if (dados.results.length === 0) { resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); dados = await resp.json(); }
+                const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
+                if (trailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'block'; }
+            } catch (e) {}
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
@@ -1350,7 +1380,7 @@
             else { meuPerfil = { user_id: usuarioAtual.id, username }; msg.innerText = ''; carregarAmigos(); }
         });
 
-        document.getElementById('btn-add-amigo').addEventListener('click', () => {
+        document.getElementById('btn-abrir-busca').addEventListener('click', () => {
             document.getElementById('resultado-busca-amigo').innerHTML = '';
             document.getElementById('input-busca-amigo').value = '';
             abrirModalSeguro('modal-buscar-amigo');
@@ -1419,7 +1449,7 @@
             };
         }
 
-        function renderizarFilmesAmigo(filmes, group) {
+        function renderizarFilmesAmigo(filmes, grupo) {
             const lista = filmes.filter(f => f.grupo === grupo);
             const container = document.getElementById('perfil-amigo-conteudo');
             if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;
@@ -1517,7 +1547,7 @@
                 const dados = await resp.json();
                 if (dados.results && dados.results.length > 0) {
                     const filmeAchado = dados.results[0];
-                    const filmeChat = { id: filmeAchado.id, titulo: filmeAchado.title, ano: filmeAchado.release_date ? filmeAchado.release_date.split('-')[0] : 'N/A', notaTmdb: filmeAchado.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: filmeAchado.poster_path ? `${IMG_BASE}${filmeAchado.poster_path}` : 'https://via.placeholder.com/65x95?text=Sem+Capa', sinopse: filmeAchado.overview };
+                    const filmeChat = { id: filmeAchado.id, titulo: filmeAchado.title, ano: filmeAchado.release_date ? filmeAchado.release_date.split('-')[0] : 'N/A', notaTmdb: filmeAchado.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: filmeAchado.poster_path ? `${IMG_BASE}${filmeChat.poster_path}` : 'https://via.placeholder.com/65x95?text=Sem+Capa', sinopse: filmeAchado.overview };
                     bancoDeFilmesLocal.set(filmeChat.id, filmeChat);
 
                     const cardDiv = document.createElement('div');

@@ -1243,15 +1243,23 @@
             // LOGICA DE CURADORIA DIRETA VIA MODAL
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {
-                btnRadar.style.display = 'block';
+                // COLA O TEU USER UID DO SUPABASE DENTRO DAS ASPAS ABAIXO:
+                const SEU_ID_DE_ADMIN = "0508a7bc-a3b2-40b7-96fe-49a3f5bdc528"; 
+
+                if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) {
+                    btnRadar.style.display = 'block'; // Mostra apenas para ti
+                } else {
+                    btnRadar.style.display = 'none';  // Esconde para os outros
+                }
+
                 btnRadar.onclick = async () => {
                     const dataInput = prompt("Digite a data de estreia oficial no Brasil (AAAA-MM-DD):", "2026-12-25");
                     if (!dataInput) return;
-                    
+
                     const { error } = await supabaseClient
                         .from('radar_curado')
-                        .insert([{ tmdb_id: id, data_estreia: dataInput }]);
-                        
+                        .insert([{ tmdb_id: id, data_release: dataInput }]); // ajuste simples no nome da coluna se necessário
+
                     if (!error) {
                         alert("📌 Perfeito! Filme fixado nos Próximos Lançamentos.");
                         if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true);

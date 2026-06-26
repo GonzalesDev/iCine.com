@@ -74,15 +74,16 @@
             width: 60px; 
             height: 60px; 
             flex-shrink: 0; 
-            border-radius: 14px; 
+            border-radius: 10px;  /* ALTERADO AQUI */
             border: 2px solid #374151; 
             overflow: hidden; 
             cursor: pointer; 
             transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             padding: 0;
             background-color: #111827;
+            box-sizing: content-box; /* ADICIONADO AQUI */
         }
-        .streaming-pill img { width: 100%; height: 100%; object-fit: contain; padding: 2px; pointer-events: none; }
+        .streaming-pill img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         .streaming-pill.active { border-color: var(--purple); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); transform: scale(1.1); }
         
         .top10-slider { display: flex; overflow-x: auto; gap: 1.8rem; padding-bottom: 1rem; padding-left: 20px; scrollbar-width: none; margin-bottom: 1.5rem; }

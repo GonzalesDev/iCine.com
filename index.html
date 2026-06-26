@@ -710,7 +710,7 @@
                         ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', 
                         notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0', 
                         capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa', 
-                        sinopse: filme.overview || 'Sem sinopse.' 
+                        sinopse: f.overview || 'Sem sinopse.' 
                     };
                     bancoDeFilmesLocal.set(f.id, filmeLimpo);
                     return gerarCardTop10HTML(filmeLimpo, index + 1);

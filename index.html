@@ -679,7 +679,7 @@
 
                 let novasCapas = resultadosBrutos.filter(f => f.poster_path).map(filme => {
                     return {
-                        id: filme.id, titulo: filme.title, tituloOriginal: filme.original_title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: `${IMG_BASE}${filme.poster_path}`, sinopse: f.overview || 'Sinopse não disponibilizada.'
+                        id: filme.id, titulo: filme.title, tituloOriginal: filme.original_title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: `${IMG_BASE}${filme.poster_path}`, sinopse: filme.overview || 'Sinopse não disponibilizada.'
                     };
                 });
 
@@ -710,7 +710,7 @@
                         ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', 
                         notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0', 
                         capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa', 
-                        sinopse: f.overview || 'Sem sinopse.' 
+                        sinopse: filme.overview || 'Sem sinopse.' 
                     };
                     bancoDeFilmesLocal.set(f.id, filmeLimpo);
                     return gerarCardTop10HTML(filmeLimpo, index + 1);

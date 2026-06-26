@@ -697,7 +697,7 @@
             grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar o feed diário... ⏳</p>';
 
             try {
-                const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&page=1`;
+                const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&with_original_language=en%7Cpt%7Ces%7Cko&page=1`;
 
                 const resp = await fetch(url);
                 const dados = await resp.json();

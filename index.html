@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iCine | Seu parceiro cinematográfico</title>
+    <title>iCine | Seu Diário de Filmes na Nuvem</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -389,7 +389,7 @@
             <h4 id="titulo-streaming" style="margin-bottom: 0.5rem; font-size: 1rem; display: none; margin-top: 1rem;">🎬 Onde Assistir (Streaming):</h4>
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
-                <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white;">📌 Fixar nos Lançamentos</button>
+                <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
                 <button id="btn-fechar-detalhes" class="btn-modal btn-modal-cancel">Fechar</button>
@@ -584,9 +584,6 @@
             return parseFloat(filme.notaTmdb || filme.nota) || 0; 
         }
 
-        // ========================================================
-        // ATUALIZADO: LOGICA EXCLUSIVA DO RADAR CURADO MANUAL
-        // ========================================================
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
             const termoBusca = document.getElementById('input-pesquisa').value.trim();
@@ -611,7 +608,6 @@
                                 const r = await fetch(`${URL_BASE}/movie/${item.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
                                 const filme = await r.json();
                                 
-                                // Filtro local de gênero estruturado
                                 if (generoId !== 'todos' && (!filme.genres || !filme.genres.some(g => String(g.id) === String(generoId)))) {
                                     return null;
                                 }
@@ -671,7 +667,7 @@
         }
 
         // ========================================================
-        // CORRIGIDO: ENGENHARIA DE RANKING SEQUENCIAL SÉRIE/FILME
+        // COMPONENTES DE STREAMING AUTOMATIZADOS SEQUENCIAIS FONTES EXTERNAS
         // ========================================================
         async function carregarTop10(providerId, providerNome) {
             const grid = document.getElementById('top10-grid');
@@ -682,7 +678,6 @@
                 let titulosExternos = [];
 
                 if (providerId === 8) { 
-                    // Ajustamos os nomes para a busca do TMDB ser certeira com base no Tudum Brasil
                     titulosExternos = [
                         { t: "Mensagens para Isabelle", a: "2024" },
                         { t: "Speak No Evil", a: "2024" },
@@ -698,7 +693,7 @@
                     const resp = await fetch(url);
                     const dados = await resp.json();
                     const top10TMDB = dados.results.slice(0, 10);
-
+                    
                     grid.innerHTML = top10TMDB.map((f, index) => {
                         const filmeLimpo = { id: f.id, titulo: f.title, ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', notaTmdb: f.vote_average.toFixed(1), capa: `${IMG_BASE}${f.poster_path}`, sinopse: f.overview || 'Sem sinopse.' };
                         bancoDeFilmesLocal.set(f.id, filmeLimpo);
@@ -709,14 +704,14 @@
                 }
 
                 let htmlAcumulado = "";
-                let rankVisual = 1; // CONTADOR SEQUENCIAL FIXO PARA EVITAR PULAR NÚMEROS
+                let rankVisual = 1; 
 
                 for (let i = 0; i < titulosExternos.length; i++) {
                     try {
                         const item = titulosExternos[i];
                         const r = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.t)}&year=${item.a}&language=pt-BR`);
                         const dadosBusca = await r.json();
-
+                        
                         if (dadosBusca.results && dadosBusca.results.length > 0) {
                             const f = dadosBusca.results[0];
                             const filmeLimpo = {
@@ -728,8 +723,7 @@
                                 sinopse: f.overview || 'Sem sinopse.'
                             };
                             bancoDeFilmesLocal.set(f.id, filmeLimpo);
-
-                            // Envia o rankVisual correto (1, 2, 3...) e depois soma +1
+                            
                             htmlAcumulado += gerarCardTop10HTML(filmeLimpo, rankVisual);
                             rankVisual++; 
                         }
@@ -839,117 +833,6 @@
                 renderizarMinhasListas();
             }
         }
-
-        document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => { fecharModalSeguro('modal-criar-playlist'); });
-
-        document.getElementById('btn-salvar-playlist').addEventListener('click', async () => {
-            const nome = document.getElementById('input-nome-playlist').value.trim();
-            const fileInput = document.getElementById('input-capa-playlist');
-            const isPublica = document.getElementById('input-publica-playlist').checked;
-            const msg = document.getElementById('msg-criar-playlist');
-
-            if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
-            if (!fileInput.files || fileInput.files.length === 0) return msg.innerText = "Escolha uma imagem de capa da sua galeria.";
-
-            msg.innerText = "A enviar capa e a criar playlist... ⏳";
-            const file = fileInput.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
-
-            try {
-                const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
-                if (uploadError) throw uploadError;
-
-                const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
-                const publicUrl = urlData.publicUrl;
-
-                const novaPlaylist = { 
-                    user_id: usuarioAtual.id, 
-                    nome: nome, 
-                    capa_url: publicUrl, 
-                    filmes: [],
-                    publica: isPublica,
-                    curtidas: []
-                };
-                
-                const { error: dbError } = await supabaseClient.from('playlists').insert([novaPlaylist]);
-                if (dbError) throw dbError;
-
-                await carregarPlaylistsDaNuvem();
-                fecharModalSeguro('modal-criar-playlist');
-            } catch (err) {
-                console.error(err);
-                msg.innerText = "Erro ao guardar na nuvem.";
-            }
-        });
-
-        document.getElementById('btn-cancelar-edicao-playlist').addEventListener('click', () => { fecharModalSeguro('modal-editar-playlist'); });
-
-        document.getElementById('btn-salvar-edicao-playlist').addEventListener('click', async () => {
-            const nome = document.getElementById('edit-nome-playlist').value.trim();
-            const fileInput = document.getElementById('edit-capa-playlist');
-            const isPublica = document.getElementById('edit-publica-playlist').checked;
-            const msg = document.getElementById('msg-editar-playlist');
-
-            if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
-            msg.innerText = "A guardar alterações... ⏳";
-
-            let updateData = { nome: nome, publica: isPublica };
-
-            try {
-                if (fileInput.files && fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
-                    const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
-                    if (uploadError) throw uploadError;
-                    
-                    const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
-                    updateData.capa_url = urlData.publicUrl;
-                }
-
-                const { error: dbError } = await supabaseClient.from('playlists').update(updateData).eq('id', playlistSendoEditadaId);
-                if (dbError) throw dbError;
-
-                await carregarPlaylistsDaNuvem();
-                fecharModalSeguro('modal-editar-playlist');
-                abrirVerPlaylist(playlistSendoEditadaId, false); 
-            } catch (err) {
-                console.error(err);
-                msg.innerText = "Erro ao guardar as alterações.";
-            }
-        });
-
-        document.getElementById('btn-apagar-playlist').addEventListener('click', async () => {
-            if(confirm('Tem a certeza que quer apagar esta playlist? Os filmes não serão apagados da sua conta, apenas esta pasta sumirá.')) {
-                const { error } = await supabaseClient.from('playlists').delete().eq('id', playlistSendoEditadaId);
-                if (!error) {
-                    await carregarPlaylistsDaNuvem();
-                    fecharModalSeguro('modal-editar-playlist');
-                    fecharModalSeguro('modal-ver-playlist');
-                } else {
-                    alert('Erro ao apagar playlist.');
-                }
-            }
-        });
-
-        document.getElementById('btn-toggle-playlists').addEventListener('click', () => {
-            const listaDiv = document.getElementById('lista-playlists-escolha');
-            if (listaDiv.style.display === 'flex') {
-                listaDiv.style.display = 'none';
-            } else {
-                listaDiv.style.display = 'flex';
-                if (minhasPlaylists.length === 0) {
-                    listaDiv.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Não tens playlists criadas.</p>`;
-                } else {
-                    listaDiv.innerHTML = minhasPlaylists.map(p => `
-                        <button class="btn-modal" style="background:#1f2937; color:white; border: 1px solid #374151; font-size:0.85rem;" onclick="adicionarFilmeNaPlaylist('${p.id}')">
-                            ${p.nome}
-                        </button>
-                    `).join('');
-                }
-            }
-        });
 
         async function adicionarFilmeNaPlaylist(playlistId) {
             if (!filmeSelecionadoTemporario) return;
@@ -1177,17 +1060,13 @@
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">
                         <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-watched" data-id="${f.tmdb_id}" data-action="mover-ja">⬇ Assistido</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕ Playlist</button>
-                            <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
+                            <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️</button>
+                            <button class="btn-action btn-watched" data-id="${f.tmdb_id}" data-action="mover-ja">⬇</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕</button>
+                            <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
-                    
-                if (!mostrarTodosQueroAssistir && listaQueroAssistir.length > 15) {
-                    htmlQuero += `<div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 1rem 0;"><button onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();" class="btn-carregar-mais" style="display:block; margin:0;">Mostrar mais (${listaQueroAssistir.length - 15})</button></div>`;
-                }
                 cWatch.innerHTML = htmlQuero;
             }
 
@@ -1198,25 +1077,19 @@
 
             if (listaJaAssisti.length === 0) {
                 cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido recentemente.</p>`;
-            } else if (filmesFiltrados.length === 0) {
-                cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado.</p>`;
             } else {
                 const listaJaRender = mostrarTodosJaAssisti ? filmesFiltrados : filmesFiltrados.slice(0, 15);
                 let htmlJa = listaJaRender.map(f => `
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">
                         <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆ Watchlist</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕ Playlist</button>
-                            <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Tirar</button>
+                            <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️</button>
+                            <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕</button>
+                            <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
-                    
-                if (!mostrarTodosJaAssisti && filmesFiltrados.length > 15) {
-                    htmlJa += `<div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 1rem 0;"><button onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();" class="btn-carregar-mais" style="display:block; margin:0;">Mostrar mais (${filmesFiltrados.length - 15})</button></div>`;
-                }
                 cJa.innerHTML = htmlJa;
             }
 
@@ -1240,40 +1113,9 @@
         function abrirModal(id, contexto = 'explorar') { 
             filmeSelecionadoTemporario = bancoDeFilmesLocal.get(id); 
             document.getElementById('modal-nome-filme').innerText = filmeSelecionadoTemporario.titulo; 
-            
-            const btnQuero = document.getElementById('btn-salvar-quero');
-            const btnJa = document.getElementById('btn-salvar-ja');
-            const btnToggle = document.getElementById('btn-toggle-playlists');
-            const listaDiv = document.getElementById('lista-playlists-escolha');
-
-            if (contexto === 'explorar') {
-                btnQuero.style.display = 'block';
-                btnJa.style.display = 'block';
-                btnToggle.style.display = 'block';
-                listaDiv.style.display = 'none';
-            } else {
-                btnQuero.style.display = 'none';
-                btnJa.style.display = 'none';
-                btnToggle.style.display = 'none';
-                listaDiv.style.display = 'flex';
-                
-                if (minhasPlaylists.length === 0) {
-                    listaDiv.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Não tens playlists criadas.</p>`;
-                } else {
-                    listaDiv.innerHTML = minhasPlaylists.map(p => `
-                        <button class="btn-modal" style="background:#1f2937; color:white; border: 1px solid #374151; font-size:0.85rem;" onclick="adicionarFilmeNaPlaylist('${p.id}')">
-                            ${p.nome}
-                        </button>
-                    `).join('');
-                }
-            }
-
             abrirModalSeguro('modal-escolha'); 
         }
 
-        // ========================================================
-        // ATUALIZADO: DETALHES + BOTÃO SECRETO DE ADMIN CURADORIA
-        // ========================================================
         async function abrirDetalhes(id) {
             const filme = bancoDeFilmesLocal.get(id); if (!filme) return;
             document.getElementById('detalhe-titulo').innerText = filme.titulo; document.getElementById('detalhe-ano').innerText = filme.ano; 
@@ -1287,14 +1129,12 @@
 
             const btnShorts = document.getElementById('detalhe-shorts');
             btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
-
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
             
-            // LOGICA DE CURADORIA DIRETA VIA MODAL
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {
-                // Lembre-se de colocar o seu User UID do Supabase aqui entre as aspas:
-                const SEU_ID_DE_ADMIN = "0508a7bc-a3b2-40b7-96fe-49a3f5bdc528"; 
+                // INSIRA O SEU ID DO SUPABASE ENTRE AS ASPAS ABAIXO:
+                const SEU_ID_DE_ADMIN = "MATHEUS_UID_AQUI"; 
 
                 if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) {
                     btnRadar.style.display = 'block';
@@ -1305,30 +1145,27 @@
                 btnRadar.onclick = async () => {
                     const dataInput = prompt("Digite a data de estreia oficial no Brasil (AAAA-MM-DD):", "2026-12-25");
                     if (!dataInput) return;
-
-                    // CORRIGIDO: Mudado de data_release para data_estreia para casar com o Supabase
+                    
                     const { error } = await supabaseClient
                         .from('radar_curado')
                         .insert([{ tmdb_id: id, data_estreia: dataInput }]);
-
+                        
                     if (!error) {
                         alert("📌 Perfeito! Filme fixado nos Próximos Lançamentos.");
                         if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true);
                     } else {
                         if (error.code === '23505') {
-                            if(confirm("Este filme já está listado. Deseja atualizar a data de estreia anterior?")) {
+                            if(confirm("Este filme já está listado. Deseja atualizar a data de estreia?")) {
                                 await supabaseClient.from('radar_curado').update({ data_estreia: dataInput }).eq('tmdb_id', id);
-                                alert("🗓️ Data de lançamento atualizada!");
+                                alert("🗓️ Data atualizada!");
                                 if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true);
                             }
-                        } else {
-                            alert("Erro ao salvar: " + error.message);
-                        }
+                        } else { alert("Erro ao salvar: " + error.message); }
                     }
                 };
             }
 
-            abrirModalSeguro('modal-detalhes');
+            abrirModalSeguro('modal-details');
 
             try {
                 let resp = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`);
@@ -1342,8 +1179,7 @@
                             <div style="display: flex; align-items: center; gap: 6px; background: #111827; padding: 4px 8px; border-radius: 20px; border: 1px solid #374151;">
                                 <img src="${IMG_BASE}${p.logo_path}" alt="${p.provider_name}" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover;">
                                 <span style="font-size: 0.75rem; font-weight: bold; color: white;">${p.provider_name}</span>
-                            </div>
-                        `).join('');
+                            </div>`).join('');
                     }
                 }
             } catch (err) {}
@@ -1361,7 +1197,6 @@
         async function verificarPerfil() {
             const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).single();
             if (data) meuPerfil = data;
-            else meuPerfil = null;
             carregarAmigos();
         }
 
@@ -1380,7 +1215,6 @@
                 const { data: perf } = await supabaseClient.from('perfis').select('username, user_id').eq('user_id', amigoId).single();
                 if (perf) listaAmigos.push({ ...perf, amizade_id: a.id });
             }
-
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
         }
@@ -1395,11 +1229,8 @@
             if (!meuPerfil) {
                 document.getElementById('setup-username-card').style.display = 'block';
                 document.getElementById('meu-perfil-card').style.display = 'none';
-                document.getElementById('lista-amigos').innerHTML = '<p class="empty-msg">Define o teu username para começar.</p>';
-                document.getElementById('secao-pedidos').style.display = 'none';
                 return;
             }
-
             document.getElementById('setup-username-card').style.display = 'none';
             document.getElementById('meu-perfil-card').style.display = 'flex';
             document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username;
@@ -1409,213 +1240,22 @@
             if (pedidosPendentes.length > 0) {
                 secPedidos.style.display = 'block';
                 document.getElementById('lista-pedidos').innerHTML = pedidosPendentes.map(p => `
-                    <div class="amigo-item" style="cursor: default;">
+                    <div class="amigo-item">
                         <div class="amigo-avatar">${p.username_solicitante.charAt(0).toUpperCase()}</div>
-                        <div class="amigo-info"><div class="amigo-username">@${p.username_solicitante}</div><div class="amigo-sub">quer ser teu amigo no iCine</div></div>
-                        <div class="amigo-actions"><button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button><button class="btn-rejeitar" onclick="rejeitarPedido('${p.id}')">✕</button></div>
+                        <div class="amigo-info"><div class="amigo-username">@${p.username_solicitante}</div></div>
+                        <div class="amigo-actions"><button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button></div>
                     </div>`).join('');
             } else secPedidos.style.display = 'none';
 
             const listaEl = document.getElementById('lista-amigos');
-            if (listaAmigos.length === 0) listaEl.innerHTML = '<p class="empty-msg">Ainda não tens amigos no iCine. Usa o botão + Amigo!</p>';
+            if (listaAmigos.length === 0) listaEl.innerHTML = '<p class="empty-msg">Nenhum amigo adicionado.</p>';
             else {
                 listaEl.innerHTML = listaAmigos.map(a => `
                     <div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')">
                         <div class="amigo-avatar">${a.username.charAt(0).toUpperCase()}</div>
-                        <div class="amigo-info"><div class="amigo-username">@${a.username}</div><div class="amigo-sub">Toca para ver as listas 🎬</div></div>
-                        <span style="color: var(--text-muted); font-size: 1.3rem; margin-left: auto;">›</span>
+                        <div class="amigo-info"><div class="amigo-username">@${a.username}</div></div>
                     </div>`).join('');
             }
-        }
-
-        document.getElementById('btn-salvar-username').addEventListener('click', async () => {
-            const raw = document.getElementById('input-username').value.trim().toLowerCase();
-            const username = raw.replace(/[^a-z0-9_]/g, '');
-            const msg = document.getElementById('username-msg');
-            if (username.length < 3) return msg.innerText = 'O username deve ter pelo menos 3 caracteres.';
-            msg.innerText = 'A guardar...';
-            const { error } = await supabaseClient.from('perfis').insert([{ user_id: usuarioAtual.id, username }]);
-            if (error) msg.innerText = error.code === '23505' ? 'Username já está em uso. Tenta outro!' : 'Erro ao guardar. Tenta novamente.';
-            else { meuPerfil = { user_id: usuarioAtual.id, username }; msg.innerText = ''; carregarAmigos(); }
-        });
-
-        document.getElementById('btn-abrir-busca').addEventListener('click', () => {
-            document.getElementById('resultado-busca-amigo').innerHTML = '';
-            document.getElementById('input-busca-amigo').value = '';
-            abrirModalSeguro('modal-buscar-amigo');
-        });
-        document.getElementById('btn-fechar-busca-amigo').addEventListener('click', () => { fecharModalSeguro('modal-buscar-amigo'); });
-        document.getElementById('btn-pesquisar-amigo').addEventListener('click', buscarAmigo);
-        document.getElementById('input-busca-amigo').addEventListener('keyup', (e) => { if (e.key === 'Enter') buscarAmigo(); });
-
-        async function buscarAmigo() {
-            const termo = document.getElementById('input-busca-amigo').value.trim().toLowerCase().replace('@', '');
-            const resultado = document.getElementById('resultado-busca-amigo');
-            if (!termo) return;
-            resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">A pesquisar...</p>';
-
-            const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).single();
-            if (!data) return resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
-            
-            const jaAmigo = listaAmigos.some(a => a.user_id === data.user_id);
-            resultado.innerHTML = `
-                <div class="amigo-item" style="cursor:default;">
-                    <div class="amigo-avatar">${data.username.charAt(0).toUpperCase()}</div>
-                    <div class="amigo-info"><div class="amigo-username">@${data.username}</div></div>
-                    ${jaAmigo ? '<span style="color:var(--purple);font-size:0.8rem;font-weight:bold;">✓ Já é amigo</span>' : `<button class="btn-aceitar" id="btn-enviar-pedido-resultado">+ Adicionar</button>`}
-                </div>`;
-            if (!jaAmigo) document.getElementById('btn-enviar-pedido-resultado').addEventListener('click', () => enviarPedido(data.user_id));
-        }
-
-        async function enviarPedido(destinatario_id) {
-            const { error } = await supabaseClient.from('amizades').insert([{ solicitante_id: usuarioAtual.id, destinatario_id, status: 'pendente' }]);
-            const resultado = document.getElementById('resultado-busca-amigo');
-            if (error) resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>';
-            else resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido enviado com sucesso!</p>';
-        }
-
-        async function aceitarPedido(id) { await supabaseClient.from('amizades').update({ status: 'aceite' }).eq('id', id); carregarAmigos(); }
-        async function rejeitarPedido(id) { await supabaseClient.from('amizades').delete().eq('id', id); carregarAmigos(); }
-
-        async function abrirPerfilAmigo(userId, username) {
-            abrirModalSeguro('modal-perfil-amigo');
-            document.getElementById('perfil-amigo-titulo').innerText = '@' + username;
-            document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
-            
-            document.getElementById('tab-amigo-assisti').classList.add('ativo');
-            document.getElementById('tab-amigo-quero').classList.remove('ativo');
-            document.getElementById('tab-amigo-playlists').classList.remove('ativo');
-
-            const { data: fData } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId);
-            const filmesAmigo = fData || [];
-            
-            const { data: pData } = await supabaseClient.from('playlists').select('*').eq('user_id', userId);
-            playlistsAmigoAtual = pData || [];
-
-            renderizarFilmesAmigo(filmesAmigo, 'ja');
-
-            document.getElementById('tab-amigo-assisti').onclick = () => {
-                document.getElementById('tab-amigo-assisti').classList.add('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo');
-                renderizarFilmesAmigo(filmesAmigo, 'ja');
-            };
-            document.getElementById('tab-amigo-quero').onclick = () => {
-                document.getElementById('tab-amigo-quero').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo');
-                renderizarFilmesAmigo(filmesAmigo, 'quero');
-            };
-            document.getElementById('tab-amigo-playlists').onclick = () => {
-                document.getElementById('tab-amigo-playlists').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo');
-                renderizarPlaylistsAmigo();
-            };
-        }
-
-        function renderizarFilmesAmigo(filmes, grupo) {
-            const lista = filmes.filter(f => f.grupo === grupo);
-            const container = document.getElementById('perfil-amigo-conteudo');
-            if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `
-                <div style="background:#111827;border-radius:10px;overflow:hidden;">
-                    <img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;">
-                    <div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div>
-                </div>`).join('')}</div>`;
-        }
-
-        function renderizarPlaylistsAmigo() {
-            const container = document.getElementById('perfil-amigo-conteudo');
-            if (playlistsAmigoAtual.length === 0) return container.innerHTML = `<p class="empty-msg">Nenhuma playlist criada.</p>`;
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${playlistsAmigoAtual.map(p => `
-                <div style="background:#111827;border-radius:10px;overflow:hidden; cursor:pointer; position:relative; aspect-ratio:1/1;" onclick="abrirVerPlaylist('${p.id}', true)">
-                    <img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.6;">
-                    <div style="position:absolute;bottom:0;left:0;right:0;padding:0.4rem;font-size:0.75rem;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9); z-index:2;">${p.nome}</div>
-                </div>`).join('')}</div>`;
-        }
-        
-        document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { fecharModalSeguro('modal-perfil-amigo'); });
-
-        // === IA GROQ ===
-        const btnChatFab = document.getElementById('btn-chat-fab');
-        const chatWindow = document.getElementById('chat-window');
-        const btnFecharChat = document.getElementById('btn-fechar-chat');
-        const chatInput = document.getElementById('chat-input');
-        const btnEnviarChat = document.getElementById('btn-enviar-chat');
-        const chatMessages = document.getElementById('chat-messages');
-        let historicoChat = [];
-
-        btnChatFab.addEventListener('click', () => { 
-            if (chatWindow.style.display !== 'flex') {
-                abrirModalSeguro('chat-window');
-                chatInput.focus();
-            } else {
-                fecharModalSeguro('chat-window');
-            }
-        });
-        
-        btnFecharChat.addEventListener('click', () => { fecharModalSeguro('chat-window'); });
-        btnEnviarChat.addEventListener('click', processarMensagemUtilizador);
-        chatInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') processarMensagemUtilizador(); });
-
-        function adicionarMensagem(texto, cssClass) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `chat-msg ${cssClass}`;
-            msgDiv.innerHTML = texto.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return msgDiv; 
-        }
-
-        async function processarMensagemUtilizador() {
-            const textoUser = chatInput.value.trim();
-            if (textoUser === '') return;
-            chatInput.value = '';
-            adicionarMensagem(textoUser, 'msg-user');
-            historicoChat.push({ role: "user", content: textoUser });
-            const loadingMsg = adicionarMensagem("A procurar nos meus arquivos... 🎬", 'msg-bot');
-            const SYSTEM_PROMPT = "Você é o assistente inteligente do app iCine, focado estritamente em responder ao que o usuário perguntou de forma amigável e direta. NÃO dê recomendações extras de outros filmes se o usuário não tiver pedido por recomendações. Se o usuário perguntar sobre a sinopse, história ou curiosidade de um filme específico, foque APENAS em responder sobre esse filme e encerre a resposta. A REGRA DE OURO: SE (e somente se) você indicar ou citar algum filme, é OBRIGATÓRIO escrever o título e o ano no formato exato: [Título do Filme | Ano] para que o sistema gere o card.";
-
-            try {
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-                    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historicoChat] })
-                });
-
-                if (!response.ok) throw new Error("Erro API");
-                const data = await response.json();
-                const botText = data.choices?.[0]?.message?.content;
-                if (!botText) throw new Error("Sem resposta da IA.");
-                historicoChat.push({ role: "assistant", content: botText });
-
-                let textoDeExibicao = botText;
-                const regexFilmes = /\[(.*?)\s*\|\s*(\d{4})\]/g;
-                let match;
-                const filmesParaProcurar = [];
-
-                while ((match = regexFilmes.exec(botText)) !== null) {
-                    filmesParaProcurar.push({ titulo: match[1].trim(), ano: match[2] });
-                    textoDeExibicao = textoDeExibicao.replace(match[0], `<strong>${match[1].trim()} (${match[2]})</strong>`);
-                }
-                loadingMsg.innerHTML = textoDeExibicao;
-                for (const f of filmesParaProcurar) { buscarERenderizarFilmeChat(f.titulo, f.ano); }
-            } catch (e) {
-                loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial.";
-            }
-        }
-
-        async function buscarERenderizarFilmeChat(titulo, ano) {
-            try {
-                const resp = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(titulo)}&year=${ano}&language=pt-BR`);
-                const dados = await resp.json();
-                if (dados.results && dados.results.length > 0) {
-                    const filmeAchado = dados.results[0];
-                    const filmeChat = { id: filmeAchado.id, titulo: filmeAchado.title, ano: filmeAchado.release_date ? filmeAchado.release_date.split('-')[0] : 'N/A', notaTmdb: filmeAchado.vote_average.toFixed(1), notaImdb: 'N/A', notaRt: 'N/A', capa: filmeAchado.poster_path ? `${IMG_BASE}${filmeChat.poster_path}` : 'https://via.placeholder.com/65x95?text=Sem+Capa', sinopse: filmeAchado.overview };
-                    bancoDeFilmesLocal.set(filmeChat.id, filmeChat);
-
-                    const cardDiv = document.createElement('div');
-                    cardDiv.className = 'chat-movie-card';
-                    cardDiv.innerHTML = `<img src="${filmeChat.capa}" alt="capa"><div class="chat-movie-info"><div class="chat-movie-title">${filmeChat.titulo}</div><div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">🎬 ${filmeChat.notaTmdb}</div><button class="chat-movie-btn" onclick="abrirDetalhes(${filmeChat.id})">🔍 Ver Detalhes</button></div>`;
-                    chatMessages.appendChild(cardDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            } catch (err) {}
         }
 
         checarSessao();

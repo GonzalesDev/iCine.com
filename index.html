@@ -675,7 +675,8 @@
             document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - ${providerNome}`;
             grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar o ranking... ⏳</p>';
 
-            const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&page=1`;
+            // ADICIONADO: &with_original_language=en|pt|es para barrar filmes de mercados fora do interesse do Brasil
+            const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&with_original_language=en|pt|es&page=1`;
 
             try {
                 const resp = await fetch(url);

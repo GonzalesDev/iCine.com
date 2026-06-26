@@ -667,79 +667,43 @@
         }
 
         // ========================================================
-        // ATUALIZADO: CONEXÃO REAL E AO VIVO COM API DE TERCEIROS
+        // ATUALIZADO: FEED DINÂMICO DIÁRIO (LIVRE DE BOLLYWOOD)
         // ========================================================
         async function carregarTop10(providerId, providerNome) {
             const grid = document.getElementById('top10-grid');
             document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - ${providerNome}`;
-            grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar feed da API externa... ⏳</p>';
+            grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar o feed diário... ⏳</p>';
 
             try {
-                let titulosExternos = [];
+                // Filtro Mágico: Puxa o Top da plataforma no Brasil, mas limita os idiomas originais para Inglês, Português, Espanhol e Coreano.
+                const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&with_original_language=en|pt|es|ko&page=1`;
 
-                if (providerId === 8) { 
-                    // 1. Faz o pedido em tempo real para a API que monitoriza o streaming diariamente
-                    // (Podes substituir esta URL livre pelo teu endpoint do RapidAPI ou Worker se desejares)
-                    const apiResponse = await fetch('https://raw.githubusercontent.com/jake-cryptic/netflix-top-10/main/data/brazil.json');
+                const resp = await fetch(url);
+                const dados = await resp.json();
 
-                    if (!apiResponse.ok) throw new Error("API Externa Indisponível");
-                    const dadosAPI = await apiResponse.json();
+                // Corta exatamente os 10 primeiros para não quebrar o layout
+                const top10TMDB = dados.results.slice(0, 10);
 
-                    // 2. Filtra apenas os filmes (ignorando séries) e pega os 10 primeiros do dia
-                    const apenasFilmes = dadosAPI.filter(item => item.type === 'movie');
+                grid.innerHTML = top10TMDB.map((f, index) => {
+                    const filmeLimpo = { 
+                        id: f.id, 
+                        titulo: f.title, 
+                        ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', 
+                        notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0', 
+                        capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa', 
+                        sinopse: f.overview || 'Sem sinopse.' 
+                    };
+                    bancoDeFilmesLocal.set(f.id, filmeLimpo);
 
-                    titulosExternos = apenasFilmes.slice(0, 10).map(filme => {
-                        return { t: filme.title, a: filme.year };
-                    });
-                } else {
-                    // Filtro inteligente de segurança para os outros streamings
-                    const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&with_original_language=en|pt|es&page=1`;
-                    const resp = await fetch(url);
-                    const dados = await resp.json();
-                    const top10TMDB = dados.results.slice(0, 10);
+                    // O "index + 1" garante que a numeração seja sempre 1, 2, 3, 4, 5... perfeitamente sequencial
+                    return gerarCardTop10HTML(filmeLimpo, index + 1);
+                }).join('');
 
-                    grid.innerHTML = top10TMDB.map((f, index) => {
-                        const filmeLimpo = { id: f.id, titulo: f.title, ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', notaTmdb: f.vote_average.toFixed(1), capa: `${IMG_BASE}${f.poster_path}`, sinopse: f.overview || 'Sem sinopse.' };
-                        bancoDeFilmesLocal.set(f.id, filmeLimpo);
-                        return gerarCardTop10HTML(filmeLimpo, index + 1);
-                    }).join('');
-                    mapearBotoesGrid();
-                    return;
-                }
-
-                // 3. O iCine cruza os nomes da API externa com o TMDB para desenhar os posters oficiais
-                let htmlAcumulado = "";
-                let rankVisual = 1; 
-
-                for (let i = 0; i < titulosExternos.length; i++) {
-                    try {
-                        const item = titulosExternos[i];
-                        const r = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.t)}&year=${item.a}&language=pt-BR`);
-                        const dadosBusca = await r.json();
-
-                        if (dadosBusca.results && dadosBusca.results.length > 0) {
-                            const f = dadosBusca.results[0];
-                            const filmeLimpo = {
-                                id: f.id,
-                                titulo: f.title,
-                                ano: item.a,
-                                notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0',
-                                capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa',
-                                sinopse: f.overview || 'Sem sinopse.'
-                            };
-                            bancoDeFilmesLocal.set(f.id, filmeLimpo);
-
-                            htmlAcumulado += gerarCardTop10HTML(filmeLimpo, rankVisual);
-                            rankVisual++; 
-                        }
-                    } catch(e){}
-                }
-                grid.innerHTML = htmlAcumulado || '<p class="empty-msg">Nenhum filme disponível no feed agora.</p>';
                 mapearBotoesGrid();
 
             } catch (err) { 
                 console.error(err);
-                grid.innerHTML = '<p class="empty-msg">Erro ao conectar com o servidor do Top 10. Tente novamente mais tarde.</p>';
+                grid.innerHTML = '<p class="empty-msg">Erro ao carregar o ranking. Tente novamente.</p>';
             }
         }
 

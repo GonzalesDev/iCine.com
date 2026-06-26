@@ -693,7 +693,7 @@
 
         async function carregarTop10(providerId, providerNome) {
             const grid = document.getElementById('top10-grid');
-            document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 - ${providerNome}`;
+            document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - ${providerNome}`;
             grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar o feed diário... ⏳</p>';
 
             try {
@@ -822,6 +822,125 @@
                 renderizarMinhasListas();
             }
         }
+
+        document.getElementById('btn-abrir-criar-playlist').addEventListener('click', () => {
+            document.getElementById('input-nome-playlist').value = '';
+            document.getElementById('input-capa-playlist').value = '';
+            document.getElementById('input-publica-playlist').checked = false;
+            document.getElementById('msg-criar-playlist').innerText = '';
+            abrirModalSeguro('modal-criar-playlist');
+        });
+
+        document.getElementById('btn-cancelar-criar-playlist').addEventListener('click', () => { fecharModalSeguro('modal-criar-playlist'); });
+
+        document.getElementById('btn-salvar-playlist').addEventListener('click', async () => {
+            const nome = document.getElementById('input-nome-playlist').value.trim();
+            const fileInput = document.getElementById('input-capa-playlist');
+            const isPublica = document.getElementById('input-publica-playlist').checked;
+            const msg = document.getElementById('msg-criar-playlist');
+
+            if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
+            if (!fileInput.files || fileInput.files.length === 0) return msg.innerText = "Escolha uma imagem de capa da sua galeria.";
+
+            msg.innerText = "A enviar capa e a criar playlist... ⏳";
+            const file = fileInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
+
+            try {
+                const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
+                const publicUrl = urlData.publicUrl;
+
+                const novaPlaylist = { 
+                    user_id: usuarioAtual.id, 
+                    nome: nome, 
+                    capa_url: publicUrl, 
+                    filmes: [],
+                    publica: isPublica,
+                    curtidas: []
+                };
+                
+                const { error: dbError } = await supabaseClient.from('playlists').insert([novaPlaylist]);
+                if (dbError) throw dbError;
+
+                await carregarPlaylistsDaNuvem();
+                fecharModalSeguro('modal-criar-playlist');
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Erro ao guardar na nuvem.";
+            }
+        });
+
+        document.getElementById('btn-cancelar-edicao-playlist').addEventListener('click', () => { fecharModalSeguro('modal-editar-playlist'); });
+
+        document.getElementById('btn-salvar-edicao-playlist').addEventListener('click', async () => {
+            const nome = document.getElementById('edit-nome-playlist').value.trim();
+            const fileInput = document.getElementById('edit-capa-playlist');
+            const isPublica = document.getElementById('edit-publica-playlist').checked;
+            const msg = document.getElementById('msg-editar-playlist');
+
+            if (!nome) return msg.innerText = "Dê um nome à sua playlist!";
+            msg.innerText = "A guardar alterações... ⏳";
+
+            let updateData = { nome: nome, publica: isPublica };
+
+            try {
+                if (fileInput.files && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${usuarioAtual.id}_${Math.random()}.${fileExt}`;
+                    const { error: uploadError } = await supabaseClient.storage.from('capas').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+                    
+                    const { data: urlData } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
+                    updateData.capa_url = urlData.publicUrl;
+                }
+
+                const { error: dbError } = await supabaseClient.from('playlists').update(updateData).eq('id', playlistSendoEditadaId);
+                if (dbError) throw dbError;
+
+                await carregarPlaylistsDaNuvem();
+                fecharModalSeguro('modal-editar-playlist');
+                abrirVerPlaylist(playlistSendoEditadaId, false); 
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Erro ao guardar as alterações.";
+            }
+        });
+
+        document.getElementById('btn-apagar-playlist').addEventListener('click', async () => {
+            if(confirm('Tem a certeza que quer apagar esta playlist? Os filmes não serão apagados da sua conta, apenas esta pasta sumirá.')) {
+                const { error } = await supabaseClient.from('playlists').delete().eq('id', playlistSendoEditadaId);
+                if (!error) {
+                    await carregarPlaylistsDaNuvem();
+                    fecharModalSeguro('modal-editar-playlist');
+                    fecharModalSeguro('modal-ver-playlist');
+                } else {
+                    alert('Erro ao apagar playlist.');
+                }
+            }
+        });
+
+        document.getElementById('btn-toggle-playlists').addEventListener('click', () => {
+            const listaDiv = document.getElementById('lista-playlists-escolha');
+            if (listaDiv.style.display === 'flex') {
+                listaDiv.style.display = 'none';
+            } else {
+                listaDiv.style.display = 'flex';
+                if (minhasPlaylists.length === 0) {
+                    listaDiv.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Não tens playlists criadas.</p>`;
+                } else {
+                    listaDiv.innerHTML = minhasPlaylists.map(p => `
+                        <button class="btn-modal" style="background:#1f2937; color:white; border: 1px solid #374151; font-size:0.85rem;" onclick="adicionarFilmeNaPlaylist('${p.id}')">
+                            ${p.nome}
+                        </button>
+                    `).join('');
+                }
+            }
+        });
 
         async function adicionarFilmeNaPlaylist(playlistId) {
             if (!filmeSelecionadoTemporario) return;
@@ -1384,7 +1503,7 @@
                     <div style="position:absolute;bottom:0;left:0;right:0;padding:0.4rem;font-size:0.75rem;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9); z-index:2;">${p.nome}</div>
                 </div>`).join('')}</div>`;
         }
-
+        
         document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { fecharModalSeguro('modal-perfil-amigo'); });
 
         const btnChatFab = document.getElementById('btn-chat-fab');
@@ -1403,7 +1522,7 @@
                 fecharModalSeguro('chat-window');
             }
         });
-
+        
         btnFecharChat.addEventListener('click', () => { fecharModalSeguro('chat-window'); });
         btnEnviarChat.addEventListener('click', processarMensagemUtilizador);
         chatInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') processarMensagemUtilizador(); });

@@ -68,10 +68,23 @@
         .comunidade-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
 
         /* === ESTILOS STREAMING TOP 10 === */
-        .streaming-row { display: flex; overflow-x: auto; gap: 0.85rem; padding-bottom: 0.6rem; margin-bottom: 1rem; scrollbar-width: none; }
+        .streaming-row { display: flex; overflow-x: auto; gap: 14px; padding-bottom: 0.6rem; margin-bottom: 1rem; scrollbar-width: none; align-items: center;}
         .streaming-row::-webkit-scrollbar { display: none; }
-        .streaming-pill { background: #111827; border: 1px solid #374151; padding: 8px 16px; border-radius: 25px; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
-        .streaming-pill.active { background: var(--purple); color: white; border-color: var(--purple); box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
+        .streaming-pill { 
+            width: 60px; 
+            height: 60px; 
+            flex-shrink: 0; 
+            border-radius: 14px; 
+            border: 2px solid #374151; 
+            overflow: hidden; 
+            cursor: pointer; 
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            padding: 0;
+            background-color: #111827;
+        }
+        .streaming-pill img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .streaming-pill.active { border-color: var(--purple); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); transform: scale(1.1); }
+        
         .top10-slider { display: flex; overflow-x: auto; gap: 1.8rem; padding-bottom: 1rem; padding-left: 20px; scrollbar-width: none; margin-bottom: 1.5rem; }
         .top10-slider::-webkit-scrollbar { display: none; }
         .top10-card { position: relative; width: 110px; flex-shrink: 0; margin-left: 15px; }
@@ -229,11 +242,21 @@
 
         <div id="aba-explorar" class="aba">
             <div class="streaming-row">
-                <div class="streaming-pill active" onclick="mudarProvedorStreaming(8, this)">🎬 Netflix</div>
-                <div class="streaming-pill" onclick="mudarProvedorStreaming(119, this)">🍿 Prime Video</div>
-                <div class="streaming-pill" onclick="mudarProvedorStreaming(337, this)">✨ Disney+</div>
-                <div class="streaming-pill" onclick="mudarProvedorStreaming(1899, this)">🔥 Max</div>
-                <div class="streaming-pill" onclick="mudarProvedorStreaming(2, this)">🍏 Apple TV</div>
+                <div class="streaming-pill active" data-nome="Netflix" onclick="mudarProvedorStreaming(8, this)">
+                    <img src="https://image.tmdb.org/t/p/original/t2yyOv40HZeVlLjVrCsPhnqZ31s.jpg" alt="Netflix">
+                </div>
+                <div class="streaming-pill" data-nome="Prime Video" onclick="mudarProvedorStreaming(119, this)">
+                    <img src="https://image.tmdb.org/t/p/original/5NyLm42TmCqCMOZFvH4fcoSNKEW.jpg" alt="Prime Video">
+                </div>
+                <div class="streaming-pill" data-nome="Disney+" onclick="mudarProvedorStreaming(337, this)">
+                    <img src="https://image.tmdb.org/t/p/original/7rwgEs15tFwyR9NPQ5vqvtIJo61.jpg" alt="Disney+">
+                </div>
+                <div class="streaming-pill" data-nome="Max" onclick="mudarProvedorStreaming(1899, this)">
+                    <img src="https://image.tmdb.org/t/p/original/6Q3ZYNRGbgXghKNCUUrmkSClB94.jpg" alt="Max">
+                </div>
+                <div class="streaming-pill" data-nome="Apple TV" onclick="mudarProvedorStreaming(2, this)">
+                    <img src="https://image.tmdb.org/t/p/original/2wA200oQ4E2R2gBpsS7iG3N5Z6H.jpg" alt="Apple TV">
+                </div>
             </div>
 
             <h2 id="titulo-top10"><div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - Netflix</h2>
@@ -722,10 +745,11 @@
             `;
         }
 
+        // AQUI ESTÁ A FUNÇÃO ATUALIZADA PARA LER O "DATA-NOME" DOS NOVOS BOTÕES
         function mudarProvedorStreaming(id, elemento) {
             document.querySelectorAll('.streaming-pill').forEach(p => p.classList.remove('active'));
             elemento.classList.add('active');
-            carregarTop10(id, elemento.innerText.split(' ')[1]);
+            carregarTop10(id, elemento.getAttribute('data-nome'));
         }
 
         function renderizarGridExplorar(listaDeFilmes) {
@@ -1137,7 +1161,7 @@
                 };
             }
 
-            abrirModalSeguro('modal-details');
+            abrirModalSeguro('modal-detalhes');
 
             try {
                 let resp = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`);

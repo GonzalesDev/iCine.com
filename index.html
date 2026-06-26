@@ -67,7 +67,7 @@
 
         .comunidade-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
 
-        /* === ESTILOS STREAMING TOP 10 (ATUALIZADO) === */
+        /* === ESTILOS STREAMING TOP 10 === */
         .streaming-row { display: flex; overflow-x: auto; gap: 14px; padding-bottom: 0.6rem; margin-bottom: 1rem; scrollbar-width: none; align-items: center;}
         .streaming-row::-webkit-scrollbar { display: none; }
         .streaming-pill { 
@@ -240,27 +240,25 @@
             </div>
         </div>
 
-        <div class="streaming-row">
-            <div class="streaming-pill active" data-nome="Netflix" onclick="mudarProvedorStreaming(8, this)">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Netflix-new-icon.png" alt="Netflix">
+        <div id="aba-explorar" class="aba">
+            
+            <div class="streaming-row">
+                <div class="streaming-pill active" data-nome="Netflix" onclick="mudarProvedorStreaming(8, this)">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Netflix-new-icon.png" alt="Netflix">
+                </div>
+                <div class="streaming-pill" data-nome="Prime Video" onclick="mudarProvedorStreaming(119, this)">
+                    <img src="https://cdn2.steamgriddb.com/icon/cfa31d8130bef0e6643e5de9d0a0cac9/24/512x512.png" alt="Prime Video">
+                </div>
+                <div class="streaming-pill" data-nome="Disney+" onclick="mudarProvedorStreaming(337, this)">
+                    <img src="https://i.pinimg.com/736x/2b/fc/f1/2bfcf1f53b5d6fc10998509152011368.jpg" alt="Disney+">
+                </div>
+                <div class="streaming-pill" data-nome="Max" onclick="mudarProvedorStreaming(1899, this)">
+                    <img src="https://i.pinimg.com/736x/43/7e/cc/437ecce68dcf1cbb75c4fed516ddadda.jpg" alt="Max">
+                </div>
+                <div class="streaming-pill" data-nome="Apple TV" onclick="mudarProvedorStreaming(2, this)">
+                    <img src="https://cdn.jim-nielsen.com/ios/512/apple-tv-2025-11-04.png?rf=1024" alt="Apple TV">
+                </div>
             </div>
-
-            <div class="streaming-pill" data-nome="Prime Video" onclick="mudarProvedorStreaming(119, this)">
-                <img src="https://cdn2.steamgriddb.com/icon/cfa31d8130bef0e6643e5de9d0a0cac9/24/512x512.png" alt="Prime Video">
-            </div>
-
-            <div class="streaming-pill" data-nome="Disney+" onclick="mudarProvedorStreaming(337, this)">
-                <img src="https://i.pinimg.com/736x/2b/fc/f1/2bfcf1f53b5d6fc10998509152011368.jpg" alt="Disney+">
-            </div>
-
-            <div class="streaming-pill" data-nome="Max" onclick="mudarProvedorStreaming(1899, this)">
-                <img src="https://i.pinimg.com/736x/43/7e/cc/437ecce68dcf1cbb75c4fed516ddadda.jpg" alt="Max">
-            </div>
-
-            <div class="streaming-pill" data-nome="Apple TV" onclick="mudarProvedorStreaming(2, this)">
-                <img src="https://cdn.jim-nielsen.com/ios/512/apple-tv-2025-11-04.png?rf=1024" alt="Apple TV">
-            </div>
-        </div>
 
             <h2 id="titulo-top10"><div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - Netflix</h2>
             <div class="top10-slider" id="top10-grid"></div>
@@ -750,7 +748,7 @@
             mapearBotoesGrid();
         }
 
-        // TEXTOS RESTAURADOS AQUI NAS AÇÕES DE CARTÃO
+        // TEXTOS DOS BOTÕES RESTAURADOS AQUI NAS AÇÕES GERAIS
         function gerarCartaoFilmeHTML(f, context = 'explorar') {
             let acoesHtml = '';
             
@@ -1160,7 +1158,7 @@
             renderizarMinhasListas();
         }
 
-        // TEXTOS RESTAURADOS AQUI NAS LISTAS PESSOAIS
+        // TEXTOS DOS BOTÕES RESTAURADOS AQUI NAS SUAS LISTAS PESSOAIS!
         function renderizarMinhasListas() {
             const cWatch = document.getElementById('watchlist-grid');
             if (listaQueroAssistir.length === 0) {
@@ -1265,7 +1263,7 @@
             abrirModalSeguro('modal-escolha'); 
         }
 
-        // O NOME DO MODAL FOI CORRIGIDO AQUI (modal-detalhes)
+        // ERRO DE DIGITAÇÃO NO MODAL CORRIGIDO AQUI!
         async function abrirDetalhes(id) {
             const filme = bancoDeFilmesLocal.get(id); if (!filme) return;
             document.getElementById('detalhe-titulo').innerText = filme.titulo; document.getElementById('detalhe-ano').innerText = filme.ano; 
@@ -1284,7 +1282,7 @@
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {
                 // INSIRA O SEU ID DO SUPABASE ENTRE AS ASPAS ABAIXO:
-                const SEU_ID_DE_ADMIN = "MATHEUS_UID_AQUI"; 
+                const SEU_ID_DE_ADMIN = "0508a7bc-a3b2-40b7-96fe-49a3f5bdc528"; 
 
                 if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) {
                     btnRadar.style.display = 'block';
@@ -1457,7 +1455,7 @@
         async function aceitarPedido(id) { await supabaseClient.from('amizades').update({ status: 'aceite' }).eq('id', id); carregarAmigos(); }
         async function rejeitarPedido(id) { await supabaseClient.from('amizades').delete().eq('id', id); carregarAmigos(); }
 
-        // AS 3 FUNÇÕES DE AMIGOS RESTAURADAS E INTACTAS!
+        // AS 3 FUNÇÕES DE AMIGOS TOTALMENTE RESTAURADAS!
         async function abrirPerfilAmigo(userId, username) {
             abrirModalSeguro('modal-perfil-amigo');
             document.getElementById('perfil-amigo-titulo').innerText = '@' + username;

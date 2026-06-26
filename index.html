@@ -671,7 +671,7 @@
         }
 
         // ========================================================
-        // ATUALIZADO: ARQUITETURA PARA API DE TERCEIROS (TOP 10 REAL)
+        // CORRIGIDO: ENGENHARIA DE RANKING SEQUENCIAL SÉRIE/FILME
         // ========================================================
         async function carregarTop10(providerId, providerNome) {
             const grid = document.getElementById('top10-grid');
@@ -682,21 +682,18 @@
                 let titulosExternos = [];
 
                 if (providerId === 8) { 
-                    // Simulando o recebimento de dados limpos de uma API externa (Ex: FlixPatrol/Tudum Brasil)
+                    // Ajustamos os nomes para a busca do TMDB ser certeira com base no Tudum Brasil
                     titulosExternos = [
                         { t: "Mensagens para Isabelle", a: "2024" },
-                        { t: "Daddy's in Trouble", a: "2024" },
                         { t: "Speak No Evil", a: "2024" },
-                        { t: "Os Reis da Rua", a: "2008" }, // Tradução exata de Street Kings
-                        { f: "Colors Of Evil: Black", a: "2024" },
-                        { t: "Amor no Escritório", a: "2024" }, // Tradução de Office Romance
-                        { t: "Instinto Materno", a: "2024" },  // Tradução de Maternal Instinct
-                        { t: "Ritmo Mágico", a: "2024" },      // Tradução de Swapped / Ritmo Mágico
-                        { t: "Resistência", a: "2023" },       // Tradução de The Creator
-                        { t: "A Mulher Marcada", a: "2024" }   // Tradução de The Marked Woman
+                        { t: "Os Reis da Rua", a: "2008" }, 
+                        { t: "Cores do Mal: Black", a: "2024" },
+                        { t: "Instinto Materno", a: "2024" },  
+                        { t: "Ritmo Mágico", a: "2024" },      
+                        { t: "Resistência", a: "2023" },       
+                        { t: "A Mulher Marcada", a: "2024" }   
                     ];
                 } else {
-                    // Plano B automático para os outros streamings enquanto não conecta APIs dedicadas para eles
                     const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&with_original_language=en|pt|es&page=1`;
                     const resp = await fetch(url);
                     const dados = await resp.json();
@@ -705,19 +702,19 @@
                     grid.innerHTML = top10TMDB.map((f, index) => {
                         const filmeLimpo = { id: f.id, titulo: f.title, ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', notaTmdb: f.vote_average.toFixed(1), capa: `${IMG_BASE}${f.poster_path}`, sinopse: f.overview || 'Sem sinopse.' };
                         bancoDeFilmesLocal.set(f.id, filmeLimpo);
-                        return gerarCardTop10HTML(filmeLimpo, index);
+                        return gerarCardTop10HTML(filmeLimpo, index + 1);
                     }).join('');
                     mapearBotoesGrid();
                     return;
                 }
 
-                // Conversão: A API do iCine busca os dados estruturados no TMDB para gerar os posters
                 let htmlAcumulado = "";
+                let rankVisual = 1; // CONTADOR SEQUENCIAL FIXO PARA EVITAR PULAR NÚMEROS
+
                 for (let i = 0; i < titulosExternos.length; i++) {
                     try {
                         const item = titulosExternos[i];
-                        const queryBusca = item.t || item.f;
-                        const r = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(queryBusca)}&year=${item.a}&language=pt-BR`);
+                        const r = await fetch(`${URL_BASE}/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.t)}&year=${item.a}&language=pt-BR`);
                         const dadosBusca = await r.json();
 
                         if (dadosBusca.results && dadosBusca.results.length > 0) {
@@ -731,21 +728,23 @@
                                 sinopse: f.overview || 'Sem sinopse.'
                             };
                             bancoDeFilmesLocal.set(f.id, filmeLimpo);
-                            htmlAcumulado += gerarCardTop10HTML(filmeLimpo, i);
+
+                            // Envia o rankVisual correto (1, 2, 3...) e depois soma +1
+                            htmlAcumulado += gerarCardTop10HTML(filmeLimpo, rankVisual);
+                            rankVisual++; 
                         }
                     } catch(e){}
                 }
-                grid.innerHTML = htmlAcumulado;
+                grid.innerHTML = htmlAcumulado || '<p class="empty-msg">Nenhum filme disponível no feed agora.</p>';
                 mapearBotoesGrid();
 
             } catch (err) { console.error(err); }
         }
 
-        // Função auxiliar para desenhar os cards com os números grandes do IndicaAi
-        function gerarCardTop10HTML(filme, index) {
+        function gerarCardTop10HTML(filme, numeroPosicao) {
             return `
                 <div class="top10-card">
-                    <div class="top10-number">${index + 1}</div>
+                    <div class="top10-number">${numeroPosicao}</div>
                     <div class="movie-card">
                         <img src="${filme.capa}" alt="${filme.titulo}">
                         <div class="movie-card-overlay">

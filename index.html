@@ -1120,37 +1120,45 @@
                 }
 
                 // ==========================================
-                // === RADAR DE AUTOPLAY E PAUSE COM DEDO ===
+                // === O SILENCIADOR ABSOLUTO DE VÍDEOS ===
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
+                let videoAtivo = null; // Variável de Estado: Só existe UM Rei da Tela
 
                 const observer = new IntersectionObserver((entries) => {
+                    // 1. Descobre quem é o único vídeo que está realmente na tela
                     entries.forEach(entry => {
-                        const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
-                        const iframe = document.getElementById(iframeId);
-                        if (!iframe) return;
-
                         if (entry.isIntersecting) {
-                            // SILENCIADOR: Pausa os outros vídeos antes de tocar este (Evita o Bug do Computador)
-                            document.querySelectorAll('.short-iframe').forEach(otherIframe => {
-                                if (otherIframe.id !== iframeId) {
-                                    otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                                }
-                            });
+                            videoAtivo = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
+                        }
+                    });
 
+                    // 2. Ordem de Execução Brutal
+                    document.querySelectorAll('.short-iframe').forEach(iframe => {
+                        if (iframe.id === videoAtivo) {
+                            // É o vídeo principal: Dá Play!
                             iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
                             iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-                            iframe.playTimer = setTimeout(() => {
-                                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                            // Reforço de Play (Bypass de segurança do navegador)
+                            setTimeout(() => {
+                                if (videoAtivo === iframe.id) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                                }
                             }, 1000);
-
                         } else {
-                            // CANCELA o timer e pausa o vídeo que saiu da tela
-                            clearTimeout(iframe.playTimer);
+                            // É um vídeo secundário: PAUSA IMEDIATAMENTE!
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+
+                            // 💥 O Tiro de Misericórdia: Pausa novamente 0.5s depois para matar vídeos rebeldes a carregar
+                            setTimeout(() => {
+                                if (videoAtivo !== iframe.id) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                }
+                            }, 500);
                         }
                     });
+
                 }, { threshold: 0.6 }); 
 
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));

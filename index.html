@@ -15,6 +15,50 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+
+        /* === FEED ESTILO TIKTOK / SHORTS === */
+        .feed-shorts-container {
+            width: 100%;
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory; /* Faz a tela travar em cada vídeo */
+            scrollbar-width: none; /* Esconde a barra de scroll no Firefox */
+            background-color: #000;
+        }
+        .feed-shorts-container::-webkit-scrollbar {
+            display: none; /* Esconde a barra de scroll no Chrome/Safari */
+        }
+        .short-item {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: start; /* Ponto de paragem do scroll */
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .short-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: auto;
+        }
+        /* Caixa preta por cima do vídeo para colocarmos a capa do filme e o botão */
+        .short-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            right: 60px; /* Deixa espaço para os botões do YouTube na direita */
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+        }
         :root {
             --bg-color: #030712; --text-main: #f9fafb; --text-muted: #9ca3af;
             --purple: #8b5cf6; --pink: #ec4899; --card-bg: #111827;
@@ -217,7 +261,7 @@
     <nav>
         <button id="btn-inicio" class="nav-btn active"><span class="icon">🍿</span><span>Listas</span></button>
         <button id="btn-explorar" class="nav-btn"><span class="icon">🔍</span><span>Explorar</span></button>
-        <button id="btn-comunidade" class="nav-btn"><span class="icon">🌍</span><span>Feed</span></button>
+        <button id="btn-cenas" class="nav-btn"><span class="icon">⚡</span><span>Reels</span></button> <button id="btn-comunidade" class="nav-btn"><span class="icon">🌍</span><span>Feed</span></button>
         <button id="btn-amigos" class="nav-btn"><span class="icon">👥</span><span>Amigos</span><span id="badge-amigos" class="badge-notif"></span></button>
     </nav>
 
@@ -289,6 +333,11 @@
 
             <div class="movies-grid" id="explorar-grid"></div>
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" style="display: none;">⬇ Carregar Mais</button></div>
+        </div>
+
+        <div id="aba-cenas" class="aba" style="padding: 0; margin: 0; height: calc(100vh - 125px); overflow: hidden;">
+            <div id="feed-shorts" class="feed-shorts-container">
+                </div>
         </div>
 
         <div id="aba-comunidade" class="aba">

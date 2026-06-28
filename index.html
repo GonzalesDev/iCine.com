@@ -1124,61 +1124,61 @@
                     index++; // 🎯 4. Aumenta o contador para os próximos vídeos não terem autoplay!
                 }
 
-        // ==========================================
-        // === RADAR DE AUTOPLAY E PAUSE COM DEDO ===
-        // ==========================================
-        const glasses = document.querySelectorAll('.short-glass');
+                // ==========================================
+                // === RADAR DE AUTOPLAY E PAUSE COM DEDO ===
+                // ==========================================
+                const glasses = document.querySelectorAll('.short-glass');
 
-        // 1. Radar que deteta qual vídeo está na tela e dá play
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
-                const iframe = document.getElementById(iframeId);
-                if (!iframe) return;
+                // 1. Radar que deteta qual vídeo está na tela e dá play
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
+                        const iframe = document.getElementById(iframeId);
+                        if (!iframe) return;
 
-                if (entry.isIntersecting) {
-                    // REGRA DE OURO PARA DESKTOP: Pausa TODOS os outros vídeos antes de tocar este
-                    document.querySelectorAll('.short-iframe').forEach(otherIframe => {
-                        if (otherIframe.id !== iframeId) {
-                            otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                        if (entry.isIntersecting) {
+                            // 1ª Tentativa de Play (Imediata)
+                            iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
+                            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+
+                            // 2ª Tentativa de Play (1 segundo depois, para enganar o bloqueio do navegador)
+                            setTimeout(() => {
+                                if(entry.isIntersecting) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                                }
+                            }, 1000);
+
+                        } else {
+                            // Saiu da tela: Pausa!
+                            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                         }
                     });
+                }, { threshold: 0.6 }); // Só ativa quando 60% do vídeo aparecer
 
-                    // Entrou na tela: Volta para o segundo zero e toca!
-                    iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
-                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
-                    // 2ª Tentativa de Play (engana o bloqueio). Salvamos o timer no próprio iframe.
-                    iframe.playTimer = setTimeout(() => {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                    }, 1000);
+                // 2. Comandos para pausar ao segurar o dedo (Película de Vidro)
+                glasses.forEach(glass => {
+                    const iframeId = glass.getAttribute('data-iframe');
+                    const iframe = document.getElementById(iframeId);
 
-                } else {
-                    // Saiu da tela: CANCELA a 2ª tentativa (se ele fez scroll muito rápido) e PAUSA!
-                    clearTimeout(iframe.playTimer);
-                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                }
-            });
-        }, { threshold: 0.6 }); // Só ativa quando 60% do vídeo aparecer
+                    const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-        document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
+                    // Eventos para Telemóvel
+                    glass.addEventListener('touchstart', pausar);
+                    glass.addEventListener('touchend', tocar);
+                    // Eventos para Computador
+                    glass.addEventListener('mousedown', pausar);
+                    glass.addEventListener('mouseup', tocar);
+                    glass.addEventListener('mouseleave', tocar);
+                });
 
-        // 2. Comandos para pausar ao segurar o dedo (Película de Vidro)
-        glasses.forEach(glass => {
-            const iframeId = glass.getAttribute('data-iframe');
-            const iframe = document.getElementById(iframeId);
-
-            const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-            const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-
-            // Eventos para Telemóvel
-            glass.addEventListener('touchstart', pausar);
-            glass.addEventListener('touchend', tocar);
-            // Eventos para Computador
-            glass.addEventListener('mousedown', pausar);
-            glass.addEventListener('mouseup', tocar);
-            glass.addEventListener('mouseleave', tocar);
-        });
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';
+            }
+        }
 
         // =========================================
         // === BLOCO: JS AMIGOS E REDE SOCIAL ===

@@ -118,22 +118,27 @@
         /* ========================================= */
         .feed-shorts-container { width: 100%; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; background-color: #000; }
         .feed-shorts-container::-webkit-scrollbar { display: none; }
-        
-        .short-item { width: 100%; height: 100%; scroll-snap-align: start; position: relative; overflow: hidden; background: #000; }
-        .short-iframe { width: 100%; height: 100%; border: none; transform: scale(1.35); pointer-events: auto; } 
-        .short-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 45%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); z-index: 5; pointer-events: none; }
-        
+
+        .short-item { width: 100%; height: 100%; scroll-snap-align: start; position: relative; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; }
+
+        /* O SEGREDO: Forçar a proporção 16:9 gigantesca para esconder as bordas pretas e o logo do YouTube */
+        .short-video-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.2); height: 100vh; width: 177.77vh; pointer-events: auto; }
+        .short-iframe { width: 100%; height: 100%; border: none; } 
+
+        .short-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); z-index: 5; pointer-events: none; }
+
         .short-ui { position: absolute; bottom: 25px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: flex-end; z-index: 10; pointer-events: none; }
-        .short-info { flex: 1; padding-right: 20px; pointer-events: auto; }
-        .short-title { color: #fff; font-size: 1.15rem; font-weight: 900; margin-bottom: 6px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
-        .short-desc { color: #e5e7eb; font-size: 0.9rem; text-shadow: 0 1px 3px rgba(0,0,0,0.9); font-weight: 500;}
-        
-        .short-actions { display: flex; flex-direction: column; align-items: center; gap: 18px; pointer-events: auto; }
-        .short-movie-cover { width: 45px; height: 65px; border-radius: 6px; border: 2px solid #fff; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.6); cursor: pointer; transition: transform 0.2s; }
+
+        .short-info { flex: 1; padding-right: 15px; pointer-events: auto; display: flex; flex-direction: column; justify-content: flex-end; }
+        .short-title { color: #fff; font-size: 1.15rem; font-weight: 900; margin-bottom: 4px; text-shadow: 0 2px 4px #000; }
+        .short-desc { color: #e5e7eb; font-size: 0.9rem; text-shadow: 0 1px 3px #000; font-weight: 500;}
+
+        .short-actions { display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: auto; width: 60px; }
+        .short-movie-cover { width: 48px; height: 70px; border-radius: 8px; border: 2px solid #fff; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.2s; }
         .short-movie-cover img { width: 100%; height: 100%; object-fit: cover; }
         .short-movie-cover:active { transform: scale(0.9); }
-        
-        .btn-short-add { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5); transition: transform 0.2s; }
+
+        .btn-short-add { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 2rem; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.6); transition: transform 0.2s; }
         .btn-short-add:active { transform: scale(0.9); }
 
         /* ========================================= */
@@ -1054,25 +1059,27 @@
 
                     const videoHtml = `
                         <div class="short-item">
-                            <iframe class="short-iframe" 
-                                src="https://www.youtube.com/embed/${cena.youtube_id}?controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                            </iframe>
-                            
+                            <div class="short-video-wrapper">
+                                <iframe class="short-iframe" 
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}&disablekb=1&fs=0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+
                             <div class="short-gradient"></div>
-                            
+
                             <div class="short-ui">
                                 <div class="short-info">
                                     <h3 class="short-title">${tituloFilme}</h3>
                                     <p class="short-desc">${cena.descricao || 'Cena Épica 🍿'}</p>
                                 </div>
-                                
+
                                 <div class="short-actions">
                                     <div class="short-movie-cover" onclick="abrirDetalhes(${cena.tmdb_id})">
                                         <img src="${capaFilme}" alt="Capa">
                                     </div>
-                                    <button class="btn-short-add" onclick="abrirModal(${cena.tmdb_id}, 'explorar')">＋</button>
+                                    <button class="btn-short-add" onclick="abrirModal(${cena.tmdb_id}, 'explorar')">+</button>
                                 </div>
                             </div>
                         </div>

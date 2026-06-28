@@ -609,7 +609,7 @@
 
         document.getElementById('btn-inicio').addEventListener('click', () => mudarAba('inicio'));
         document.getElementById('btn-explorar').addEventListener('click', () => mudarAba('explorar'));
-        document.getElementById('btn-cenas').addEventListener('click', () => mudarAba('cenas')); // <-- ADICIONADO AQUI
+        document.getElementById('btn-cenas').addEventListener('click', () => mudarAba('cenas'));
         document.getElementById('btn-comunidade').addEventListener('click', () => mudarAba('comunidade'));
         document.getElementById('btn-amigos').addEventListener('click', () => mudarAba('amigos'));
 
@@ -622,7 +622,7 @@
             if (abaId === 'inicio') renderizarMinhasListas();
             if (abaId === 'comunidade') carregarComunidade();
             if (abaId === 'amigos') renderizarAbaAmigos();
-            if (abaId === 'cenas') carregarCenas(); // <-- ADICIONADO AQUI
+            if (abaId === 'cenas') carregarCenas(); 
         }
 
         let timeoutPesquisa;
@@ -751,7 +751,6 @@
                 const resp = await fetch(url);
                 const dados = await resp.json();
                 
-                // Filtro para barrar filmes indianos
                 const idiomasBloqueados = ['hi', 'te', 'ta', 'ml', 'kn', 'bn'];
                 const filmesOcidentais = dados.results.filter(f => !idiomasBloqueados.includes(f.original_language));
 
@@ -1394,9 +1393,16 @@
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
+        // BLINDAGEM DO PERFIL: Usando "maybeSingle" para evitar erros se o perfil ainda não existir no Supabase.
         async function verificarPerfil() {
-            const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).single();
-            if (data) meuPerfil = data;
+            try {
+                const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).maybeSingle();
+                if (data && data.username) {
+                    meuPerfil = data;
+                } else {
+                    meuPerfil = null; // Garante que fica vazio se não existir nome
+                }
+            } catch(e) {}
             carregarAmigos();
         }
 
@@ -1404,16 +1410,16 @@
             const { data: pedidosRaw } = await supabaseClient.from('amizades').select('*').eq('destinatario_id', usuarioAtual.id).eq('status', 'pendente');
             pedidosPendentes = [];
             for (const p of (pedidosRaw || [])) {
-                const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', p.solicitante_id).single();
-                pedidosPendentes.push({ ...p, username_solicitante: perf?.username || 'utilizador' });
+                const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', p.solicitante_id).maybeSingle();
+                if(perf) pedidosPendentes.push({ ...p, username_solicitante: perf.username || 'utilizador' });
             }
 
             const { data: aceites } = await supabaseClient.from('amizades').select('*').eq('status', 'aceite').or(`solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${usuarioAtual.id}`);
             listaAmigos = [];
             for (const a of (aceites || [])) {
                 const amigoId = a.solicitante_id === usuarioAtual.id ? a.destinatario_id : a.solicitante_id;
-                const { data: perf } = await supabaseClient.from('perfis').select('username, user_id').eq('user_id', amigoId).single();
-                if (perf) listaAmigos.push({ ...perf, amizade_id: a.id });
+                const { data: perf } = await supabaseClient.from('perfis').select('username, user_id').eq('user_id', amigoId).maybeSingle();
+                if (perf && perf.username) listaAmigos.push({ ...perf, amizade_id: a.id });
             }
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
@@ -1425,14 +1431,20 @@
             else { badge.style.display = 'none'; }
         }
 
+        // CORREÇÃO: Força o ecrã a focar APENAS no formulário de nome se o usuário não tiver um @username!
         function renderizarAbaAmigos() {
-            if (!meuPerfil) {
+            if (!meuPerfil || !meuPerfil.username) {
                 document.getElementById('setup-username-card').style.display = 'block';
                 document.getElementById('meu-perfil-card').style.display = 'none';
+                document.getElementById('secao-pedidos').style.display = 'none';
+                document.getElementById('secao-amigos-lista').style.display = 'none';
                 return;
             }
+            
             document.getElementById('setup-username-card').style.display = 'none';
             document.getElementById('meu-perfil-card').style.display = 'flex';
+            document.getElementById('secao-amigos-lista').style.display = 'block';
+            
             document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username;
             document.getElementById('meu-avatar').innerText = meuPerfil.username.charAt(0).toUpperCase();
 
@@ -1445,10 +1457,12 @@
                         <div class="amigo-info"><div class="amigo-username">@${p.username_solicitante}</div></div>
                         <div class="amigo-actions"><button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button></div>
                     </div>`).join('');
-            } else secPedidos.style.display = 'none';
+            } else {
+                secPedidos.style.display = 'none';
+            }
 
             const listaEl = document.getElementById('lista-amigos');
-            if (listaAmigos.length === 0) listaEl.innerHTML = '<p class="empty-msg">Nenhum amigo adicionado.</p>';
+            if (listaAmigos.length === 0) listaEl.innerHTML = '<p class="empty-msg">Ainda não tens amigos no iCine.</p>';
             else {
                 listaEl.innerHTML = listaAmigos.map(a => `
                     <div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')">
@@ -1484,8 +1498,8 @@
             if (!termo) return;
             resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">A pesquisar...</p>';
 
-            const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).single();
-            if (!data) return resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
+            const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).maybeSingle();
+            if (!data || !data.username) return resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
             
             const jaAmigo = listaAmigos.some(a => a.user_id === data.user_id);
             resultado.innerHTML = `

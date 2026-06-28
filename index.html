@@ -1067,6 +1067,7 @@
                 }
 
                 container.innerHTML = ''; 
+                let index = 0;
 
                 for (const cena of cenas) {
                     let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
@@ -1083,12 +1084,13 @@
                         });
                     } catch(e) {}
 
-                    // Removido o autoplay nativo. O nosso Radar vai mandar em todos eles.
+                    const autoPlayCode = (index === 0) ? "&autoplay=1" : "";
+
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
                                 <iframe class="short-iframe" id="yt-${cena.id}"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0" 
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0${autoPlayCode}" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
@@ -1114,14 +1116,16 @@
                         </div>
                     `;
                     container.insertAdjacentHTML('beforeend', videoHtml);
+                    index++;
                 }
 
                 // ==========================================
-                // === RADAR ANTI-RICOCHETE 2.0 =============
+                // === RADAR ANTI-RICOCHETE + PASSE VIP =====
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
                 let scrollTimeout; 
                 let videoAtivoId = null; 
+                let primeiroCarregamento = true; // 🎯 PASSE VIP: Variável para identificar a abertura da aba
 
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -1133,25 +1137,34 @@
                             videoAtivoId = iframeId;
                             clearTimeout(scrollTimeout);
 
-                            scrollTimeout = setTimeout(() => {
-                                if (videoAtivoId === iframeId) {
-                                    // 1. Silencia ABSOLUTAMENTE TODOS os outros
-                                    document.querySelectorAll('.short-iframe').forEach(otherIframe => {
-                                        if (otherIframe.id !== iframeId) {
-                                            otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                                        }
-                                    });
+                            const executarPlay = () => {
+                                // Silencia todos os outros
+                                document.querySelectorAll('.short-iframe').forEach(otherIframe => {
+                                    if (otherIframe.id !== iframeId) {
+                                        otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                    }
+                                });
+                                // Toca o atual
+                                iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
+                                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                            };
 
-                                    // 2. Toca apenas o atual
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                                }
-                            }, 350); 
+                            // 🎯 SEGREDO REVELADO: Se for a primeira vez, não espera os 350ms! Toca IMEDIATAMENTE.
+                            if (primeiroCarregamento) {
+                                executarPlay();
+                                primeiroCarregamento = false;
+                            } else {
+                                // Se for scroll, usa o travão de segurança para o Desktop
+                                scrollTimeout = setTimeout(() => {
+                                    if (videoAtivoId === iframeId) {
+                                        executarPlay();
+                                    }
+                                }, 350); 
+                            }
 
                         } else {
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
 
-                            // A METRALHADORA DE PAUSA: Garante que os vídeos pararam de vez ao sair da tela
                             let tentativas = 3;
                             let intervaloPausa = setInterval(() => {
                                 if (videoAtivoId !== iframeId) {
@@ -1168,9 +1181,6 @@
 
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
-                // ==========================================
-                // === CORREÇÃO DO BUG DO RATO NO DESKTOP ===
-                // ==========================================
                 glasses.forEach(glass => {
                     const iframeId = glass.getAttribute('data-iframe');
                     const iframe = document.getElementById(iframeId);
@@ -1178,15 +1188,13 @@
                     const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                     const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-                    // Controlo para Telemóvel
                     glass.addEventListener('touchstart', pausar);
                     glass.addEventListener('touchend', tocar);
 
-                    // Controlo Blindado para Desktop
                     let mouseApertado = false;
 
                     glass.addEventListener('mousedown', (e) => {
-                        if (e.button !== 0) return; // Ignora clique direito
+                        if (e.button !== 0) return; 
                         mouseApertado = true;
                         pausar();
                     });
@@ -1199,8 +1207,6 @@
                     });
 
                     glass.addEventListener('mouseleave', () => {
-                        // Só dá play se o rato sair ENQUANTO você estiver a segurar o clique!
-                        // Se for apenas o rato a roçar na tela (scroll), ele ignora!
                         if (mouseApertado) {
                             mouseApertado = false;
                             tocar();

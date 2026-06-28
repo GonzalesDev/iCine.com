@@ -79,7 +79,6 @@
         .movie-card.aberto .movie-card-overlay { opacity: 1; pointer-events: auto; }
         @media (hover: hover) and (pointer: fine) { .movie-card:hover .movie-card-overlay { opacity: 1; pointer-events: auto; } }
 
-        /* Botões de Ação nos Cards */
         .btn-action { width: 100%; padding: 0.5rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .btn-add { background-color: var(--purple); color: white; }
         .btn-watched { background-color: var(--pink); color: white; }
@@ -118,26 +117,26 @@
         /* ========================================= */
         .feed-shorts-container { width: 100%; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; background-color: #000; }
         .feed-shorts-container::-webkit-scrollbar { display: none; }
-
+        
+        /* Modificado: Altura 100% para não sobrar espaço e causar scroll fantasma */
         .short-item { width: 100%; height: 100%; scroll-snap-align: start; position: relative; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; }
-
-        /* O SEGREDO: Forçar a proporção 16:9 gigantesca para esconder as bordas pretas e o logo do YouTube */
-        .short-video-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.2); height: 100vh; width: 177.77vh; pointer-events: auto; }
+        
+        .short-video-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.3); height: 100vh; width: 177.77vh; pointer-events: auto; }
         .short-iframe { width: 100%; height: 100%; border: none; } 
-
+        
         .short-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); z-index: 5; pointer-events: none; }
-
+        
         .short-ui { position: absolute; bottom: 25px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: flex-end; z-index: 10; pointer-events: none; }
-
+        
         .short-info { flex: 1; padding-right: 15px; pointer-events: auto; display: flex; flex-direction: column; justify-content: flex-end; }
         .short-title { color: #fff; font-size: 1.15rem; font-weight: 900; margin-bottom: 4px; text-shadow: 0 2px 4px #000; }
         .short-desc { color: #e5e7eb; font-size: 0.9rem; text-shadow: 0 1px 3px #000; font-weight: 500;}
-
+        
         .short-actions { display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: auto; width: 60px; }
         .short-movie-cover { width: 48px; height: 70px; border-radius: 8px; border: 2px solid #fff; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.8); cursor: pointer; transition: transform 0.2s; }
         .short-movie-cover img { width: 100%; height: 100%; object-fit: cover; }
         .short-movie-cover:active { transform: scale(0.9); }
-
+        
         .btn-short-add { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 2rem; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.6); transition: transform 0.2s; }
         .btn-short-add:active { transform: scale(0.9); }
 
@@ -485,7 +484,6 @@
     <script>
         console.log("iCine Full Stack Core Active!");
 
-        // ASSASSINO DE CACHE (Para forçar atualizações no telemóvel)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) { registration.unregister(); }
@@ -602,10 +600,22 @@
             document.getElementById(`aba-${abaId}`).classList.add('ativa');
             document.getElementById(`btn-${abaId}`).classList.add('active');
             
+            // --- FASE 1: CONTROLE DA ABA CENAS ---
+            const chatFab = document.getElementById('btn-chat-fab');
+            const feedContainer = document.getElementById('feed-shorts');
+
+            if (abaId === 'cenas') {
+                chatFab.style.display = 'none'; // Esconde a IA para não atrapalhar
+                carregarCenas(); 
+            } else {
+                chatFab.style.display = 'flex'; // Volta a mostrar a IA
+                feedContainer.innerHTML = ''; // Mata os vídeos (e o áudio) ao sair da aba
+            }
+            // -------------------------------------
+
             if (abaId === 'inicio') renderizarMinhasListas();
             if (abaId === 'comunidade') carregarComunidade();
             if (abaId === 'amigos') renderizarAbaAmigos();
-            if (abaId === 'cenas') carregarCenas(); 
         }
 
         // =========================================
@@ -1060,21 +1070,21 @@
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
-                                <iframe class="short-iframe" 
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}&disablekb=1&fs=0" 
+                                <iframe class="short-iframe" style="pointer-events: none;"
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}&disablekb=1&fs=0&autoplay=1&mute=1" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
                             </div>
-
+                            
                             <div class="short-gradient"></div>
-
+                            
                             <div class="short-ui">
                                 <div class="short-info">
                                     <h3 class="short-title">${tituloFilme}</h3>
                                     <p class="short-desc">${cena.descricao || 'Cena Épica 🍿'}</p>
                                 </div>
-
+                                
                                 <div class="short-actions">
                                     <div class="short-movie-cover" onclick="abrirDetalhes(${cena.tmdb_id})">
                                         <img src="${capaFilme}" alt="Capa">

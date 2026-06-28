@@ -1067,7 +1067,6 @@
                 }
 
                 container.innerHTML = ''; 
-                let index = 0;
 
                 for (const cena of cenas) {
                     let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
@@ -1084,13 +1083,12 @@
                         });
                     } catch(e) {}
 
-                    const autoPlayCode = (index === 0) ? "&autoplay=1" : "";
-
+                    // Removido o autoplay nativo. O nosso Radar vai mandar em todos eles.
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
                                 <iframe class="short-iframe" id="yt-${cena.id}"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0${autoPlayCode}" 
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
@@ -1116,15 +1114,14 @@
                         </div>
                     `;
                     container.insertAdjacentHTML('beforeend', videoHtml);
-                    index++;
                 }
 
                 // ==========================================
-                // === RADAR ANTI-RICOCHETE (DEBOUNCE) ======
+                // === RADAR ANTI-RICOCHETE 2.0 =============
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
-                let scrollTimeout; // O nosso travão de tempo
-                let videoAtivoId = null; // O Rei da Tela
+                let scrollTimeout; 
+                let videoAtivoId = null; 
 
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -1134,42 +1131,46 @@
 
                         if (entry.isIntersecting) {
                             videoAtivoId = iframeId;
-
-                            // Cancela qualquer ordem de Play que estivesse pendente por causa de scrolls rápidos
                             clearTimeout(scrollTimeout);
 
-                            // Espera 0.3 segundos para ver se o utilizador parou mesmo de usar a roda do rato
                             scrollTimeout = setTimeout(() => {
                                 if (videoAtivoId === iframeId) {
-                                    // Silencia absolutamente TODOS os outros
+                                    // 1. Silencia ABSOLUTAMENTE TODOS os outros
                                     document.querySelectorAll('.short-iframe').forEach(otherIframe => {
                                         if (otherIframe.id !== iframeId) {
                                             otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                                         }
                                     });
 
-                                    // Toca APENAS o vídeo que parou na tela
+                                    // 2. Toca apenas o atual
                                     iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
                                     iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                                 }
-                            }, 300); // 300 milissegundos é o tempo mágico para Desktop
+                            }, 350); 
 
                         } else {
-                            // Saiu da tela: Manda pausar NA HORA
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
 
-                            // Tiro de backup 0.5s depois para caso o iframe estivesse a carregar
-                            setTimeout(() => {
+                            // A METRALHADORA DE PAUSA: Garante que os vídeos pararam de vez ao sair da tela
+                            let tentativas = 3;
+                            let intervaloPausa = setInterval(() => {
                                 if (videoAtivoId !== iframeId) {
                                     iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                    tentativas--;
+                                    if (tentativas <= 0) clearInterval(intervaloPausa);
+                                } else {
+                                    clearInterval(intervaloPausa);
                                 }
-                            }, 500);
+                            }, 400);
                         }
                     });
-                }, { threshold: 0.6 }); 
+                }, { threshold: 0.55 }); 
 
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
+                // ==========================================
+                // === CORREÇÃO DO BUG DO RATO NO DESKTOP ===
+                // ==========================================
                 glasses.forEach(glass => {
                     const iframeId = glass.getAttribute('data-iframe');
                     const iframe = document.getElementById(iframeId);
@@ -1177,11 +1178,34 @@
                     const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                     const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
+                    // Controlo para Telemóvel
                     glass.addEventListener('touchstart', pausar);
                     glass.addEventListener('touchend', tocar);
-                    glass.addEventListener('mousedown', pausar);
-                    glass.addEventListener('mouseup', tocar);
-                    glass.addEventListener('mouseleave', tocar);
+
+                    // Controlo Blindado para Desktop
+                    let mouseApertado = false;
+
+                    glass.addEventListener('mousedown', (e) => {
+                        if (e.button !== 0) return; // Ignora clique direito
+                        mouseApertado = true;
+                        pausar();
+                    });
+
+                    glass.addEventListener('mouseup', () => {
+                        if (mouseApertado) {
+                            mouseApertado = false;
+                            tocar();
+                        }
+                    });
+
+                    glass.addEventListener('mouseleave', () => {
+                        // Só dá play se o rato sair ENQUANTO você estiver a segurar o clique!
+                        // Se for apenas o rato a roçar na tela (scroll), ele ignora!
+                        if (mouseApertado) {
+                            mouseApertado = false;
+                            tocar();
+                        }
+                    });
                 });
 
             } catch (err) {

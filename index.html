@@ -119,7 +119,18 @@
         .feed-shorts-container::-webkit-scrollbar { display: none; }
         
         /* Modificado: Altura 100% para não sobrar espaço e causar scroll fantasma */
-        .short-item { width: 100%; height: 100%; scroll-snap-align: start; position: relative; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; }
+        .short-item { 
+            width: 100%; 
+            height: 100%; 
+            scroll-snap-align: start; 
+            scroll-snap-stop: always; /* 🛑 TRAVÃO DE MÃO: Impede que passe mais de 1 vídeo por deslize */
+            position: relative; 
+            overflow: hidden; 
+            background: #000; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
         
         .short-video-wrapper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.3); height: 100vh; width: 177.77vh; pointer-events: auto; }
         .short-iframe { width: 100%; height: 100%; border: none; } 
@@ -1077,15 +1088,17 @@
                     // 🎯 2. O TRUQUE: Se for o primeiro vídeo (index 0), injeta o autoplay. Se não for, fica vazio.
                     const autoPlayCode = (index === 0) ? "&autoplay=1" : "";
 
+                    // Retiramos as variáveis e deixamos o link sem autoplay
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
                                 <iframe class="short-iframe" id="yt-${cena.id}"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0${autoPlayCode}" 
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
                             </div>
+                            ...
 
                             <div class="short-glass" data-iframe="yt-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
 
@@ -1124,9 +1137,17 @@
                         if (!iframe) return;
 
                         if (entry.isIntersecting) {
-                            // Entrou na tela: Volta para o segundo zero (seekTo) e toca (playVideo)!
+                            // 1ª Tentativa de Play (Imediata)
                             iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
                             iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+
+                            // 2ª Tentativa de Play (1 segundo depois, para enganar o bloqueio do navegador)
+                            setTimeout(() => {
+                                if(entry.isIntersecting) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                                }
+                            }, 1000);
+
                         } else {
                             // Saiu da tela: Pausa!
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');

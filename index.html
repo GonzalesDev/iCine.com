@@ -1072,12 +1072,12 @@
                         });
                     } catch(e) {}
 
-                    // Adicionado enablejsapi=1 e removido o mute=1
+                    // Removido o autoplay=1 e a tag de loop/playlist. Fim dos botões e do caos sonoro!
                     const videoHtml = `
                         <div class="short-item">
-<div class="short-video-wrapper">
+                            <div class="short-video-wrapper">
                                 <iframe class="short-iframe" id="yt-${cena.id}"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}&disablekb=1&fs=0&autoplay=1" 
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
@@ -1118,7 +1118,8 @@
                         if (!iframe) return;
 
                         if (entry.isIntersecting) {
-                            // Entrou na tela: Toca!
+                            // Entrou na tela: Volta para o segundo zero (seekTo) e toca (playVideo)!
+                            iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
                             iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                         } else {
                             // Saiu da tela: Pausa!

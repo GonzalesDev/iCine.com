@@ -1137,19 +1137,25 @@
                         if (!iframe) return;
 
                         if (entry.isIntersecting) {
-                            // 1ª Tentativa de Play (Imediata)
+                            // REGRA DE OURO PARA DESKTOP: Pausa TODOS os outros vídeos antes de tocar este
+                            document.querySelectorAll('.short-iframe').forEach(otherIframe => {
+                                if (otherIframe.id !== iframeId) {
+                                    otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                }
+                            });
+
+                            // Entrou na tela: Volta para o segundo zero e toca!
                             iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
                             iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-                            // 2ª Tentativa de Play (1 segundo depois, para enganar o bloqueio do navegador)
-                            setTimeout(() => {
-                                if(entry.isIntersecting) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                                }
+                            // 2ª Tentativa de Play (engana o bloqueio). Salvamos o timer no próprio iframe.
+                            iframe.playTimer = setTimeout(() => {
+                                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                             }, 1000);
 
                         } else {
-                            // Saiu da tela: Pausa!
+                            // Saiu da tela: CANCELA a 2ª tentativa (se ele fez scroll muito rápido) e PAUSA!
+                            clearTimeout(iframe.playTimer);
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                         }
                     });
@@ -1173,12 +1179,6 @@
                     glass.addEventListener('mouseup', tocar);
                     glass.addEventListener('mouseleave', tocar);
                 });
-
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';
-            }
-        }
 
         // =========================================
         // === BLOCO: JS AMIGOS E REDE SOCIAL ===

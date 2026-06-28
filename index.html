@@ -1120,47 +1120,36 @@
                 }
 
                 // ==========================================
-                // === O SILENCIADOR ABSOLUTO DE VÍDEOS ===
+                // === NOVO RADAR (SIMPLIFICADO E ROBUSTO) ===
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
-                let videoAtivo = null; // Variável de Estado: Só existe UM Rei da Tela
 
                 const observer = new IntersectionObserver((entries) => {
-                    // 1. Descobre quem é o único vídeo que está realmente na tela
                     entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            videoAtivo = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
-                        }
-                    });
+                        const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
+                        const iframe = document.getElementById(iframeId);
+                        if (!iframe) return;
 
-                    // 2. Ordem de Execução Brutal
-                    document.querySelectorAll('.short-iframe').forEach(iframe => {
-                        if (iframe.id === videoAtivo) {
-                            // É o vídeo principal: Dá Play!
+                        if (entry.isIntersecting) {
+                            // 1. Volta ao início
                             iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
+                            // 2. Dá Play no vídeo visível
                             iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-                            // Reforço de Play (Bypass de segurança do navegador)
-                            setTimeout(() => {
-                                if (videoAtivo === iframe.id) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                            // 3. Pausa TODOS os outros vídeos imediatamente
+                            document.querySelectorAll('.short-iframe').forEach(otherIframe => {
+                                if (otherIframe.id !== iframeId) {
+                                    otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                                 }
-                            }, 1000);
+                            });
                         } else {
-                            // É um vídeo secundário: PAUSA IMEDIATAMENTE!
+                            // Garante a pausa se o vídeo sair da tela
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-
-                            // 💥 O Tiro de Misericórdia: Pausa novamente 0.5s depois para matar vídeos rebeldes a carregar
-                            setTimeout(() => {
-                                if (videoAtivo !== iframe.id) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                                }
-                            }, 500);
                         }
                     });
-
                 }, { threshold: 0.6 }); 
 
+                // Observa o container inteiro (short-item) em vez da película de vidro
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
                 glasses.forEach(glass => {

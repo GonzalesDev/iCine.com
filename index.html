@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iCine | Seu Diário de Filmes na Nuvem</title>
+    <title>iCine | Seu Diário de Filmes</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,10 +19,7 @@
             --bg-color: #030712; --text-main: #f9fafb; --text-muted: #9ca3af;
             --purple: #8b5cf6; --pink: #ec4899; --card-bg: #111827;
             --red: #ef4444; --blue: #3b82f6; 
-            --rotten: #fa320a; 
-            --imdb: #eab308;
-            --tmdb: #60a5fa;
-            --youtube: #ff0000;
+            --rotten: #fa320a; --imdb: #eab308; --tmdb: #60a5fa; --youtube: #ff0000;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -67,22 +64,9 @@
 
         .comunidade-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
 
-        /* === ESTILOS STREAMING TOP 10 === */
         .streaming-row { display: flex; overflow-x: auto; gap: 14px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; margin-bottom: 1rem; scrollbar-width: none; align-items: center;}
         .streaming-row::-webkit-scrollbar { display: none; }
-        .streaming-pill { 
-            width: 60px; 
-            height: 60px; 
-            flex-shrink: 0; 
-            border-radius: 10px; 
-            border: 2px solid #374151; 
-            overflow: hidden; 
-            cursor: pointer; 
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            padding: 0;
-            background-color: #111827;
-            box-sizing: content-box; 
-        }
+        .streaming-pill { width: 60px; height: 60px; flex-shrink: 0; border-radius: 10px; border: 2px solid #374151; overflow: hidden; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 0; background-color: #111827; box-sizing: content-box; }
         .streaming-pill img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         .streaming-pill.active { border-color: var(--purple); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); transform: scale(1.1); }
         
@@ -92,46 +76,11 @@
         .top10-card .movie-card { width: 100%; }
         .top10-number { position: absolute; bottom: -12px; left: -24px; font-size: 4.5rem; font-weight: 900; line-height: 1; color: #fff; text-shadow: 0 0 15px rgba(0,0,0,0.9), -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000; z-index: 10; pointer-events: none; font-style: italic; }
 
-        /* === FEED ESTILO TIKTOK / SHORTS === */
-        .feed-shorts-container {
-            width: 100%;
-            height: 100%;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            background-color: #000;
-        }
+        .feed-shorts-container { width: 100%; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; background-color: #000; }
         .feed-shorts-container::-webkit-scrollbar { display: none; }
-        .short-item {
-            width: 100%;
-            height: 100%;
-            scroll-snap-align: start;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .short-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            pointer-events: auto;
-        }
-        .short-overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 15px;
-            right: 60px;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #374151;
-        }
+        .short-item { width: 100%; height: 100%; scroll-snap-align: start; position: relative; display: flex; justify-content: center; align-items: center; }
+        .short-iframe { width: 100%; height: 100%; border: none; pointer-events: auto; }
+        .short-overlay { position: absolute; bottom: 20px; left: 15px; right: 60px; z-index: 10; display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); padding: 10px; border-radius: 12px; border: 1px solid #374151; }
 
         @media (min-width: 600px) { 
             .movies-slider, .playlist-slider { display: grid; grid-template-columns: repeat(3, 1fr); overflow-x: visible; padding-bottom: 0; }
@@ -155,9 +104,6 @@
         .movie-title { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .movie-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; align-items: flex-start; }
         .movie-rating { font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
-        .rt-score { color: var(--rotten); }
-        .imdb-score { color: var(--imdb); }
-        .tmdb-score { color: var(--tmdb); }
         .movie-card-overlay { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.2s ease-in-out; padding: 0.75rem; pointer-events: none; }
         .movie-card.aberto .movie-card-overlay { opacity: 1; pointer-events: auto; }
         @media (hover: hover) and (pointer: fine) { .movie-card:hover .movie-card-overlay { opacity: 1; pointer-events: auto; } }
@@ -170,7 +116,6 @@
         .btn-carregar-mais { margin: 1.5rem auto; padding: 0.8rem 2rem; background-color: transparent; border: 2px solid var(--purple); color: var(--purple); border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer; width: 100%; max-width: 300px; text-align: center; transition: background-color 0.2s; }
         .btn-carregar-mais:hover { background-color: rgba(139, 92, 246, 0.1); }
 
-        /* MODAIS */
         .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: flex-end; backdrop-filter: blur(8px); z-index: 2000; animation: slideUp 0.2s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-content { background-color: var(--card-bg); padding: 1.5rem; border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; text-align: center; border-top: 1px solid #374151; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); margin: 0 auto; }
@@ -186,13 +131,11 @@
         .btn-modal-cancel { background-color: #374151; color: #d1d5db; }
         .empty-msg { color: var(--text-muted); font-size: 0.9rem; font-style: italic; padding: 1rem 0; grid-column: 1 / -1; text-align: center; }
 
-        /* TELA DE LOGIN */
         #tela-login { position: fixed; inset: 0; background: var(--bg-color); z-index: 3500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { padding: 2rem; width: 100%; max-width: 360px; text-align: center; }
         .login-input { width: 100%; padding: 0.85rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 1rem; }
         .login-input:focus { outline: none; border-color: var(--purple); }
 
-        /* CHAT FLUTUANTE DE IA */
         .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 3100; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .chat-fab:active { transform: scale(0.9); }
         .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 3100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
@@ -368,7 +311,7 @@
                 <div id="lista-pedidos"></div>
             </div>
 
-            <div id="secao-amigos-lista">
+            <div id="secao-amigos-lista" style="display:none;">
                 <div class="secao-label">👥 Os teus Amigos</div>
                 <div id="lista-amigos"><p class="empty-msg">Ainda não tens amigos no iCine.</p></div>
             </div>
@@ -505,9 +448,12 @@
     <script>
         console.log("iCine Full Stack Core Active!");
 
+        // ASSASSINO DE CACHE (Força o Service Worker antigo a morrer e puxar o código novo)
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
             });
         }
 
@@ -598,7 +544,9 @@
             msg.innerText = "A criar conta...";
             const { error } = await supabaseClient.auth.signUp({ email, password: senha });
             if (error) msg.innerText = "Erro: " + error.message;
-            else msg.innerText = "Conta criada com sucesso! Já pode entrar.";
+            else {
+                msg.innerText = "Conta criada com sucesso! Já pode entrar.";
+            }
         });
 
         document.getElementById('btn-sair-acao').addEventListener('click', async () => {
@@ -1332,7 +1280,6 @@
 
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {
-                // O teu ID de administrador está seguro e guardado aqui
                 const SEU_ID_DE_ADMIN = "0508a7bc-a3b2-40b7-96fe-49a3f5bdc528"; 
 
                 if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) {
@@ -1393,16 +1340,18 @@
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
-        // BLINDAGEM DO PERFIL: Usando "maybeSingle" para evitar erros se o perfil ainda não existir no Supabase.
+        // BLINDAGEM DE VERIFICAR PERFIL
         async function verificarPerfil() {
             try {
-                const { data } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).maybeSingle();
+                const { data, error } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).maybeSingle();
                 if (data && data.username) {
                     meuPerfil = data;
                 } else {
-                    meuPerfil = null; // Garante que fica vazio se não existir nome
+                    meuPerfil = null; 
                 }
-            } catch(e) {}
+            } catch(e) {
+                meuPerfil = null;
+            }
             carregarAmigos();
         }
 
@@ -1411,7 +1360,7 @@
             pedidosPendentes = [];
             for (const p of (pedidosRaw || [])) {
                 const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', p.solicitante_id).maybeSingle();
-                if(perf) pedidosPendentes.push({ ...p, username_solicitante: perf.username || 'utilizador' });
+                if (perf) pedidosPendentes.push({ ...p, username_solicitante: perf.username || 'utilizador' });
             }
 
             const { data: aceites } = await supabaseClient.from('amizades').select('*').eq('status', 'aceite').or(`solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${usuarioAtual.id}`);
@@ -1431,24 +1380,30 @@
             else { badge.style.display = 'none'; }
         }
 
-        // CORREÇÃO: Força o ecrã a focar APENAS no formulário de nome se o usuário não tiver um @username!
+        // BLINDAGEM DO ECRÃ DE AMIGOS
         function renderizarAbaAmigos() {
+            const setupCard = document.getElementById('setup-username-card');
+            const perfilCard = document.getElementById('meu-perfil-card');
+            const secPedidos = document.getElementById('secao-pedidos');
+            const secAmigos = document.getElementById('secao-amigos-lista');
+
+            if (!setupCard || !perfilCard || !secPedidos || !secAmigos) return; // Segurança máxima
+
             if (!meuPerfil || !meuPerfil.username) {
-                document.getElementById('setup-username-card').style.display = 'block';
-                document.getElementById('meu-perfil-card').style.display = 'none';
-                document.getElementById('secao-pedidos').style.display = 'none';
-                document.getElementById('secao-amigos-lista').style.display = 'none';
+                setupCard.style.display = 'block';
+                perfilCard.style.display = 'none';
+                secPedidos.style.display = 'none';
+                secAmigos.style.display = 'none';
                 return;
             }
             
-            document.getElementById('setup-username-card').style.display = 'none';
-            document.getElementById('meu-perfil-card').style.display = 'flex';
-            document.getElementById('secao-amigos-lista').style.display = 'block';
+            setupCard.style.display = 'none';
+            perfilCard.style.display = 'flex';
+            secAmigos.style.display = 'block';
             
             document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username;
             document.getElementById('meu-avatar').innerText = meuPerfil.username.charAt(0).toUpperCase();
 
-            const secPedidos = document.getElementById('secao-pedidos');
             if (pedidosPendentes.length > 0) {
                 secPedidos.style.display = 'block';
                 document.getElementById('lista-pedidos').innerHTML = pedidosPendentes.map(p => `

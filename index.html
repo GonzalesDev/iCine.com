@@ -1067,8 +1067,7 @@
                 }
 
                 container.innerHTML = ''; 
-
-                let index = 0; // 🎯 1. O CONTADOR: Começa em zero para identificar o primeiro vídeo!
+                let index = 0;
 
                 for (const cena of cenas) {
                     let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
@@ -1085,20 +1084,17 @@
                         });
                     } catch(e) {}
 
-                    // 🎯 2. O TRUQUE: Se for o primeiro vídeo (index 0), injeta o autoplay. Se não for, fica vazio.
                     const autoPlayCode = (index === 0) ? "&autoplay=1" : "";
 
-                    // Retiramos as variáveis e deixamos o link sem autoplay
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
                                 <iframe class="short-iframe" id="yt-${cena.id}"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0" 
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0${autoPlayCode}" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
                             </div>
-                            ...
 
                             <div class="short-glass" data-iframe="yt-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
 
@@ -1120,8 +1116,7 @@
                         </div>
                     `;
                     container.insertAdjacentHTML('beforeend', videoHtml);
-
-                    index++; // 🎯 4. Aumenta o contador para os próximos vídeos não terem autoplay!
+                    index++;
                 }
 
                 // ==========================================
@@ -1129,7 +1124,6 @@
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
 
-                // 1. Radar que deteta qual vídeo está na tela e dá play
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
@@ -1137,33 +1131,30 @@
                         if (!iframe) return;
 
                         if (entry.isIntersecting) {
-                            // REGRA DE OURO PARA DESKTOP: Pausa TODOS os outros vídeos antes de tocar este
+                            // SILENCIADOR: Pausa os outros vídeos antes de tocar este (Evita o Bug do Computador)
                             document.querySelectorAll('.short-iframe').forEach(otherIframe => {
                                 if (otherIframe.id !== iframeId) {
                                     otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                                 }
                             });
 
-                            // Entrou na tela: Volta para o segundo zero e toca!
                             iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
                             iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-                            // 2ª Tentativa de Play (engana o bloqueio). Salvamos o timer no próprio iframe.
                             iframe.playTimer = setTimeout(() => {
                                 iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                             }, 1000);
 
                         } else {
-                            // Saiu da tela: CANCELA a 2ª tentativa (se ele fez scroll muito rápido) e PAUSA!
+                            // CANCELA o timer e pausa o vídeo que saiu da tela
                             clearTimeout(iframe.playTimer);
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                         }
                     });
-                }, { threshold: 0.6 }); // Só ativa quando 60% do vídeo aparecer
+                }, { threshold: 0.6 }); 
 
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
-                // 2. Comandos para pausar ao segurar o dedo (Película de Vidro)
                 glasses.forEach(glass => {
                     const iframeId = glass.getAttribute('data-iframe');
                     const iframe = document.getElementById(iframeId);
@@ -1171,14 +1162,18 @@
                     const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                     const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
 
-                    // Eventos para Telemóvel
                     glass.addEventListener('touchstart', pausar);
                     glass.addEventListener('touchend', tocar);
-                    // Eventos para Computador
                     glass.addEventListener('mousedown', pausar);
                     glass.addEventListener('mouseup', tocar);
                     glass.addEventListener('mouseleave', tocar);
                 });
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';
+            }
+        }
 
         // =========================================
         // === BLOCO: JS AMIGOS E REDE SOCIAL ===

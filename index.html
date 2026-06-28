@@ -317,7 +317,7 @@
             <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" style="display: none;">⬇ Carregar Mais</button></div>
         </div>
 
-        <div id="aba-cenas" class="aba" style="padding: 0; margin: 0; height: calc(100vh - 125px); overflow: hidden;">
+        <div id="aba-cenas" class="aba" style="position: fixed; top: 0; left: 0; right: 0; bottom: 65px; padding: 0; margin: 0; z-index: 100; overflow: hidden; background: #000;">
             <div id="feed-shorts" class="feed-shorts-container">
                 </div>
         </div>
@@ -599,17 +599,22 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`aba-${abaId}`).classList.add('ativa');
             document.getElementById(`btn-${abaId}`).classList.add('active');
-            
-            // --- FASE 1: CONTROLE DA ABA CENAS ---
+
+            // --- LÓGICA DE VISIBILIDADE TIKTOK ---
             const chatFab = document.getElementById('btn-chat-fab');
+            const header = document.querySelector('header');
             const feedContainer = document.getElementById('feed-shorts');
 
             if (abaId === 'cenas') {
-                chatFab.style.display = 'none'; // Esconde a IA para não atrapalhar
+                chatFab.style.display = 'none'; // Esconde a IA
+                header.style.display = 'none';  // Esconde o topo (Logo e botão Sair)
+                document.body.style.paddingTop = '0'; // Remove a margem do topo
                 carregarCenas(); 
             } else {
-                chatFab.style.display = 'flex'; // Volta a mostrar a IA
-                feedContainer.innerHTML = ''; // Mata os vídeos (e o áudio) ao sair da aba
+                chatFab.style.display = 'flex'; // Volta a IA
+                header.style.display = 'flex';  // Volta o topo
+                document.body.style.paddingTop = '60px'; // Volta a margem
+                feedContainer.innerHTML = ''; // Destrói os vídeos para o áudio parar na hora!
             }
             // -------------------------------------
 
@@ -1055,37 +1060,40 @@
                 for (const cena of cenas) {
                     let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
                     let tituloFilme = 'Carregando...';
-                    
+
                     try {
                         const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
                         const filme = await resp.json();
                         if (filme.poster_path) capaFilme = `${IMG_BASE}${filme.poster_path}`;
                         tituloFilme = filme.title;
-                        
+
                         bancoDeFilmesLocal.set(filme.id, {
                             id: filme.id, titulo: filme.title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average ? filme.vote_average.toFixed(1) : '0.0', capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.'
                         });
                     } catch(e) {}
 
+                    // Adicionado enablejsapi=1 e removido o mute=1
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
-                                <iframe class="short-iframe" style="pointer-events: none;"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}&disablekb=1&fs=0&autoplay=1&mute=1" 
+                                <iframe class="short-iframe" id="yt-${cena.id}"
+                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${cena.youtube_id}&disablekb=1&fs=0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen>
                                 </iframe>
                             </div>
-                            
+
+                            <div class="short-glass" data-iframe="yt-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
+
                             <div class="short-gradient"></div>
-                            
+
                             <div class="short-ui">
                                 <div class="short-info">
                                     <h3 class="short-title">${tituloFilme}</h3>
                                     <p class="short-desc">${cena.descricao || 'Cena Épica 🍿'}</p>
                                 </div>
-                                
-                                <div class="short-actions">
+
+                                <div class="short-actions" style="z-index: 10;">
                                     <div class="short-movie-cover" onclick="abrirDetalhes(${cena.tmdb_id})">
                                         <img src="${capaFilme}" alt="Capa">
                                     </div>
@@ -1096,6 +1104,48 @@
                     `;
                     container.insertAdjacentHTML('beforeend', videoHtml);
                 }
+
+                // ==========================================
+                // === RADAR DE AUTOPLAY E PAUSE COM DEDO ===
+                // ==========================================
+                const glasses = document.querySelectorAll('.short-glass');
+
+                // 1. Radar que deteta qual vídeo está na tela e dá play
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
+                        const iframe = document.getElementById(iframeId);
+                        if (!iframe) return;
+
+                        if (entry.isIntersecting) {
+                            // Entrou na tela: Toca!
+                            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                        } else {
+                            // Saiu da tela: Pausa!
+                            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                        }
+                    });
+                }, { threshold: 0.6 }); // Só ativa quando 60% do vídeo aparecer
+
+                document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
+
+                // 2. Comandos para pausar ao segurar o dedo (Película de Vidro)
+                glasses.forEach(glass => {
+                    const iframeId = glass.getAttribute('data-iframe');
+                    const iframe = document.getElementById(iframeId);
+
+                    const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+
+                    // Eventos para Telemóvel
+                    glass.addEventListener('touchstart', pausar);
+                    glass.addEventListener('touchend', tocar);
+                    // Eventos para Computador
+                    glass.addEventListener('mousedown', pausar);
+                    glass.addEventListener('mouseup', tocar);
+                    glass.addEventListener('mouseleave', tocar);
+                });
+
             } catch (err) {
                 console.error(err);
                 container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';

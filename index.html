@@ -1120,9 +1120,11 @@
                 }
 
                 // ==========================================
-                // === NOVO RADAR (SIMPLIFICADO E ROBUSTO) ===
+                // === RADAR ANTI-RICOCHETE (DEBOUNCE) ======
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
+                let scrollTimeout; // O nosso travão de tempo
+                let videoAtivoId = null; // O Rei da Tela
 
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -1131,25 +1133,41 @@
                         if (!iframe) return;
 
                         if (entry.isIntersecting) {
-                            // 1. Volta ao início
-                            iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
-                            // 2. Dá Play no vídeo visível
-                            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                            videoAtivoId = iframeId;
 
-                            // 3. Pausa TODOS os outros vídeos imediatamente
-                            document.querySelectorAll('.short-iframe').forEach(otherIframe => {
-                                if (otherIframe.id !== iframeId) {
-                                    otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                            // Cancela qualquer ordem de Play que estivesse pendente por causa de scrolls rápidos
+                            clearTimeout(scrollTimeout);
+
+                            // Espera 0.3 segundos para ver se o utilizador parou mesmo de usar a roda do rato
+                            scrollTimeout = setTimeout(() => {
+                                if (videoAtivoId === iframeId) {
+                                    // Silencia absolutamente TODOS os outros
+                                    document.querySelectorAll('.short-iframe').forEach(otherIframe => {
+                                        if (otherIframe.id !== iframeId) {
+                                            otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                        }
+                                    });
+
+                                    // Toca APENAS o vídeo que parou na tela
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                                 }
-                            });
+                            }, 300); // 300 milissegundos é o tempo mágico para Desktop
+
                         } else {
-                            // Garante a pausa se o vídeo sair da tela
+                            // Saiu da tela: Manda pausar NA HORA
                             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+
+                            // Tiro de backup 0.5s depois para caso o iframe estivesse a carregar
+                            setTimeout(() => {
+                                if (videoAtivoId !== iframeId) {
+                                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                }
+                            }, 500);
                         }
                     });
                 }, { threshold: 0.6 }); 
 
-                // Observa o container inteiro (short-item) em vez da película de vidro
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
                 glasses.forEach(glass => {

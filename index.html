@@ -132,17 +132,9 @@
             align-items: center; 
         }
         
-        /* Ajustado: Tamanho natural da tela com um zoom mínimo (1.05) em vez do 1.3 exagerado */
-        .short-video-wrapper { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            transform: scale(1.05); 
-            pointer-events: auto; 
-        }
-        .short-iframe { width: 100%; height: 100%; border: none; } 
+        /* O wrapper agora é simples e a tag de vídeo usa object-fit para preencher a tela como no Instagram */
+        .short-video-wrapper { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
+        .short-video { width: 100%; height: 100%; object-fit: cover; }
         
         .short-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); z-index: 5; pointer-events: none; }
         
@@ -1058,7 +1050,7 @@
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
         // =========================================
-        // === BLOCO: JS CENAS (REELS/SHORTS) ===
+        // === BLOCO: JS CENAS (NATIVO HTML5) ===
         // =========================================
         async function carregarCenas() {
             const container = document.getElementById('feed-shorts');
@@ -1076,9 +1068,11 @@
                 }
 
                 container.innerHTML = ''; 
-                let index = 0;
 
                 for (const cena of cenas) {
+                    // Prevenção de erro: se não tiver link de vídeo, pula esta cena
+                    if (!cena.video_url) continue;
+
                     let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
                     let tituloFilme = 'Carregando...';
 
@@ -1093,19 +1087,14 @@
                         });
                     } catch(e) {}
 
-                    const autoPlayCode = (index === 0) ? "&autoplay=1" : "";
-
+                    // Adeus Iframe! Bem-vinda tag nativa <video> super rápida.
                     const videoHtml = `
                         <div class="short-item">
                             <div class="short-video-wrapper">
-                                <iframe class="short-iframe" id="yt-${cena.id}"
-                                    src="https://www.youtube.com/embed/${cena.youtube_id}?enablejsapi=1&controls=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&fs=0${autoPlayCode}" 
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                    allowfullscreen>
-                                </iframe>
+                                <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}" loop playsinline preload="auto"></video>
                             </div>
 
-                            <div class="short-glass" data-iframe="yt-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
+                            <div class="short-glass" data-video="vid-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
 
                             <div class="short-gradient"></div>
 
@@ -1125,65 +1114,53 @@
                         </div>
                     `;
                     container.insertAdjacentHTML('beforeend', videoHtml);
-                    index++;
                 }
 
                 // ==========================================
-                // === RADAR ANTI-RICOCHETE + PASSE VIP =====
+                // === RADAR NATIVO (10x MAIS RÁPIDO) =======
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
                 let scrollTimeout; 
                 let videoAtivoId = null; 
-                let primeiroCarregamento = true; // 🎯 PASSE VIP: Variável para identificar a abertura da aba
+                let primeiroCarregamento = true; 
 
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
-                        const iframeId = entry.target.querySelector('.short-glass').getAttribute('data-iframe');
-                        const iframe = document.getElementById(iframeId);
-                        if (!iframe) return;
+                        const videoId = entry.target.querySelector('.short-glass').getAttribute('data-video');
+                        const video = document.getElementById(videoId);
+                        if (!video) return;
 
                         if (entry.isIntersecting) {
-                            videoAtivoId = iframeId;
+                            videoAtivoId = videoId;
                             clearTimeout(scrollTimeout);
 
                             const executarPlay = () => {
                                 // Silencia todos os outros
-                                document.querySelectorAll('.short-iframe').forEach(otherIframe => {
-                                    if (otherIframe.id !== iframeId) {
-                                        otherIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                document.querySelectorAll('.short-video').forEach(v => {
+                                    if (v.id !== videoId) {
+                                        v.pause();
+                                        v.currentTime = 0; // Rebobina os vídeos ocultos
                                     }
                                 });
                                 // Toca o atual
-                                iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0, true]}', '*');
-                                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                                video.currentTime = 0;
+                                video.play().catch(e => console.log("O navegador segurou o autoplay."));
                             };
 
-                            // 🎯 SEGREDO REVELADO: Se for a primeira vez, não espera os 350ms! Toca IMEDIATAMENTE.
                             if (primeiroCarregamento) {
                                 executarPlay();
                                 primeiroCarregamento = false;
                             } else {
-                                // Se for scroll, usa o travão de segurança para o Desktop
                                 scrollTimeout = setTimeout(() => {
-                                    if (videoAtivoId === iframeId) {
+                                    if (videoAtivoId === videoId) {
                                         executarPlay();
                                     }
                                 }, 350); 
                             }
 
                         } else {
-                            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-
-                            let tentativas = 3;
-                            let intervaloPausa = setInterval(() => {
-                                if (videoAtivoId !== iframeId) {
-                                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                                    tentativas--;
-                                    if (tentativas <= 0) clearInterval(intervaloPausa);
-                                } else {
-                                    clearInterval(intervaloPausa);
-                                }
-                            }, 400);
+                            // Pausa o vídeo nativo instantaneamente
+                            video.pause();
                         }
                     });
                 }, { threshold: 0.55 }); 
@@ -1191,11 +1168,11 @@
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
                 glasses.forEach(glass => {
-                    const iframeId = glass.getAttribute('data-iframe');
-                    const iframe = document.getElementById(iframeId);
+                    const videoId = glass.getAttribute('data-video');
+                    const video = document.getElementById(videoId);
 
-                    const pausar = () => iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                    const tocar = () => iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                    const pausar = () => video.pause();
+                    const tocar = () => video.play().catch(e => {});
 
                     glass.addEventListener('touchstart', pausar);
                     glass.addEventListener('touchend', tocar);

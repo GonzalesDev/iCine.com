@@ -1063,6 +1063,7 @@
             container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">A sintonizar o feed... ⏳</p>';
 
             try {
+                try {
                 const { data: cenas, error } = await supabaseClient.from('cenas_shorts').select('*');
                 if (error) throw error;
 
@@ -1071,10 +1072,15 @@
                     return;
                 }
 
+                // ==========================================
+                // 🎲 MÁGICA DA ORDEM ALEATÓRIA (SHUFFLE)
+                // ==========================================
+                cenas.sort(() => Math.random() - 0.5);
+
                 container.innerHTML = ''; 
 
                 for (const cena of cenas) {
-                    // Prevenção de erro: se não tiver link de vídeo, pula esta cena
+                    // ... (resto do seu código continua igualzinho aqui para baixo)
                     if (!cena.video_url) continue;
 
                     let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';

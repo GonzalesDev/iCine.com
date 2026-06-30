@@ -149,7 +149,7 @@
         .action-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .btn-side-action { width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.2s; }
         .btn-side-action:active { transform: scale(0.9); }
-        .btn-side-action.liked { color: var(--pink); border-color: var(--pink); background: rgba(236, 72, 153, 0.15); }
+        .btn-side-action.liked { color: var(--red); border-color: var(--red); background: rgba(239, 68, 68, 0.15); }
         .action-label { color: white; font-size: 0.8rem; font-weight: 700; text-shadow: 0 1px 3px #000; }
 
         /* === Card Inferior (Poster, Título e Dados) === */
@@ -1263,7 +1263,7 @@
                 spanCount.innerText = Math.max(0, currentCount - 1);
             } else {
                 btnElement.classList.add('liked');
-                btnElement.innerHTML = '💖';
+                btnElement.innerHTML = '❤️';
                 spanCount.innerText = currentCount + 1;
             }
 

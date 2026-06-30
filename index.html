@@ -1000,7 +1000,7 @@
         }
         document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
 
-        // =========================================
+// =========================================
         // === BLOCO: JS MODAL DETALHES DO FILME ===
         // =========================================
         function abrirModal(id, contexto = 'explorar') { 
@@ -1156,48 +1156,6 @@
                     `;
                     container.insertAdjacentHTML('beforeend', videoHtml);
                 }
-                async function curtirCena(event, cenaId, btnElement) {
-                    // Bloqueia o clique para o vídeo não pausar sozinho
-                    if (event) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-
-                    // Descobre o estado atual olhando para a tela
-                    const isAtualmenteLiked = btnElement.classList.contains('liked');
-                    const spanCount = btnElement.nextElementSibling;
-                    let currentCount = parseInt(spanCount.innerText) || 0;
-
-                    // 1. ANIMAÇÃO VISUAL INSTANTÂNEA
-                    if (isAtualmenteLiked) {
-                        btnElement.classList.remove('liked');
-                        btnElement.innerHTML = '🤍';
-                        spanCount.innerText = Math.max(0, currentCount - 1);
-                    } else {
-                        btnElement.classList.add('liked');
-                        btnElement.innerHTML = '💖';
-                        spanCount.innerText = currentCount + 1;
-                    }
-
-                    // 2. SINCRONIZAÇÃO COM O SUPABASE
-                    try {
-                        const { data: cenaAtual } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
-
-                        if (cenaAtual) {
-                            let curtidasDb = Array.isArray(cenaAtual.curtidas) ? cenaAtual.curtidas : [];
-
-                            if (isAtualmenteLiked) {
-                                curtidasDb = curtidasDb.filter(id => id !== usuarioAtual.id);
-                            } else {
-                                if (!curtidasDb.includes(usuarioAtual.id)) curtidasDb.push(usuarioAtual.id);
-                            }
-
-                            await supabaseClient.from('cenas_shorts').update({ curtidas: curtidasDb }).eq('id', cenaId);
-                        }
-                    } catch (err) {
-                        console.error("Erro ao guardar curtida na cena:", err);
-                    }
-                }
 
                 // ==========================================
                 // === RADAR NATIVO (10x MAIS RÁPIDO) =======
@@ -1218,14 +1176,12 @@
                             clearTimeout(scrollTimeout);
 
                             const executarPlay = () => {
-                                // Silencia todos os outros
                                 document.querySelectorAll('.short-video').forEach(v => {
                                     if (v.id !== videoId) {
                                         v.pause();
-                                        v.currentTime = 0; // Rebobina os vídeos ocultos
+                                        v.currentTime = 0; 
                                     }
                                 });
-                                // Toca o atual
                                 video.currentTime = 0;
                                 video.play().catch(e => console.log("O navegador segurou o autoplay."));
                             };
@@ -1240,9 +1196,7 @@
                                     }
                                 }, 350); 
                             }
-
                         } else {
-                            // Pausa o vídeo nativo instantaneamente
                             video.pause();
                         }
                     });
@@ -1287,7 +1241,51 @@
                 console.error(err);
                 container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';
             }
+        } // <--- FIM DA FUNÇÃO CARREGARCENAS
+
+
+        // ==================================================
+        // 👉 A FUNÇÃO CURTIR CENA AGORA ESTÁ AQUI FORA! 👈
+        // ==================================================
+        async function curtirCena(event, cenaId, btnElement) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const isAtualmenteLiked = btnElement.classList.contains('liked');
+            const spanCount = btnElement.nextElementSibling;
+            let currentCount = parseInt(spanCount.innerText) || 0;
+
+            if (isAtualmenteLiked) {
+                btnElement.classList.remove('liked');
+                btnElement.innerHTML = '🤍';
+                spanCount.innerText = Math.max(0, currentCount - 1);
+            } else {
+                btnElement.classList.add('liked');
+                btnElement.innerHTML = '💖';
+                spanCount.innerText = currentCount + 1;
+            }
+
+            try {
+                const { data: cenaAtual } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
+
+                if (cenaAtual) {
+                    let curtidasDb = Array.isArray(cenaAtual.curtidas) ? cenaAtual.curtidas : [];
+
+                    if (isAtualmenteLiked) {
+                        curtidasDb = curtidasDb.filter(id => id !== usuarioAtual.id);
+                    } else {
+                        if (!curtidasDb.includes(usuarioAtual.id)) curtidasDb.push(usuarioAtual.id);
+                    }
+
+                    await supabaseClient.from('cenas_shorts').update({ curtidas: curtidasDb }).eq('id', cenaId);
+                }
+            } catch (err) {
+                console.error("Erro ao guardar curtida na cena:", err);
+            }
         }
+
 
         // =========================================
         // === BLOCO: JS AMIGOS E REDE SOCIAL ===

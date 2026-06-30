@@ -1130,7 +1130,7 @@
                                 <div class="short-side-actions">
                                     <div class="action-group">
                                         <button class="btn-side-action ${isLiked ? 'liked' : ''}" onclick="curtirCena(event, '${cena.id}', this)">
-                                            ${isLiked ? '💖' : '🤍'}
+                                            ${isLiked ? '❤️' : '🤍'}
                                         </button>
                                         <span class="action-label">${likesCount}</span>
                                     </div>
@@ -1263,7 +1263,7 @@
                 spanCount.innerText = Math.max(0, currentCount - 1);
             } else {
                 btnElement.classList.add('liked');
-                btnElement.innerHTML = '💖';
+                btnElement.innerHTML = '❤️';
                 spanCount.innerText = currentCount + 1;
             }
 

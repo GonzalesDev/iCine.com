@@ -1335,18 +1335,59 @@
 
         function renderizarComunidade() {
             const container = document.getElementById('comunidade-grid');
-            playlistsComunidadeAtual.sort((a, b) => { const likesA = (a.curtidas || []).length; const likesB = (b.curtidas || []).length; if (likesB !== likesA) return likesB - likesA; return a.nome.localeCompare(b.nome); });
+
+            // Ordena as playlists por número de curtidas
+            playlistsComunidadeAtual.sort((a, b) => { 
+                const likesA = (a.curtidas || []).length; 
+                const likesB = (b.curtidas || []).length; 
+                if (likesB !== likesA) return likesB - likesA; 
+                return a.nome.localeCompare(b.nome); 
+            });
+
             container.innerHTML = playlistsComunidadeAtual.map(p => {
-                const likes = (p.curtidas || []).length; const jaCurtiu = (p.curtidas || []).includes(usuarioAtual.id); const corLike = jaCurtiu ? 'var(--pink)' : 'var(--text-muted)'; const iconeLike = jaCurtiu ? '💖' : '🤍';
-                return `<div style="background:var(--card-bg); border:1px solid #374151; border-radius:16px; overflow:hidden; display:flex; flex-direction:column;"><div style="position:relative; aspect-ratio:16/9; cursor:pointer;" onclick="abrirVerPlaylistGlobal('${p.id}')"><img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.75; transition:0.2s;"><div style="position:absolute;inset:0;background:linear-gradient(to top, #030712, transparent);"></div><h3 style="position:absolute;bottom:12px;left:15px;margin:0;font-size:1.15rem;text-shadow:0 2px 4px rgba(0,0,0,0.9);z-index:2;color:white;">${p.nome}</h3></div><div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:0.85rem; color:var(--text-muted);">👤 @${p.username_criador}<br><span style="font-size:0.75rem;">${(p.filmes || []).length} filmes na lista</span></div><button onclick="alternarLikePlaylist('${p.id}')" style="background:rgba(255,255,255,0.05); border:1px solid #374151; padding:6px 14px; border-radius:20px; display:flex; align-items:center; gap:6px; cursor:pointer; color:${corLike}; transition:0.2s;"><span style="font-size:1.1rem;">${iconeLike}</span> <span style="font-weight:bold;">${likes}</span></button></div></div>`;
+                const likes = (p.curtidas || []).length; 
+                const jaCurtiu = (p.curtidas || []).includes(usuarioAtual.id); 
+                const corLike = jaCurtiu ? 'var(--pink)' : 'var(--text-muted)'; 
+                const iconeLike = jaCurtiu ? '💖' : '🤍';
+
+                return `
+                <div style="background:var(--card-bg); border:1px solid #374151; border-radius:16px; overflow:hidden; display:flex; flex-direction:column;">
+                    <div style="position:relative; aspect-ratio:16/9; cursor:pointer;" onclick="abrirVerPlaylistGlobal('${p.id}')">
+                        <img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.75; transition:0.2s;">
+                        <div style="position:absolute;inset:0;background:linear-gradient(to top, #030712, transparent);"></div>
+                        <h3 style="position:absolute;bottom:12px;left:15px;margin:0;font-size:1.15rem;text-shadow:0 2px 4px rgba(0,0,0,0.9);z-index:2;color:white;">${p.nome}</h3>
+                    </div>
+
+                    <div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-size:0.85rem; color:var(--text-muted);">👤 @${p.username_criador}<br><span style="font-size:0.75rem;">${(p.filmes || []).length} filmes na lista</span></div>
+
+                        <button onclick="alternarLikePlaylist(event, '${p.id}')" style="background:rgba(255,255,255,0.05); border:1px solid #374151; padding:6px 14px; border-radius:20px; display:flex; align-items:center; gap:6px; cursor:pointer; color:${corLike}; transition:0.2s; z-index:10;">
+                            <span style="font-size:1.1rem;">${iconeLike}</span> 
+                            <span style="font-weight:bold;">${likes}</span>
+                        </button>
+                    </div>
+                </div>`;
             }).join('');
         }
 
-        async function alternarLikePlaylist(playlistId) {
-            // A MÁGICA: Usar String() para garantir que ele acha a playlist certa!
-            const playlist = playlistsComunidadeAtual.find(p => String(p.id) === String(playlistId)); 
-            if (!playlist) return;
+        async function alternarLikePlaylist(event, playlistId) {
+            // 1. Bloqueia qualquer outro clique para não dar erro
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
 
+            console.log("A tentar curtir a Playlist ID:", playlistId);
+
+            // 2. Busca a playlist garantindo que ambos são Texto (String)
+            const playlist = playlistsComunidadeAtual.find(p => String(p.id) === String(playlistId)); 
+
+            if (!playlist) {
+                console.error("Playlist não encontrada no array local!");
+                return;
+            }
+
+            // 3. Atualiza a contagem localmente
             let curtidas = playlist.curtidas || []; 
             if (curtidas.includes(usuarioAtual.id)) { 
                 curtidas = curtidas.filter(id => id !== usuarioAtual.id); 
@@ -1355,9 +1396,16 @@
             }
 
             playlist.curtidas = curtidas; 
-            renderizarComunidade(); // Atualiza o coração na tela instantaneamente
 
-            await supabaseClient.from('playlists').update({ curtidas }).eq('id', playlist.id);
+            // 4. Redesenha a tela instantaneamente para o utilizador ver o coração rosa
+            renderizarComunidade(); 
+
+            // 5. Salva em silêncio no Supabase
+            const { error } = await supabaseClient.from('playlists').update({ curtidas: curtidas }).eq('id', playlist.id);
+
+            if (error) {
+                console.error("Erro ao guardar o Like no Supabase:", error);
+            }
         }
 
         function abrirVerPlaylistGlobal(playlistId) {

@@ -1112,9 +1112,10 @@
                         });
                     } catch(e) {}
 
-                    // Variáveis provisórias para o Like (Até configurarmos o Supabase)
-                    const likesCount = 0;
-                    const isLiked = false;
+                    // Lê as curtidas reais da tabela
+                    const curtidasArray = cena.curtidas || [];
+                    const isLiked = curtidasArray.includes(usuarioAtual?.id);
+                    const likesCount = curtidasArray.length;
 
                     const videoHtml = `
                         <div class="short-item">

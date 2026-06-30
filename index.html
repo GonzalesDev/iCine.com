@@ -1112,9 +1112,9 @@
                         });
                     } catch(e) {}
 
-                    // Lê as curtidas reais da tabela
-                    const curtidasArray = cena.curtidas || [];
-                    const isLiked = curtidasArray.includes(usuarioAtual?.id);
+                    // Lê as curtidas e blinda contra erros de tipo!
+                    const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
+                    const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                     const likesCount = curtidasArray.length;
 
                     const videoHtml = `

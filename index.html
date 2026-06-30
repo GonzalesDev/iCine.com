@@ -1343,10 +1343,21 @@
         }
 
         async function alternarLikePlaylist(playlistId) {
-            const playlist = playlistsComunidadeAtual.find(p => p.id === playlistId); if (!playlist) return;
-            let curtidas = playlist.curtidas || []; if (curtidas.includes(usuarioAtual.id)) { curtidas = curtidas.filter(id => id !== usuarioAtual.id); } else { curtidas.push(usuarioAtual.id); }
-            playlist.curtidas = curtidas; renderizarComunidade();
-            await supabaseClient.from('playlists').update({ curtidas }).eq('id', playlistId);
+            // A MÁGICA: Usar String() para garantir que ele acha a playlist certa!
+            const playlist = playlistsComunidadeAtual.find(p => String(p.id) === String(playlistId)); 
+            if (!playlist) return;
+
+            let curtidas = playlist.curtidas || []; 
+            if (curtidas.includes(usuarioAtual.id)) { 
+                curtidas = curtidas.filter(id => id !== usuarioAtual.id); 
+            } else { 
+                curtidas.push(usuarioAtual.id); 
+            }
+
+            playlist.curtidas = curtidas; 
+            renderizarComunidade(); // Atualiza o coração na tela instantaneamente
+
+            await supabaseClient.from('playlists').update({ curtidas }).eq('id', playlist.id);
         }
 
         function abrirVerPlaylistGlobal(playlistId) {

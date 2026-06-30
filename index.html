@@ -1168,7 +1168,7 @@
                     const spanCount = btnElement.nextElementSibling;
                     let currentCount = parseInt(spanCount.innerText) || 0;
 
-                    // 1. ANIMAÇÃO VISUAL INSTANTÂNEA (Sem lag para o utilizador)
+                    // 1. ANIMAÇÃO VISUAL INSTANTÂNEA
                     if (isAtualmenteLiked) {
                         btnElement.classList.remove('liked');
                         btnElement.innerHTML = '🤍';
@@ -1179,21 +1179,19 @@
                         spanCount.innerText = currentCount + 1;
                     }
 
-                    // 2. SINCRONIZAÇÃO COM O SUPABASE (Em segundo plano)
+                    // 2. SINCRONIZAÇÃO COM O SUPABASE
                     try {
                         const { data: cenaAtual } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
 
                         if (cenaAtual) {
-                            // Garante que lê como uma lista (Array) real
                             let curtidasDb = Array.isArray(cenaAtual.curtidas) ? cenaAtual.curtidas : [];
 
                             if (isAtualmenteLiked) {
-                                curtidasDb = curtidasDb.filter(id => id !== usuarioAtual.id); // Tira o like
+                                curtidasDb = curtidasDb.filter(id => id !== usuarioAtual.id);
                             } else {
-                                if (!curtidasDb.includes(usuarioAtual.id)) curtidasDb.push(usuarioAtual.id); // Põe o like
+                                if (!curtidasDb.includes(usuarioAtual.id)) curtidasDb.push(usuarioAtual.id);
                             }
 
-                            // Guarda na tabela
                             await supabaseClient.from('cenas_shorts').update({ curtidas: curtidasDb }).eq('id', cenaId);
                         }
                     } catch (err) {

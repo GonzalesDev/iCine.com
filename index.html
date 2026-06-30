@@ -1112,7 +1112,7 @@
                         });
                     } catch(e) {}
 
-                    // Lê as curtidas e blinda contra erros de tipo!
+                    // Lê as curtidas reais da tabela de forma blindada
                     const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
                     const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                     const likesCount = curtidasArray.length;
@@ -1129,7 +1129,7 @@
                             <div class="short-ui">
                                 <div class="short-side-actions">
                                     <div class="action-group">
-                                        <button class="btn-side-action ${isLiked ? 'liked' : ''}">
+                                        <button class="btn-side-action ${isLiked ? 'liked' : ''}" onclick="curtirCena(event, '${cena.id}', this)">
                                             ${isLiked ? '💖' : '🤍'}
                                         </button>
                                         <span class="action-label">${likesCount}</span>

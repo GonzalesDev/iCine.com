@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iCine | Painel Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #030712; color: white; font-family: sans-serif; padding: 2rem; max-width: 600px; margin: 0 auto; display: none; /* Escondido até provar que é o admin */ }
+        .box { background: #111827; padding: 1.5rem; border-radius: 12px; border: 1px solid #374151; display: flex; flex-direction: column; gap: 1.2rem; }
+        input[type="text"], input[type="file"] { padding: 0.8rem; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: white; width: 100%; box-sizing: border-box;}
+        input:focus { outline: none; border-color: #8b5cf6; }
+        button { background: #8b5cf6; color: white; border: none; padding: 0.8rem; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #7c3aed; }
+        .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .movie-card { border: 2px solid transparent; cursor: pointer; border-radius: 8px; overflow: hidden; text-align: center; font-size: 0.8rem; background: #1f2937;}
+        .movie-card img { width: 100%; height: auto; display: block; }
+        .movie-card.selected { border-color: #ec4899; transform: scale(1.05); }
+        .upload-section { background: #1f2937; padding: 1rem; border-radius: 8px; border: 1px dashed #4b5563; }
+        .divider { text-align: center; font-size: 0.8rem; color: #9ca3af; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center; margin-bottom: 0.5rem;">Painel de <span style="color: #ec4899;">Cenas</span> ⚡</h1>
+    <p style="text-align: center; color: #9ca3af; font-size: 0.9rem; margin-bottom: 2rem;">Adicione novos vídeos ao feed do iCine em segundos.</p>
+
+    <div class="box">
+        <div>
+            <label style="font-weight: bold; color: #8b5cf6;">1. Escolha o Vídeo:</label>
+            <div class="upload-section" style="margin-top: 8px;">
+                <label style="font-size: 0.85rem; color: #d1d5db; margin-bottom: 5px; display: block;">Opção A: Upload do Computador (MP4)</label>
+                <input type="file" id="video_file" accept="video/mp4,video/x-m4v,video/*">
+                <div class="divider" style="margin: 15px 0;">OU</div>
+                <label style="font-size: 0.85rem; color: #d1d5db; margin-bottom: 5px; display: block;">Opção B: Colar um link direto</label>
+                <input type="text" id="video_url" placeholder="https://exemplo.com/video.mp4">
+            </div>
+        </div>
+
+        <div>
+            <label style="font-weight: bold; color: #8b5cf6;">2. Vincular ao Filme (TMDB):</label>
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <input type="text" id="busca_filme" placeholder="Ex: Harry Potter e a Pedra Filosofal">
+                <button type="button" id="btn_buscar" style="flex-shrink: 0;">🔍 Buscar</button>
+            </div>
+            <div id="resultados_tmdb" class="results"></div>
+        </div>
+
+        <div>
+            <label style="font-weight: bold; color: #8b5cf6;">3. Legenda (Opcional):</label>
+            <input type="text" id="descricao" placeholder="Escreva algo apelativo..." style="margin-top: 8px;">
+        </div>
+
+        <button type="button" id="btn_salvar" style="background: #ec4899; margin-top: 1rem; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);">
+            🚀 Publicar Cena
+        </button>
+        <p id="msg_status" style="text-align: center; font-weight: bold; min-height: 20px;"></p>
+    </div>
+
+    <script>
+        const TMDB_KEY = '583c7b5c219b1edbfc6a76210b4ade05'; 
+        const SUPABASE_URL = 'https://ihbutfwdkkkykwqoaahx.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_9GWFmch4e7hH9uijg577jQ_UoKzImDH';
+        const MEU_EMAIL_ADMIN = 'matheusagp2305@gmail.com'; // O seu e-mail de acesso
+
+        let supabaseClient;
+        let filmeSelecionado = null;
+
+        async function verificarSeguranca() {
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+                // Vai buscar quem está logado no iCine neste navegador
+                const { data: { session } } = await supabaseClient.auth.getSession();
+
+                // Se não estiver ninguém logado, ou se o e-mail for diferente do seu -> EXPULSA!
+                if (!session || session.user.email !== MEU_EMAIL_ADMIN) {
+                    alert('⛔ Acesso Negado: Área restrita a Administradores do iCine.');
+                    window.location.href = 'index.html'; 
+                    return;
+                }
+
+                // Se for você, mostra a tela e arranca o sistema!
+                document.body.style.display = 'block';
+                console.log("✅ Bem-vindo Admin!");
+
+            } catch (e) {
+                console.error("Erro no sistema de segurança:", e);
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Executa a segurança mal a página carrega
+        verificarSeguranca();
+
+        async function buscarFilme() {
+            const termo = document.getElementById('busca_filme').value.trim();
+            const divResultados = document.getElementById('resultados_tmdb');
+
+            if (!termo) { divResultados.innerHTML = '<p style="color: #ef4444; grid-column: 1/-1; text-align: center;">Por favor, digite o nome de um filme primeiro!</p>'; return; }
+            divResultados.innerHTML = '<p style="color: #eab308; grid-column: 1/-1; text-align: center;">A procurar... ⏳</p>';
+
+            try {
+                const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(termo)}&language=pt-BR`);
+                if (!res.ok) throw new Error("Falha na comunicação com o TMDB.");
+                const data = await res.json();
+
+                if (!data.results || data.results.length === 0) {
+                    divResultados.innerHTML = '<p style="color: #ef4444; grid-column: 1/-1; text-align: center;">Nenhum filme encontrado com esse nome.</p>'; return;
+                }
+
+                divResultados.innerHTML = data.results.slice(0, 3).map(f => {
+                    const tituloSeguro = (f.title || 'Sem Título').replace(/'/g, "\\'");
+                    const ano = f.release_date ? f.release_date.split('-')[0] : 'Ano N/A';
+                    const capa = f.poster_path ? `https://image.tmdb.org/t/p/w200${f.poster_path}` : 'https://via.placeholder.com/200x300?text=Sem+Capa';
+                    return `
+                        <div class="movie-card" onclick="window.selecionarFilme(${f.id}, '${tituloSeguro}', this)">
+                            <img src="${capa}" alt="Capa">
+                            <p style="padding: 5px; margin: 0;">${f.title} <br><span style="color:#9ca3af;">(${ano})</span></p>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                divResultados.innerHTML = `<p style="color: #ef4444; grid-column: 1/-1; text-align: center;">Erro: ${err.message}</p>`;
+            }
+        }
+
+        window.selecionarFilme = function(id, titulo, elemento) {
+            filmeSelecionado = { id, titulo };
+            document.querySelectorAll('.movie-card').forEach(el => el.classList.remove('selected'));
+            elemento.classList.add('selected');
+        };
+
+        async function salvarCena() {
+            const videoFile = document.getElementById('video_file').files[0];
+            let videoUrlText = document.getElementById('video_url').value;
+            const desc = document.getElementById('descricao').value;
+            const msg = document.getElementById('msg_status');
+            const btn = document.getElementById('btn_salvar');
+
+            if (!videoFile && !videoUrlText) { msg.style.color = '#ef4444'; msg.innerText = "Precisa escolher um arquivo OU colar um link!"; return; }
+            if (!filmeSelecionado) { msg.style.color = '#ef4444'; msg.innerText = "Precisa buscar o filme e clicar na capa correspondente!"; return; }
+
+            btn.disabled = true; btn.innerText = "A processar... ⏳"; msg.style.color = '#eab308';
+
+            try {
+                let urlFinalDoVideo = videoUrlText;
+
+                if (videoFile) {
+                    msg.innerText = "A fazer upload do vídeo (pode demorar uns segundos)... ⏳";
+                    const fileExt = videoFile.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                    const { error: uploadError } = await supabaseClient.storage.from('cenas_videos').upload(fileName, videoFile);
+                    if (uploadError) throw new Error("Erro no upload do arquivo: " + uploadError.message);
+
+                    const { data: publicUrlData } = supabaseClient.storage.from('cenas_videos').getPublicUrl(fileName);
+                    urlFinalDoVideo = publicUrlData.publicUrl;
+                }
+
+                msg.innerText = "A gravar no banco de dados... ⚡";
+
+                const novaCena = {
+                    video_url: urlFinalDoVideo,
+                    tmdb_id: filmeSelecionado.id,
+                    nome_filme: filmeSelecionado.titulo,
+                    descricao: desc,
+                    curtidas: [] 
+                };
+
+                const { error: dbError } = await supabaseClient.from('cenas_shorts').insert([novaCena]);
+                if (dbError) throw new Error("Erro na tabela: " + dbError.message);
+
+                msg.style.color = '#10b981'; msg.innerText = "✅ Cena publicada com sucesso!";
+
+                document.getElementById('video_file').value = ''; document.getElementById('video_url').value = '';
+                document.getElementById('descricao').value = ''; document.getElementById('resultados_tmdb').innerHTML = '';
+                document.getElementById('busca_filme').value = ''; filmeSelecionado = null;
+
+            } catch (err) { msg.style.color = '#ef4444'; msg.innerText = err.message; console.error(err);
+            } finally { btn.disabled = false; btn.innerText = "🚀 Publicar Cena"; }
+        }
+
+        document.getElementById('btn_buscar').addEventListener('click', buscarFilme);
+        document.getElementById('btn_salvar').addEventListener('click', salvarCena);
+    </script>
+</body>
+</html>

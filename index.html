@@ -152,7 +152,17 @@
         .btn-side-action { width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.2s; }
         .btn-side-action:active { transform: scale(0.9); }
         .btn-side-action.liked { color: var(--red); border-color: var(--red); background: rgba(239, 68, 68, 0.15); }
-        .action-label { color: white; font-size: 0.8rem; font-weight: 700; text-shadow: 0 1px 3px #000; }
+        .action-label { 
+            color: white; 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            text-shadow: 0 1px 3px #000; 
+            /* Magia Anti-Fantasma para iPhone */
+            display: inline-block;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            will-change: transform;
+        }
 
         /* === Card Inferior (Poster, Título e Dados) === */
         .short-bottom-card { display: flex; gap: 12px; pointer-events: auto; align-items: center; max-width: calc(100% - 70px); cursor: pointer; border-radius: 12px; padding: 10px; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); transition: background 0.2s; }
@@ -1091,11 +1101,12 @@
         // === BLOCO: JS CENAS (NATIVO HTML5) ===
         // =========================================
 
-        // Variáveis de controlo do Feed Otimizado (Estilo TikTok)
+        // Variáveis de controlo do Feed Otimizado
         let listaCenasTotal = [];
         let contadorCenasExibidas = 0;
-        const TAMANHO_LOTE_CENAS = 3; // Carrega de 3 em 3 para memória zero lag
+        const TAMANHO_LOTE_CENAS = 3; 
         let observerRadarCenas = null;
+        let observerMemoriaCenas = null; // 🌟 NOVO: O Limpador de Memória do iPhone
         let cenasTMDBJaCarregadas = new Set();
 
         async function carregarCenas() {
@@ -1104,13 +1115,11 @@
 
             container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">A sintonizar o feed... ⏳</p>';
 
-            // Reinicia os controladores
             listaCenasTotal = [];
             contadorCenasExibidas = 0;
             cenasTMDBJaCarregadas.clear();
 
             try {
-                // 1. Faz apenas 1 pedido rápido ao Supabase para trazer as linhas
                 const { data: cenas, error } = await supabaseClient.from('cenas_shorts').select('*');
                 if (error) throw error;
 
@@ -1119,12 +1128,10 @@
                     return;
                 }
 
-                // Embaralha a lista completa na memória
                 cenas.sort(() => Math.random() - 0.5);
                 listaCenasTotal = cenas;
-                container.innerHTML = ''; // Limpa o texto de carregamento
+                container.innerHTML = ''; 
 
-                // 2. Injeta o primeiro lote de vídeos (Apenas 3!)
                 injetarMaisCenasNoFeed();
 
             } catch (err) {
@@ -1133,7 +1140,6 @@
             }
         }
 
-        // Função responsável por anexar mais vídeos no fundo conforme o scroll acontece
         function injetarMaisCenasNoFeed() {
             const container = document.getElementById('feed-shorts');
             const proximoLote = listaCenasTotal.slice(contadorCenasExibidas, contadorCenasExibidas + TAMANHO_LOTE_CENAS);
@@ -1154,13 +1160,14 @@
                 if (!Array.isArray(comentariosArray)) comentariosArray = [];
                 const comentariosCount = comentariosArray.length;
 
-                // Alta Performance: Usamos o nome guardado no Supabase imediatamente para evitar ecrãs vazios
                 const tituloProvisorio = cena.nome_filme || 'Carregando detalhes...';
 
+                // 🌟 MUDANÇA CRÍTICA AQUI: Tirámos o "src" e pusemos "data-src". O vídeo nasce vazio!
                 htmlLote += `
                     <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
                         <div class="short-video-wrapper">
-                        <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}#t=0.001" loop playsinline webkit-playsinline preload="metadata"></video>
+                            <video class="short-video" id="vid-${cena.id}" data-src="${cena.video_url}#t=0.001" loop playsinline webkit-playsinline preload="none"></video>
+                        </div>
 
                         <div class="short-glass" data-video="vid-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
                         <div class="short-gradient"></div>
@@ -1199,20 +1206,42 @@
                 `;
             }
 
-            // Anexa os novos cards no fundo da lista sem quebrar o scroll ativo
             container.insertAdjacentHTML('beforeend', htmlLote);
             contadorCenasExibidas += proximoLote.length;
-
-            // Ativa ou atualiza o sensor de movimento (IntersectionObserver)
             configurarRadarFeedCenas();
         }
 
-        // O MOTOR PRINCIPAL: Controla play/pause, carregamento incremental e chamadas lazy da API
         function configurarRadarFeedCenas() {
             const itensDoFeed = document.querySelectorAll('.short-item');
 
             if (observerRadarCenas) observerRadarCenas.disconnect();
+            if (observerMemoriaCenas) observerMemoriaCenas.disconnect();
 
+            // 🛡️ O SALVADOR DO IPHONE: Gestor de Memória e Rede
+            observerMemoriaCenas = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const idCena = entry.target.getAttribute('data-cena-id');
+                    const video = document.getElementById(`vid-${idCena}`);
+                    if (!video) return;
+
+                    if (entry.isIntersecting) {
+                        // Chegou perto da tela: Injeta o link para o iPhone baixar
+                        if (!video.getAttribute('src')) {
+                            video.setAttribute('src', video.getAttribute('data-src'));
+                            video.load();
+                        }
+                    } else {
+                        // Ficou longe da tela: Remove o link e aborta a conexão para libertar a rede
+                        if (video.getAttribute('src')) {
+                            video.pause();
+                            video.removeAttribute('src');
+                            video.load(); 
+                        }
+                    }
+                });
+            }, { rootMargin: '150% 0px' }); // Atua num raio de 1.5 telas acima e abaixo
+
+            // 🎬 O MOTOR DE PLAY/PAUSE (Original)
             let scrollTimeout;
             let videoAtivoId = null;
             let primeiroCarregamento = true;
@@ -1231,10 +1260,8 @@
                         videoAtivoId = videoId;
                         clearTimeout(scrollTimeout);
 
-                        // 🚀 INTERNET LIVRE: Só faz o fetch ao TMDB para este filme quando ele aparece na tela!
                         solicitarDadosTMDBPreguicoso(idCena, tmdbId);
 
-                        // Verifica se o utilizador está a chegar ao fim dos vídeos atuais para carregar mais por baixo
                         const todosCards = document.querySelectorAll('.short-item');
                         if (itemEl === todosCards[todosCards.length - 2]) {
                             injetarMaisCenasNoFeed();
@@ -1242,10 +1269,20 @@
 
                         const executarPlay = () => {
                             document.querySelectorAll('.short-video').forEach(v => {
-                                if (v.id !== videoId) { v.pause(); v.currentTime = 0; }
+                                if (v.id !== videoId) { v.pause(); } 
                             });
+
+                            // Garante que o video tem SRC antes do play (caso o radar de memória se atrase)
+                            if (!video.getAttribute('src')) {
+                                video.setAttribute('src', video.getAttribute('data-src'));
+                                video.load();
+                            }
+
                             video.currentTime = 0;
-                            video.play().catch(e => console.log("Autoplay segurado."));
+                            const playPromise = video.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(e => console.log("Autoplay retido pelo iOS."));
+                            }
                         };
 
                         if (primeiroCarregamento) {
@@ -1261,19 +1298,25 @@
                 });
             }, { threshold: 0.55 });
 
-            itensDoFeed.forEach(item => observerRadarCenas.observe(item));
+            itensDoFeed.forEach(item => {
+                observerMemoriaCenas.observe(item); // Liga a Limpeza
+                observerRadarCenas.observe(item);   // Liga o Play/Pause
+            });
 
-            // Mapeia os cliques na tela de toque/rato para pausar temporariamente
+            // Mapeia cliques na tela de toque/rato para pausar
             document.querySelectorAll('.short-glass').forEach(glass => {
                 const videoId = glass.getAttribute('data-video');
                 const video = document.getElementById(videoId);
                 if(!video) return;
 
                 const pausar = () => video.pause();
-                const tocar = () => video.play().catch(e => {});
+                const tocar = () => {
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) playPromise.catch(e => {});
+                };
 
-                glass.addEventListener('touchstart', pausar);
-                glass.addEventListener('touchend', tocar);
+                glass.addEventListener('touchstart', pausar, {passive: true});
+                glass.addEventListener('touchend', tocar, {passive: true});
 
                 let mouseApertado = false;
                 glass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
@@ -1282,12 +1325,10 @@
             });
         }
 
-        // Função Lazy: Pega os dados do TMDB apenas sob demanda individual
         async function solicitarDadosTMDBPreguicoso(idCena, tmdbId) {
-            if (cenasTMDBJaCarregadas.has(idCena)) return; // Já carregou nesta sessão da aba
+            if (cenasTMDBJaCarregadas.has(idCena)) return; 
             cenasTMDBJaCarregadas.add(idCena);
 
-            // Se já existir no cache global das outras abas do iCine, evita o fetch totalmente!
             if (bancoDeFilmesLocal.has(parseInt(tmdbId))) {
                 const filmeCached = bancoDeFilmesLocal.get(parseInt(tmdbId));
                 atualizarElementosHTMLCena(idCena, filmeCached);
@@ -1308,37 +1349,19 @@
                     generosTexto = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
                 }
 
-                const estruturado = {
-                    id: filme.id, titulo: filme.title, ano: anoFilme, notaTmdb: notaFilme, capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.'
-                };
-
-                // Salva no cache do app
+                const estruturado = { id: filme.id, titulo: filme.title, ano: anoFilme, notaTmdb: notaFilme, capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.' };
                 bancoDeFilmesLocal.set(filme.id, estruturado);
-
-                // Aplica na tela de forma limpa
                 atualizarElementosHTMLCena(idCena, estruturado, generosTexto);
 
-            } catch (e) {
-                console.error("Erro na carga sob demanda da cena:", e);
-            }
+            } catch (e) { console.error("Erro na carga sob demanda:", e); }
         }
 
-        // Injeta cirurgicamente os textos reais do TMDB nos IDs corretos sem redesenhar o card
         function atualizarElementosHTMLCena(idCena, filme, generosTextoOpcional = "") {
-            const imgEl = document.getElementById(`capa-${idCena}`);
-            if (imgEl && filme.capa) imgEl.src = filme.capa;
-
-            const txtTitulo = document.getElementById(`titulo-${idCena}`);
-            if (txtTitulo) txtTitulo.innerText = filme.titulo;
-
-            const txtAno = document.getElementById(`ano-${idCena}`);
-            if (txtAno) txtAno.innerText = filme.ano;
-
-            const txtNota = document.getElementById(`nota-${idCena}`);
-            if (txtNota) txtNota.innerText = `⭐ ${filme.notaTmdb}`;
-
-            const txtGen = document.getElementById(`generos-${idCena}`);
-            if (txtGen && generosTextoOpcional) txtGen.innerText = generosTextoOpcional;
+            const imgEl = document.getElementById(`capa-${idCena}`); if (imgEl && filme.capa) imgEl.src = filme.capa;
+            const txtTitulo = document.getElementById(`titulo-${idCena}`); if (txtTitulo) txtTitulo.innerText = filme.titulo;
+            const txtAno = document.getElementById(`ano-${idCena}`); if (txtAno) txtAno.innerText = filme.ano;
+            const txtNota = document.getElementById(`nota-${idCena}`); if (txtNota) txtNota.innerText = `⭐ ${filme.notaTmdb}`;
+            const txtGen = document.getElementById(`generos-${idCena}`); if (txtGen && generosTextoOpcional) txtGen.innerText = generosTextoOpcional;
         }
 
         // =========================================

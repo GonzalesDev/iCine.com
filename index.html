@@ -1375,6 +1375,58 @@
             const txtAno = document.getElementById(`ano-${idCena}`); if (txtAno) txtAno.innerText = filme.ano;
             const txtNota = document.getElementById(`nota-${idCena}`); if (txtNota) txtNota.innerText = `⭐ ${filme.notaTmdb}`;
             const txtGen = document.getElementById(`generos-${idCena}`); if (txtGen && generosTextoOpcional) txtGen.innerText = generosTextoOpcional;
+        }\
+        // =========================================
+        // === MOTOR DE LIKES (CURTIDAS) ===
+        // =========================================
+        async function curtirCena(event, cenaId, btnElement) {
+            // 1. Impede que o clique pause o vídeo
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // 2. Proteção: Só quem tem conta pode curtir
+            if (!usuarioAtual) {
+                alert("Precisas de entrar na tua conta para curtir cenas!");
+                return;
+            }
+
+            // 3. Pega o número atual de curtidas na tela
+            const spanCount = btnElement.nextElementSibling;
+            let countAtual = parseInt(spanCount.innerText) || 0;
+
+            // 4. MÁGICA VISUAL INSTANTÂNEA (Optimistic UI)
+            const jaEstavaCurtido = btnElement.classList.contains('liked');
+            if (jaEstavaCurtido) {
+                btnElement.classList.remove('liked');
+                btnElement.innerText = '🤍';
+                spanCount.innerText = countAtual - 1;
+            } else {
+                btnElement.classList.add('liked');
+                btnElement.innerText = '❤️';
+                spanCount.innerText = countAtual + 1;
+            }
+
+            // 5. Comunicação silenciosa com o Supabase em Background
+            try {
+                // Vai buscar a lista atualizada de quem curtiu
+                const { data } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
+                let curtidas = Array.isArray(data?.curtidas) ? data.curtidas : [];
+
+                if (jaEstavaCurtido) {
+                    // Remove o utilizador atual da lista
+                    curtidas = curtidas.filter(id => id !== usuarioAtual.id);
+                } else {
+                    // Adiciona o utilizador atual à lista
+                    if (!curtidas.includes(usuarioAtual.id)) curtidas.push(usuarioAtual.id);
+                }
+
+                // Salva a nova lista no banco de dados
+                await supabaseClient.from('cenas_shorts').update({ curtidas }).eq('id', cenaId);
+            } catch (e) {
+                console.error("Erro ao processar a curtida no banco de dados:", e);
+            }
         }
 
         // =========================================

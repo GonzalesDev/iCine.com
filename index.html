@@ -1106,8 +1106,9 @@
         let contadorCenasExibidas = 0;
         const TAMANHO_LOTE_CENAS = 3; 
         let observerRadarCenas = null;
-        let observerMemoriaCenas = null; // 🌟 NOVO: O Limpador de Memória do iPhone
+        let observerMemoriaCenas = null;
         let cenasTMDBJaCarregadas = new Set();
+        let primeiroCarregamentoCenas = true; // 🌟 Controla o autoplay inicial corretamente
 
         async function carregarCenas() {
             const container = document.getElementById('feed-shorts');
@@ -1118,6 +1119,7 @@
             listaCenasTotal = [];
             contadorCenasExibidas = 0;
             cenasTMDBJaCarregadas.clear();
+            primeiroCarregamentoCenas = true;
 
             try {
                 const { data: cenas, error } = await supabaseClient.from('cenas_shorts').select('*');
@@ -1162,7 +1164,7 @@
 
                 const tituloProvisorio = cena.nome_filme || 'Carregando detalhes...';
 
-                // 🌟 MUDANÇA CRÍTICA AQUI: Tirámos o "src" e pusemos "data-src". O vídeo nasce vazio!
+                // 🌟 O vídeo nasce vazio (sem SRC) para enganar o limite da Apple
                 htmlLote += `
                     <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
                         <div class="short-video-wrapper">
@@ -1212,12 +1214,13 @@
         }
 
         function configurarRadarFeedCenas() {
+            const containerFeed = document.getElementById('feed-shorts');
             const itensDoFeed = document.querySelectorAll('.short-item');
 
             if (observerRadarCenas) observerRadarCenas.disconnect();
             if (observerMemoriaCenas) observerMemoriaCenas.disconnect();
 
-            // 🛡️ O SALVADOR DO IPHONE: Gestor de Memória e Rede
+            // 🛡️ O SALVADOR DO IPHONE: Root rigoroso para evitar conexões fantasmas
             observerMemoriaCenas = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const idCena = entry.target.getAttribute('data-cena-id');
@@ -1225,13 +1228,13 @@
                     if (!video) return;
 
                     if (entry.isIntersecting) {
-                        // Chegou perto da tela: Injeta o link para o iPhone baixar
+                        // O vídeo chega perto: Conectamos os cabos!
                         if (!video.getAttribute('src')) {
                             video.setAttribute('src', video.getAttribute('data-src'));
                             video.load();
                         }
                     } else {
-                        // Ficou longe da tela: Remove o link e aborta a conexão para libertar a rede
+                        // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
                         if (video.getAttribute('src')) {
                             video.pause();
                             video.removeAttribute('src');
@@ -1239,12 +1242,14 @@
                         }
                     }
                 });
-            }, { rootMargin: '150% 0px' }); // Atua num raio de 1.5 telas acima e abaixo
+            }, { 
+                root: containerFeed, // 🌟 Obriga o iPhone a respeitar a caixa de scroll e não a tela toda
+                rootMargin: '25% 0px' // A margem apertada garante que só existem 2 vídeos carregados no máximo!
+            });
 
-            // 🎬 O MOTOR DE PLAY/PAUSE (Original)
+            // 🎬 O MOTOR DE PLAY/PAUSE
             let scrollTimeout;
             let videoAtivoId = null;
-            let primeiroCarregamento = true;
 
             observerRadarCenas = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -1272,7 +1277,7 @@
                                 if (v.id !== videoId) { v.pause(); } 
                             });
 
-                            // Garante que o video tem SRC antes do play (caso o radar de memória se atrase)
+                            // Força a ligação caso a pessoa role o ecrã demasiado rápido
                             if (!video.getAttribute('src')) {
                                 video.setAttribute('src', video.getAttribute('data-src'));
                                 video.load();
@@ -1281,12 +1286,13 @@
                             video.currentTime = 0;
                             const playPromise = video.play();
                             if (playPromise !== undefined) {
-                                playPromise.catch(e => console.log("Autoplay retido pelo iOS."));
+                                playPromise.catch(e => console.log("Autoplay retido.", e));
                             }
                         };
 
-                        if (primeiroCarregamento) {
-                            executarPlay(); primeiroCarregamento = false;
+                        if (primeiroCarregamentoCenas) {
+                            executarPlay(); 
+                            primeiroCarregamentoCenas = false;
                         } else {
                             scrollTimeout = setTimeout(() => {
                                 if (videoAtivoId === videoId) executarPlay();
@@ -1296,18 +1302,25 @@
                         video.pause();
                     }
                 });
-            }, { threshold: 0.55 });
-
-            itensDoFeed.forEach(item => {
-                observerMemoriaCenas.observe(item); // Liga a Limpeza
-                observerRadarCenas.observe(item);   // Liga o Play/Pause
+            }, { 
+                root: containerFeed,
+                threshold: 0.55 
             });
 
-            // Mapeia cliques na tela de toque/rato para pausar
+            itensDoFeed.forEach(item => {
+                observerMemoriaCenas.observe(item);
+                observerRadarCenas.observe(item);
+            });
+
+            // 🛡️ Limpeza de Eventos Fantasma do iPhone
             document.querySelectorAll('.short-glass').forEach(glass => {
                 const videoId = glass.getAttribute('data-video');
                 const video = document.getElementById(videoId);
                 if(!video) return;
+
+                // Garante que não se multiplicam botões na memória a cada scroll
+                const novoGlass = glass.cloneNode(true);
+                glass.parentNode.replaceChild(novoGlass, glass);
 
                 const pausar = () => video.pause();
                 const tocar = () => {
@@ -1315,13 +1328,13 @@
                     if (playPromise !== undefined) playPromise.catch(e => {});
                 };
 
-                glass.addEventListener('touchstart', pausar, {passive: true});
-                glass.addEventListener('touchend', tocar, {passive: true});
+                novoGlass.addEventListener('touchstart', pausar, {passive: true});
+                novoGlass.addEventListener('touchend', tocar, {passive: true});
 
                 let mouseApertado = false;
-                glass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
-                glass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
-                glass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                novoGlass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
+                novoGlass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                novoGlass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
             });
         }
 

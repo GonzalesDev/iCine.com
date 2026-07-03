@@ -1160,7 +1160,7 @@
                 htmlLote += `
                     <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
                         <div class="short-video-wrapper">
-                            <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}#t=0.001" loop playsinline webkit-playsinline preload="metadata"></video>
+                        <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}#t=0.001" loop playsinline webkit-playsinline preload="metadata"></video>
 
                         <div class="short-glass" data-video="vid-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
                         <div class="short-gradient"></div>
@@ -1324,7 +1324,7 @@
         }
 
         // Injeta cirurgicamente os textos reais do TMDB nos IDs corretos sem redesenhar o card
-        function atualizarElementosHTMLCena(idCena, filme, generosTexto Opcional = "") {
+        function atualizarElementosHTMLCena(idCena, filme, generosTextoOpcional = "") {
             const imgEl = document.getElementById(`capa-${idCena}`);
             if (imgEl && filme.capa) imgEl.src = filme.capa;
 

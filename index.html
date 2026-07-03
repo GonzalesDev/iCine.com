@@ -533,7 +533,7 @@
         }
 
         // =========================================
-        // === BLOCO: JS CONFIG & CHAVES DE API ===
+        // === BLOCO: CONFIGURAÇÕES E ESTADO GLOBAL ===
         // =========================================
         const GROQ_KEY = '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'; 
         const TMDB_KEY = '583c7b5c219b1edbfc6a76210b4ade05'; 
@@ -546,6 +546,13 @@
 
         let usuarioAtual = null;
         const bancoDeFilmesLocal = new Map();
+        const bancoDeComentariosLocal = new Map(); // 🌟 NOVO: Cache local para velocidade instantânea
+
+        // 🌟 CORREÇÃO CRÍTICA PWA: Declarando variáveis para evitar ReferenceError no mobile
+        let meuPerfil = null; 
+        let pedidosPendentes = [];
+        let listaAmigos = [];
+
         let listaQueroAssistir = [];
         let listaJaAssisti = [];
         let minhasPlaylists = [];
@@ -1115,6 +1122,9 @@
                     if (!Array.isArray(comentariosArray)) comentariosArray = [];
                     const comentariosCount = comentariosArray.length;
 
+                    // 🌟 NOVO: Salva os comentários direto no mapa local para uso no PWA
+                    bancoDeComentariosLocal.set(String(cena.id), comentariosArray);
+
                     // Usa o nome salvo no banco de dados provisoriamente
                     const tituloProvisorio = cena.nome_filme || 'A carregar detalhes...';
 
@@ -1316,7 +1326,6 @@
         // =========================================
         let cenaComentarioAbertaId = null;
 
-        // 🛡️ Filtro Blindado: Garante que os comentários são sempre lidos como uma Lista (Array)
         function garantirArrayComentarios(dadoBruto) {
             if (!dadoBruto) return [];
             if (Array.isArray(dadoBruto)) return dadoBruto;
@@ -1331,11 +1340,9 @@
 
             cenaComentarioAbertaId = cenaId;
             abrirModalSeguro('modal-comentarios');
-            document.getElementById('lista-comentarios').innerHTML = '<p class="empty-msg" style="margin-top:20px;">A carregar comentários... ⏳</p>';
 
-            // Vai ao banco buscar os comentários usando o Filtro Blindado
-            const { data } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
-            const comentariosLimpos = data ? garantirArrayComentarios(data.comentarios) : [];
+            // 🚀 MÁGICA INSTANTÂNEA: Carrega direto do cache local sem requisições lentas de rede!
+            const comentariosLimpos = bancoDeComentariosLocal.get(String(cenaId)) || [];
 
             renderizarComentarios(comentariosLimpos);
             document.getElementById('btn-enviar-comentario').onclick = () => enviarComentario(cenaId);
@@ -1382,15 +1389,18 @@
                 data: new Date().toLocaleDateString('pt-PT')
             };
 
-            const { data } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
-            let comentariosDb = data ? garantirArrayComentarios(data.comentarios) : [];
-
+            // Pega os comentários do mapa local e adiciona o novo
+            let comentariosDb = bancoDeComentariosLocal.get(String(cenaId)) || [];
             comentariosDb.push(novoComentario);
+
+            // Atualiza a memória local na hora
+            bancoDeComentariosLocal.set(String(cenaId), comentariosDb);
 
             renderizarComentarios(comentariosDb);
             const spanCount = document.getElementById(`count-comentarios-${cenaId}`);
             if(spanCount) spanCount.innerText = comentariosDb.length;
 
+            // Envia para o Supabase em background de forma silenciosa
             await supabaseClient.from('cenas_shorts').update({ comentarios: comentariosDb }).eq('id', cenaId);
         }
 

@@ -1088,13 +1088,27 @@
         // =========================================
         // === BLOCO: JS CENAS (NATIVO HTML5) ===
         // =========================================
+
+        // Variáveis de controlo do Feed Otimizado (Estilo TikTok)
+        let listaCenasTotal = [];
+        let contadorCenasExibidas = 0;
+        const TAMANHO_LOTE_CENAS = 3; // Carrega de 3 em 3 para memória zero lag
+        let observerRadarCenas = null;
+        let cenasTMDBJaCarregadas = new Set();
+
         async function carregarCenas() {
             const container = document.getElementById('feed-shorts');
-            if (container.innerHTML.trim() !== '') return; 
+            if (container.innerHTML.trim() !== '' && listaCenasTotal.length > 0) return; 
 
             container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">A sintonizar o feed... ⏳</p>';
 
+            // Reinicia os controladores
+            listaCenasTotal = [];
+            contadorCenasExibidas = 0;
+            cenasTMDBJaCarregadas.clear();
+
             try {
+                // 1. Faz apenas 1 pedido rápido ao Supabase para trazer as linhas
                 const { data: cenas, error } = await supabaseClient.from('cenas_shorts').select('*');
                 if (error) throw error;
 
@@ -1103,118 +1117,13 @@
                     return;
                 }
 
+                // Embaralha a lista completa na memória
                 cenas.sort(() => Math.random() - 0.5);
-                let htmlCompleto = '';
+                listaCenasTotal = cenas;
+                container.innerHTML = ''; // Limpa o texto de carregamento
 
-                for (const cena of cenas) {
-                    if (!cena.video_url) continue;
-
-                    const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
-                    const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
-                    const likesCount = curtidasArray.length;
-
-                    // 🛡️ Filtro Triturador PWA: Força a leitura do número de comentários!
-                    let comentariosArray = [];
-                    if (Array.isArray(cena.comentarios)) {
-                        comentariosArray = cena.comentarios;
-                    } else if (typeof cena.comentarios === 'string') {
-                        try { 
-                            const parseado = JSON.parse(cena.comentarios);
-                            comentariosArray = Array.isArray(parseado) ? parseado : [];
-                        } catch(e) {}
-                    }
-                    const comentariosCount = comentariosArray.length;
-
-                    const tituloProvisorio = cena.nome_filme || 'A carregar detalhes...';
-
-                    htmlCompleto += `
-                        <div class="short-item">
-                            <div class="short-video-wrapper">
-                                <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}" loop playsinline preload="metadata"></video>
-                            </div>
-
-                            <div class="short-glass" data-video="vid-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
-                            <div class="short-gradient"></div>
-
-                            <div class="short-ui">
-                                <div class="short-side-actions">
-                                    <div class="action-group">
-                                        <button class="btn-side-action ${isLiked ? 'liked' : ''}" onclick="curtirCena(event, '${cena.id}', this)">
-                                            ${isLiked ? '❤️' : '🤍'}
-                                        </button>
-                                        <span class="action-label">${likesCount}</span>
-                                    </div>
-                                    <div class="action-group">
-                                        <button class="btn-side-action" onclick="abrirComentarios(event, '${cena.id}')">💬</button>
-                                        <span class="action-label" id="count-comentarios-${cena.id}">${comentariosCount}</span>
-                                    </div>
-                                    <div class="action-group">
-                                        <button class="btn-side-action" onclick="abrirModal(${cena.tmdb_id}, 'explorar')">➕</button>
-                                        <span class="action-label">Lista</span>
-                                    </div>
-                                </div>
-
-                                <div class="short-bottom-card" onclick="abrirDetalhes(${cena.tmdb_id})">
-                                    <img src="https://via.placeholder.com/80x115?text=..." id="capa-${cena.id}" class="short-big-cover" alt="Capa">
-                                    <div class="short-card-details">
-                                        <h3 class="short-card-title" id="titulo-${cena.id}">${tituloProvisorio}</h3>
-                                        <div class="short-card-meta">
-                                            <span class="short-year" id="ano-${cena.id}">N/A</span> • 
-                                            <span class="short-rating" id="nota-${cena.id}">⭐ 0.0</span>
-                                        </div>
-                                        <div class="short-card-genres" id="generos-${cena.id}">Buscando...</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                container.innerHTML = htmlCompleto;
-
-                cenas.forEach(async (cena) => {
-                    if (!cena.video_url) return;
-                    try {
-                        const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
-                        const filme = await resp.json();
-                        if (filme.poster_path) { const imgEl = document.getElementById(`capa-${cena.id}`); if(imgEl) imgEl.src = `${IMG_BASE}${filme.poster_path}`; }
-                        const elTitulo = document.getElementById(`titulo-${cena.id}`); if(elTitulo) elTitulo.innerText = filme.title;
-                        const elAno = document.getElementById(`ano-${cena.id}`); if(elAno && filme.release_date) elAno.innerText = filme.release_date.split('-')[0];
-                        const elNota = document.getElementById(`nota-${cena.id}`); if(elNota && filme.vote_average) elNota.innerText = `⭐ ${filme.vote_average.toFixed(1)}`;
-                        const elGen = document.getElementById(`generos-${cena.id}`); if(elGen && filme.genres && filme.genres.length > 0) { elGen.innerText = filme.genres.map(g => g.name).slice(0, 2).join(' • '); }
-                        bancoDeFilmesLocal.set(filme.id, { id: filme.id, titulo: filme.title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average ? filme.vote_average.toFixed(1) : '0.0', capa: filme.poster_path ? `${IMG_BASE}${filme.poster_path}` : 'https://via.placeholder.com/80x115?text=Capa', sinopse: filme.overview || 'Sem sinopse.' });
-                    } catch(e) { }
-                });
-
-                const glasses = document.querySelectorAll('.short-glass');
-                let scrollTimeout; let videoAtivoId = null; let primeiroCarregamento = true; 
-
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        const videoId = entry.target.querySelector('.short-glass').getAttribute('data-video');
-                        const video = document.getElementById(videoId);
-                        if (!video) return;
-
-                        if (entry.isIntersecting) {
-                            videoAtivoId = videoId;
-                            clearTimeout(scrollTimeout);
-                            const executarPlay = () => { document.querySelectorAll('.short-video').forEach(v => { if (v.id !== videoId) { v.pause(); v.currentTime = 0; } }); video.currentTime = 0; video.play().catch(e => console.log("O navegador segurou o autoplay.")); };
-                            if (primeiroCarregamento) { executarPlay(); primeiroCarregamento = false; } else { scrollTimeout = setTimeout(() => { if (videoAtivoId === videoId) { executarPlay(); } }, 350); }
-                        } else { video.pause(); }
-                    });
-                }, { threshold: 0.55 }); 
-
-                document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
-
-                glasses.forEach(glass => {
-                    const videoId = glass.getAttribute('data-video'); const video = document.getElementById(videoId);
-                    const pausar = () => video.pause(); const tocar = () => video.play().catch(e => {});
-                    glass.addEventListener('touchstart', pausar); glass.addEventListener('touchend', tocar);
-                    let mouseApertado = false;
-                    glass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
-                    glass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
-                    glass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
-                });
+                // 2. Injeta o primeiro lote de vídeos (Apenas 3!)
+                injetarMaisCenasNoFeed();
 
             } catch (err) {
                 console.error(err);
@@ -1222,47 +1131,213 @@
             }
         }
 
+        // Função responsável por anexar mais vídeos no fundo conforme o scroll acontece
+        function injetarMaisCenasNoFeed() {
+            const container = document.getElementById('feed-shorts');
+            const proximoLote = listaCenasTotal.slice(contadorCenasExibidas, contadorCenasExibidas + TAMANHO_LOTE_CENAS);
 
-        // ==================================================
-        // 👉 A FUNÇÃO CURTIR CENA AGORA ESTÁ AQUI FORA! 👈
-        // ==================================================
-        async function curtirCena(event, cenaId, btnElement) {
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
+            if (proximoLote.length === 0) return;
+
+            let htmlLote = '';
+
+            for (const cena of proximoLote) {
+                if (!cena.video_url) continue;
+
+                const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
+                const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
+                const likesCount = curtidasArray.length;
+
+                let comentariosArray = [];
+                try { comentariosArray = typeof cena.comentarios === 'string' ? JSON.parse(cena.comentarios) : (cena.comentarios || []); } catch(e) {}
+                if (!Array.isArray(comentariosArray)) comentariosArray = [];
+                const comentariosCount = comentariosArray.length;
+
+                // Alta Performance: Usamos o nome guardado no Supabase imediatamente para evitar ecrãs vazios
+                const tituloProvisorio = cena.nome_filme || 'Carregando detalhes...';
+
+                htmlLote += `
+                    <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
+                        <div class="short-video-wrapper">
+                            <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}" loop playsinline preload="metadata"></video>
+                        </div>
+
+                        <div class="short-glass" data-video="vid-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
+                        <div class="short-gradient"></div>
+
+                        <div class="short-ui">
+                            <div class="short-side-actions">
+                                <div class="action-group">
+                                    <button class="btn-side-action ${isLiked ? 'liked' : ''}" onclick="curtirCena(event, '${cena.id}', this)">
+                                        ${isLiked ? '❤️' : '🤍'}
+                                    </button>
+                                    <span class="action-label">${likesCount}</span>
+                                </div>
+                                <div class="action-group">
+                                    <button class="btn-side-action" onclick="abrirComentarios(event, '${cena.id}')">💬</button>
+                                    <span class="action-label" id="count-comentarios-${cena.id}">${comentariosCount}</span>
+                                </div>
+                                <div class="action-group">
+                                    <button class="btn-side-action" onclick="abrirModal(${cena.tmdb_id}, 'explorar')">➕</button>
+                                    <span class="action-label">Lista</span>
+                                </div>
+                            </div>
+
+                            <div class="short-bottom-card" onclick="abrirDetalhes(${cena.tmdb_id})">
+                                <img src="https://via.placeholder.com/80x115?text=..." id="capa-${cena.id}" class="short-big-cover" alt="Capa">
+                                <div class="short-card-details">
+                                    <h3 class="short-card-title" id="titulo-${cena.id}">${tituloProvisorio}</h3>
+                                    <div class="short-card-meta">
+                                        <span class="short-year" id="ano-${cena.id}">N/A</span> • 
+                                        <span class="short-rating" id="nota-${cena.id}">⭐ 0.0</span>
+                                    </div>
+                                    <div class="short-card-genres" id="generos-${cena.id}">A sintonizar...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
 
-            const isAtualmenteLiked = btnElement.classList.contains('liked');
-            const spanCount = btnElement.nextElementSibling;
-            let currentCount = parseInt(spanCount.innerText) || 0;
+            // Anexa os novos cards no fundo da lista sem quebrar o scroll ativo
+            container.insertAdjacentHTML('beforeend', htmlLote);
+            contadorCenasExibidas += proximoLote.length;
 
-            if (isAtualmenteLiked) {
-                btnElement.classList.remove('liked');
-                btnElement.innerHTML = '🤍';
-                spanCount.innerText = Math.max(0, currentCount - 1);
-            } else {
-                btnElement.classList.add('liked');
-                btnElement.innerHTML = '❤️';
-                spanCount.innerText = currentCount + 1;
+            // Ativa ou atualiza o sensor de movimento (IntersectionObserver)
+            configurarRadarFeedCenas();
+        }
+
+        // O MOTOR PRINCIPAL: Controla play/pause, carregamento incremental e chamadas lazy da API
+        function configurarRadarFeedCenas() {
+            const itensDoFeed = document.querySelectorAll('.short-item');
+
+            if (observerRadarCenas) observerRadarCenas.disconnect();
+
+            let scrollTimeout;
+            let videoAtivoId = null;
+            let primeiroCarregamento = true;
+
+            observerRadarCenas = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const itemEl = entry.target;
+                    const idCena = itemEl.getAttribute('data-cena-id');
+                    const tmdbId = itemEl.getAttribute('data-tmdb-id');
+                    const videoId = `vid-${idCena}`;
+                    const video = document.getElementById(videoId);
+
+                    if (!video) return;
+
+                    if (entry.isIntersecting) {
+                        videoAtivoId = videoId;
+                        clearTimeout(scrollTimeout);
+
+                        // 🚀 INTERNET LIVRE: Só faz o fetch ao TMDB para este filme quando ele aparece na tela!
+                        solicitarDadosTMDBPreguicoso(idCena, tmdbId);
+
+                        // Verifica se o utilizador está a chegar ao fim dos vídeos atuais para carregar mais por baixo
+                        const todosCards = document.querySelectorAll('.short-item');
+                        if (itemEl === todosCards[todosCards.length - 2]) {
+                            injetarMaisCenasNoFeed();
+                        }
+
+                        const executarPlay = () => {
+                            document.querySelectorAll('.short-video').forEach(v => {
+                                if (v.id !== videoId) { v.pause(); v.currentTime = 0; }
+                            });
+                            video.currentTime = 0;
+                            video.play().catch(e => console.log("Autoplay segurado."));
+                        };
+
+                        if (primeiroCarregamento) {
+                            executarPlay(); primeiroCarregamento = false;
+                        } else {
+                            scrollTimeout = setTimeout(() => {
+                                if (videoAtivoId === videoId) executarPlay();
+                            }, 320); 
+                        }
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, { threshold: 0.55 });
+
+            itensDoFeed.forEach(item => observerRadarCenas.observe(item));
+
+            // Mapeia os cliques na tela de toque/rato para pausar temporariamente
+            document.querySelectorAll('.short-glass').forEach(glass => {
+                const videoId = glass.getAttribute('data-video');
+                const video = document.getElementById(videoId);
+                if(!video) return;
+
+                const pausar = () => video.pause();
+                const tocar = () => video.play().catch(e => {});
+
+                glass.addEventListener('touchstart', pausar);
+                glass.addEventListener('touchend', tocar);
+
+                let mouseApertado = false;
+                glass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
+                glass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                glass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+            });
+        }
+
+        // Função Lazy: Pega os dados do TMDB apenas sob demanda individual
+        async function solicitarDadosTMDBPreguicoso(idCena, tmdbId) {
+            if (cenasTMDBJaCarregadas.has(idCena)) return; // Já carregou nesta sessão da aba
+            cenasTMDBJaCarregadas.add(idCena);
+
+            // Se já existir no cache global das outras abas do iCine, evita o fetch totalmente!
+            if (bancoDeFilmesLocal.has(parseInt(tmdbId))) {
+                const filmeCached = bancoDeFilmesLocal.get(parseInt(tmdbId));
+                atualizarElementosHTMLCena(idCena, filmeCached);
+                return;
             }
 
             try {
-                const { data: cenaAtual } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
+                const resp = await fetch(`${URL_BASE}/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`);
+                if (!resp.ok) return;
+                const filme = await resp.json();
 
-                if (cenaAtual) {
-                    let curtidasDb = Array.isArray(cenaAtual.curtidas) ? cenaAtual.curtidas : [];
+                const anoFilme = filme.release_date ? filme.release_date.split('-')[0] : 'N/A';
+                const notaFilme = filme.vote_average ? filme.vote_average.toFixed(1) : '0.0';
+                const capaFilme = filme.poster_path ? `${IMG_BASE}${filme.poster_path}` : 'https://via.placeholder.com/80x115?text=Sem+Capa';
+                let generosTexto = "Cinema";
 
-                    if (isAtualmenteLiked) {
-                        curtidasDb = curtidasDb.filter(id => id !== usuarioAtual.id);
-                    } else {
-                        if (!curtidasDb.includes(usuarioAtual.id)) curtidasDb.push(usuarioAtual.id);
-                    }
-
-                    await supabaseClient.from('cenas_shorts').update({ curtidas: curtidasDb }).eq('id', cenaId);
+                if (filme.genres && filme.genres.length > 0) {
+                    generosTexto = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
                 }
-            } catch (err) {
-                console.error("Erro ao guardar curtida na cena:", err);
+
+                const estruturado = {
+                    id: filme.id, titulo: filme.title, ano: anoFilme, notaTmdb: notaFilme, capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.'
+                };
+
+                // Salva no cache do app
+                bancoDeFilmesLocal.set(filme.id, estruturado);
+
+                // Aplica na tela de forma limpa
+                atualizarElementosHTMLCena(idCena, estruturado, generosTexto);
+
+            } catch (e) {
+                console.error("Erro na carga sob demanda da cena:", e);
             }
+        }
+
+        // Injeta cirurgicamente os textos reais do TMDB nos IDs corretos sem redesenhar o card
+        function atualizarElementosHTMLCena(idCena, filme, generosTexto Opcional = "") {
+            const imgEl = document.getElementById(`capa-${idCena}`);
+            if (imgEl && filme.capa) imgEl.src = filme.capa;
+
+            const txtTitulo = document.getElementById(`titulo-${idCena}`);
+            if (txtTitulo) txtTitulo.innerText = filme.titulo;
+
+            const txtAno = document.getElementById(`ano-${idCena}`);
+            if (txtAno) txtAno.innerText = filme.ano;
+
+            const txtNota = document.getElementById(`nota-${idCena}`);
+            if (txtNota) txtNota.innerText = `⭐ ${filme.notaTmdb}`;
+
+            const txtGen = document.getElementById(`generos-${idCena}`);
+            if (txtGen && generosTextoOpcional) txtGen.innerText = generosTextoOpcional;
         }
 
         // =========================================

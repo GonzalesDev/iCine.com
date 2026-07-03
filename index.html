@@ -1059,6 +1059,7 @@
             } catch (e) {}
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
+        
 
         // =========================================
         // === BLOCO: JS CENAS (NATIVO HTML5) ===
@@ -1078,54 +1079,60 @@
                     return;
                 }
 
-                // ==========================================
-                // 🎲 MÁGICA DA ORDEM ALEATÓRIA (SHUFFLE)
-                // ==========================================
+                // Embaralha os vídeos
                 cenas.sort(() => Math.random() - 0.5);
 
-                container.innerHTML = ''; 
+                // 🚀 MÁGICA DE PERFORMANCE: Pesquisa todos os filmes no TMDB ao MESMO TEMPO!
+                const promessasTMDB = cenas.map(async (cena) => {
+                    if (!cena.video_url) return null;
 
-                for (const cena of cenas) {
-                    if (!cena.video_url) continue;
-
-                    let capaFilme = 'https://via.placeholder.com/80x115?text=Capa';
+                    let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
                     let tituloFilme = 'Carregando...';
                     let anoFilme = 'N/A';
                     let notaFilme = '0.0';
-                    let generosFilme = 'Filme';
+                    let generosFilme = '';
 
-                    try {
-                        const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
-                        const filme = await resp.json();
-                        
-                        if (filme.poster_path) capaFilme = `${IMG_BASE}${filme.poster_path}`;
-                        tituloFilme = filme.title;
-                        anoFilme = filme.release_date ? filme.release_date.split('-')[0] : 'N/A';
-                        notaFilme = filme.vote_average ? filme.vote_average.toFixed(1) : '0.0';
-                        
-                        if (filme.genres && filme.genres.length > 0) {
-                            generosFilme = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
-                        }
-                        
-                        bancoDeFilmesLocal.set(filme.id, {
-                            id: filme.id, titulo: filme.title, ano: anoFilme, notaTmdb: notaFilme, capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.'
-                        });
-                    } catch(e) {}
+                    // Verifica se já temos o filme no nosso banco de dados local para poupar internet
+                    if (bancoDeFilmesLocal.has(cena.tmdb_id)) {
+                        const f = bancoDeFilmesLocal.get(cena.tmdb_id);
+                        capaFilme = f.capa;
+                        tituloFilme = f.titulo;
+                        anoFilme = f.ano;
+                        notaFilme = f.notaTmdb;
+                    } else {
+                        try {
+                            const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
+                            const filme = await resp.json();
 
-                    // Lê as curtidas reais da tabela de forma blindada
+                            if (filme.poster_path) capaFilme = `${IMG_BASE}${filme.poster_path}`;
+                            tituloFilme = filme.title;
+                            anoFilme = filme.release_date ? filme.release_date.split('-')[0] : 'N/A';
+                            notaFilme = filme.vote_average ? filme.vote_average.toFixed(1) : '0.0';
+
+                            if (filme.genres && filme.genres.length > 0) {
+                                generosFilme = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
+                            }
+
+                            bancoDeFilmesLocal.set(filme.id, {
+                                id: filme.id, titulo: filme.title, ano: anoFilme, notaTmdb: notaFilme, capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.'
+                            });
+                        } catch(e) {}
+                    }
+
                     const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
                     const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                     const likesCount = curtidasArray.length;
 
-                    const videoHtml = `
+                    // 🚀 MÁGICA 2: preload="metadata" (Baixa só o tamanho do vídeo, não o vídeo inteiro)
+                    return `
                         <div class="short-item">
                             <div class="short-video-wrapper">
-                                <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}" loop playsinline preload="auto"></video>
+                                <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}" loop playsinline preload="metadata"></video>
                             </div>
-                            
+
                             <div class="short-glass" data-video="vid-${cena.id}" style="position: absolute; inset: 0; z-index: 1; cursor: pointer;"></div>
                             <div class="short-gradient"></div>
-                            
+
                             <div class="short-ui">
                                 <div class="short-side-actions">
                                     <div class="action-group">
@@ -1154,11 +1161,14 @@
                             </div>
                         </div>
                     `;
-                    container.insertAdjacentHTML('beforeend', videoHtml);
-                }
+                });
+
+                // Espera que TODOS terminem ao mesmo tempo e junta o HTML
+                const htmlArray = await Promise.all(promessasTMDB);
+                container.innerHTML = htmlArray.filter(html => html !== null).join('');
 
                 // ==========================================
-                // === RADAR NATIVO (10x MAIS RÁPIDO) =======
+                // === RADAR NATIVO =======
                 // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
                 let scrollTimeout; 
@@ -1241,7 +1251,7 @@
                 console.error(err);
                 container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';
             }
-        } // <--- FIM DA FUNÇÃO CARREGARCENAS
+        }
 
 
         // ==================================================

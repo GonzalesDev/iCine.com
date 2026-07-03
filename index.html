@@ -1108,7 +1108,11 @@
                     const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
                     const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                     const likesCount = curtidasArray.length;
-                    const comentariosArray = Array.isArray(cena.comentarios) ? cena.comentarios : [];
+
+                    // Filtro Blindado aplicado no carregamento do vídeo
+                    let comentariosArray = [];
+                    try { comentariosArray = typeof cena.comentarios === 'string' ? JSON.parse(cena.comentarios) : (cena.comentarios || []); } catch(e) {}
+                    if (!Array.isArray(comentariosArray)) comentariosArray = [];
                     const comentariosCount = comentariosArray.length;
 
                     // Usa o nome salvo no banco de dados provisoriamente
@@ -1312,40 +1316,48 @@
         // =========================================
         let cenaComentarioAbertaId = null;
 
+        // 🛡️ Filtro Blindado: Garante que os comentários são sempre lidos como uma Lista (Array)
+        function garantirArrayComentarios(dadoBruto) {
+            if (!dadoBruto) return [];
+            if (Array.isArray(dadoBruto)) return dadoBruto;
+            if (typeof dadoBruto === 'string') {
+                try { return JSON.parse(dadoBruto); } catch (e) { return []; }
+            }
+            return [];
+        }
+
         async function abrirComentarios(event, cenaId) {
-            if (event) { event.preventDefault(); event.stopPropagation(); } // Impede o vídeo de pausar
+            if (event) { event.preventDefault(); event.stopPropagation(); } 
 
             cenaComentarioAbertaId = cenaId;
             abrirModalSeguro('modal-comentarios');
             document.getElementById('lista-comentarios').innerHTML = '<p class="empty-msg" style="margin-top:20px;">A carregar comentários... ⏳</p>';
 
-            // Vai ao banco buscar os comentários mais recentes
+            // Vai ao banco buscar os comentários usando o Filtro Blindado
             const { data } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
-            if(data) { renderizarComentarios(data.comentarios || []); }
+            const comentariosLimpos = data ? garantirArrayComentarios(data.comentarios) : [];
 
-            // Liga o botão de enviar ao vídeo atual
+            renderizarComentarios(comentariosLimpos);
             document.getElementById('btn-enviar-comentario').onclick = () => enviarComentario(cenaId);
         }
 
         function renderizarComentarios(comentariosArray) {
             const lista = document.getElementById('lista-comentarios');
-            if(comentariosArray.length === 0) {
+            if(!comentariosArray || comentariosArray.length === 0) {
                 lista.innerHTML = '<p class="empty-msg" style="margin-top:20px;">Seja o primeiro a comentar esta cena! ✨</p>';
                 return;
             }
 
-            // Desenha os balões de comentário de cada pessoa
             lista.innerHTML = comentariosArray.map(c => `
                 <div style="display: flex; gap: 12px; animation: fadeIn 0.3s ease-out;">
-                    <div class="amigo-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">${c.username.charAt(0).toUpperCase()}</div>
+                    <div class="amigo-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">${c.username ? c.username.charAt(0).toUpperCase() : '?'}</div>
                     <div style="flex: 1; background: #1f2937; padding: 10px 14px; border-radius: 4px 16px 16px 16px; border: 1px solid #374151;">
-                        <div style="font-weight: 800; font-size: 0.8rem; color: var(--purple); margin-bottom: 4px;">@${c.username} <span style="font-weight: normal; color: var(--text-muted); font-size: 0.7rem; float: right;">${c.data}</span></div>
+                        <div style="font-weight: 800; font-size: 0.8rem; color: var(--purple); margin-bottom: 4px;">@${c.username || 'anonimo'} <span style="font-weight: normal; color: var(--text-muted); font-size: 0.7rem; float: right;">${c.data || ''}</span></div>
                         <div style="font-size: 0.9rem; color: white; line-height: 1.4;">${c.texto}</div>
                     </div>
                 </div>
             `).join('');
 
-            // Rola automaticamente para o último comentário
             lista.scrollTop = lista.scrollHeight;
         }
 
@@ -1354,7 +1366,6 @@
             const texto = input.value.trim();
             if(!texto) return;
 
-            // Bloqueio de segurança: Obriga a ter um username criado na aba Amigos
             if(!meuPerfil || !meuPerfil.username) {
                 alert("🚨 Precisas de criar um @username na aba 'Amigos' antes de poderes comentar!");
                 fecharModalSeguro('modal-comentarios');
@@ -1362,7 +1373,7 @@
                 return;
             }
 
-            input.value = ''; // Limpa a caixa de texto
+            input.value = ''; 
 
             const novoComentario = {
                 user_id: usuarioAtual.id,
@@ -1371,19 +1382,15 @@
                 data: new Date().toLocaleDateString('pt-PT')
             };
 
-            // 1. Pega os comentários antigos
             const { data } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
-            let comentariosDb = Array.isArray(data?.comentarios) ? data.comentarios : [];
+            let comentariosDb = data ? garantirArrayComentarios(data.comentarios) : [];
 
-            // 2. Junta o novo comentário
             comentariosDb.push(novoComentario);
 
-            // 3. Atualiza a tela imediatamente
             renderizarComentarios(comentariosDb);
             const spanCount = document.getElementById(`count-comentarios-${cenaId}`);
             if(spanCount) spanCount.innerText = comentariosDb.length;
 
-            // 4. Salva no Supabase silenciosamente
             await supabaseClient.from('cenas_shorts').update({ comentarios: comentariosDb }).eq('id', cenaId);
         }
 

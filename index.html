@@ -1103,10 +1103,7 @@
                     return;
                 }
 
-                // 1. Embaralha os vídeos
                 cenas.sort(() => Math.random() - 0.5);
-
-                // 2. RENDERIZA OS VÍDEOS INSTANTANEAMENTE NA TELA
                 let htmlCompleto = '';
 
                 for (const cena of cenas) {
@@ -1116,16 +1113,18 @@
                     const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                     const likesCount = curtidasArray.length;
 
-                    // Filtro Blindado aplicado no carregamento do vídeo
+                    // 🛡️ Filtro Triturador PWA: Força a leitura do número de comentários!
                     let comentariosArray = [];
-                    try { comentariosArray = typeof cena.comentarios === 'string' ? JSON.parse(cena.comentarios) : (cena.comentarios || []); } catch(e) {}
-                    if (!Array.isArray(comentariosArray)) comentariosArray = [];
+                    if (Array.isArray(cena.comentarios)) {
+                        comentariosArray = cena.comentarios;
+                    } else if (typeof cena.comentarios === 'string') {
+                        try { 
+                            const parseado = JSON.parse(cena.comentarios);
+                            comentariosArray = Array.isArray(parseado) ? parseado : [];
+                        } catch(e) {}
+                    }
                     const comentariosCount = comentariosArray.length;
 
-                    // 🌟 NOVO: Salva os comentários direto no mapa local para uso no PWA
-                    bancoDeComentariosLocal.set(String(cena.id), comentariosArray);
-
-                    // Usa o nome salvo no banco de dados provisoriamente
                     const tituloProvisorio = cena.nome_filme || 'A carregar detalhes...';
 
                     htmlCompleto += `
@@ -1171,52 +1170,24 @@
                     `;
                 }
 
-                // Injeta tudo na tela de uma só vez (Zero Lag!)
                 container.innerHTML = htmlCompleto;
 
-                // 3. BUSCA OS DADOS DO TMDB EM SEGUNDO PLANO DE FORMA SILENCIOSA
                 cenas.forEach(async (cena) => {
                     if (!cena.video_url) return;
-
                     try {
                         const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
                         const filme = await resp.json();
-
-                        // Atualiza a capa
-                        if (filme.poster_path) {
-                            const imgEl = document.getElementById(`capa-${cena.id}`);
-                            if(imgEl) imgEl.src = `${IMG_BASE}${filme.poster_path}`;
-                        }
-
-                        // Atualiza os Textos
-                        const elTitulo = document.getElementById(`titulo-${cena.id}`);
-                        if(elTitulo) elTitulo.innerText = filme.title;
-
-                        const elAno = document.getElementById(`ano-${cena.id}`);
-                        if(elAno && filme.release_date) elAno.innerText = filme.release_date.split('-')[0];
-
-                        const elNota = document.getElementById(`nota-${cena.id}`);
-                        if(elNota && filme.vote_average) elNota.innerText = `⭐ ${filme.vote_average.toFixed(1)}`;
-
-                        const elGen = document.getElementById(`generos-${cena.id}`);
-                        if(elGen && filme.genres && filme.genres.length > 0) {
-                            elGen.innerText = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
-                        }
-
-                        // Salva para quando o utilizador clicar em "Sinopse" funcionar perfeitamente
-                        bancoDeFilmesLocal.set(filme.id, {
-                            id: filme.id, titulo: filme.title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average ? filme.vote_average.toFixed(1) : '0.0', capa: filme.poster_path ? `${IMG_BASE}${filme.poster_path}` : 'https://via.placeholder.com/80x115?text=Capa', sinopse: filme.overview || 'Sem sinopse.'
-                        });
+                        if (filme.poster_path) { const imgEl = document.getElementById(`capa-${cena.id}`); if(imgEl) imgEl.src = `${IMG_BASE}${filme.poster_path}`; }
+                        const elTitulo = document.getElementById(`titulo-${cena.id}`); if(elTitulo) elTitulo.innerText = filme.title;
+                        const elAno = document.getElementById(`ano-${cena.id}`); if(elAno && filme.release_date) elAno.innerText = filme.release_date.split('-')[0];
+                        const elNota = document.getElementById(`nota-${cena.id}`); if(elNota && filme.vote_average) elNota.innerText = `⭐ ${filme.vote_average.toFixed(1)}`;
+                        const elGen = document.getElementById(`generos-${cena.id}`); if(elGen && filme.genres && filme.genres.length > 0) { elGen.innerText = filme.genres.map(g => g.name).slice(0, 2).join(' • '); }
+                        bancoDeFilmesLocal.set(filme.id, { id: filme.id, titulo: filme.title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average ? filme.vote_average.toFixed(1) : '0.0', capa: filme.poster_path ? `${IMG_BASE}${filme.poster_path}` : 'https://via.placeholder.com/80x115?text=Capa', sinopse: filme.overview || 'Sem sinopse.' });
                     } catch(e) { }
                 });
 
-                // ==========================================
-                // === RADAR NATIVO =======
-                // ==========================================
                 const glasses = document.querySelectorAll('.short-glass');
-                let scrollTimeout; 
-                let videoAtivoId = null; 
-                let primeiroCarregamento = true; 
+                let scrollTimeout; let videoAtivoId = null; let primeiroCarregamento = true; 
 
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -1227,45 +1198,18 @@
                         if (entry.isIntersecting) {
                             videoAtivoId = videoId;
                             clearTimeout(scrollTimeout);
-
-                            const executarPlay = () => {
-                                document.querySelectorAll('.short-video').forEach(v => {
-                                    if (v.id !== videoId) {
-                                        v.pause();
-                                        v.currentTime = 0; 
-                                    }
-                                });
-                                video.currentTime = 0;
-                                video.play().catch(e => console.log("O navegador segurou o autoplay."));
-                            };
-
-                            if (primeiroCarregamento) {
-                                executarPlay();
-                                primeiroCarregamento = false;
-                            } else {
-                                scrollTimeout = setTimeout(() => {
-                                    if (videoAtivoId === videoId) {
-                                        executarPlay();
-                                    }
-                                }, 350); 
-                            }
-                        } else {
-                            video.pause();
-                        }
+                            const executarPlay = () => { document.querySelectorAll('.short-video').forEach(v => { if (v.id !== videoId) { v.pause(); v.currentTime = 0; } }); video.currentTime = 0; video.play().catch(e => console.log("O navegador segurou o autoplay.")); };
+                            if (primeiroCarregamento) { executarPlay(); primeiroCarregamento = false; } else { scrollTimeout = setTimeout(() => { if (videoAtivoId === videoId) { executarPlay(); } }, 350); }
+                        } else { video.pause(); }
                     });
                 }, { threshold: 0.55 }); 
 
                 document.querySelectorAll('.short-item').forEach(item => observer.observe(item));
 
                 glasses.forEach(glass => {
-                    const videoId = glass.getAttribute('data-video');
-                    const video = document.getElementById(videoId);
-                    const pausar = () => video.pause();
-                    const tocar = () => video.play().catch(e => {});
-
-                    glass.addEventListener('touchstart', pausar);
-                    glass.addEventListener('touchend', tocar);
-
+                    const videoId = glass.getAttribute('data-video'); const video = document.getElementById(videoId);
+                    const pausar = () => video.pause(); const tocar = () => video.play().catch(e => {});
+                    glass.addEventListener('touchstart', pausar); glass.addEventListener('touchend', tocar);
                     let mouseApertado = false;
                     glass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
                     glass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
@@ -1274,7 +1218,7 @@
 
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed. Verifique o banco de dados.</p>';
+                container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed.</p>';
             }
         }
 
@@ -1330,7 +1274,10 @@
             if (!dadoBruto) return [];
             if (Array.isArray(dadoBruto)) return dadoBruto;
             if (typeof dadoBruto === 'string') {
-                try { return JSON.parse(dadoBruto); } catch (e) { return []; }
+                try { 
+                    const parseado = JSON.parse(dadoBruto); 
+                    return Array.isArray(parseado) ? parseado : [];
+                } catch (e) { return []; }
             }
             return [];
         }
@@ -1340,11 +1287,26 @@
 
             cenaComentarioAbertaId = cenaId;
             abrirModalSeguro('modal-comentarios');
+            const lista = document.getElementById('lista-comentarios');
+            lista.innerHTML = '<p class="empty-msg" style="margin-top:20px;">A sintonizar os comentários... ⏳</p>';
 
-            // 🚀 MÁGICA INSTANTÂNEA: Carrega direto do cache local sem requisições lentas de rede!
-            const comentariosLimpos = bancoDeComentariosLocal.get(String(cenaId)) || [];
+            try {
+                // 🚀 O SEGREDO PWA: Força a busca diretamente no servidor, ignorando a cache da app!
+                const { data, error } = await supabaseClient
+                    .from('cenas_shorts')
+                    .select('comentarios')
+                    .eq('id', cenaId)
+                    .single();
 
-            renderizarComentarios(comentariosLimpos);
+                if (error) throw error;
+
+                const comentariosLimpos = garantirArrayComentarios(data.comentarios);
+                renderizarComentarios(comentariosLimpos);
+            } catch (err) {
+                console.error("Erro na PWA ao buscar comentários:", err);
+                lista.innerHTML = '<p class="empty-msg" style="margin-top:20px; color: var(--pink);">Erro de ligação. Tenta novamente.</p>';
+            }
+
             document.getElementById('btn-enviar-comentario').onclick = () => enviarComentario(cenaId);
         }
 
@@ -1357,10 +1319,10 @@
 
             lista.innerHTML = comentariosArray.map(c => `
                 <div style="display: flex; gap: 12px; animation: fadeIn 0.3s ease-out;">
-                    <div class="amigo-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">${c.username ? c.username.charAt(0).toUpperCase() : '?'}</div>
+                    <div class="amigo-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">${(c.username || '?').charAt(0).toUpperCase()}</div>
                     <div style="flex: 1; background: #1f2937; padding: 10px 14px; border-radius: 4px 16px 16px 16px; border: 1px solid #374151;">
                         <div style="font-weight: 800; font-size: 0.8rem; color: var(--purple); margin-bottom: 4px;">@${c.username || 'anonimo'} <span style="font-weight: normal; color: var(--text-muted); font-size: 0.7rem; float: right;">${c.data || ''}</span></div>
-                        <div style="font-size: 0.9rem; color: white; line-height: 1.4;">${c.texto}</div>
+                        <div style="font-size: 0.9rem; color: white; line-height: 1.4;">${c.texto || ''}</div>
                     </div>
                 </div>
             `).join('');
@@ -1389,18 +1351,15 @@
                 data: new Date().toLocaleDateString('pt-PT')
             };
 
-            // Pega os comentários do mapa local e adiciona o novo
-            let comentariosDb = bancoDeComentariosLocal.get(String(cenaId)) || [];
-            comentariosDb.push(novoComentario);
+            const { data } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
+            let comentariosDb = garantirArrayComentarios(data?.comentarios);
 
-            // Atualiza a memória local na hora
-            bancoDeComentariosLocal.set(String(cenaId), comentariosDb);
+            comentariosDb.push(novoComentario);
 
             renderizarComentarios(comentariosDb);
             const spanCount = document.getElementById(`count-comentarios-${cenaId}`);
             if(spanCount) spanCount.innerText = comentariosDb.length;
 
-            // Envia para o Supabase em background de forma silenciosa
             await supabaseClient.from('cenas_shorts').update({ comentarios: comentariosDb }).eq('id', cenaId);
         }
 

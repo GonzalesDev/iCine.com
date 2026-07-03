@@ -1079,52 +1079,23 @@
                     return;
                 }
 
-                // Embaralha os vídeos
+                // 1. Embaralha os vídeos
                 cenas.sort(() => Math.random() - 0.5);
 
-                // 🚀 MÁGICA DE PERFORMANCE: Pesquisa todos os filmes no TMDB ao MESMO TEMPO!
-                const promessasTMDB = cenas.map(async (cena) => {
-                    if (!cena.video_url) return null;
+                // 2. RENDERIZA OS VÍDEOS INSTANTANEAMENTE NA TELA
+                let htmlCompleto = '';
 
-                    let capaFilme = 'https://via.placeholder.com/50x75?text=Capa';
-                    let tituloFilme = 'Carregando...';
-                    let anoFilme = 'N/A';
-                    let notaFilme = '0.0';
-                    let generosFilme = '';
-
-                    // Verifica se já temos o filme no nosso banco de dados local para poupar internet
-                    if (bancoDeFilmesLocal.has(cena.tmdb_id)) {
-                        const f = bancoDeFilmesLocal.get(cena.tmdb_id);
-                        capaFilme = f.capa;
-                        tituloFilme = f.titulo;
-                        anoFilme = f.ano;
-                        notaFilme = f.notaTmdb;
-                    } else {
-                        try {
-                            const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
-                            const filme = await resp.json();
-
-                            if (filme.poster_path) capaFilme = `${IMG_BASE}${filme.poster_path}`;
-                            tituloFilme = filme.title;
-                            anoFilme = filme.release_date ? filme.release_date.split('-')[0] : 'N/A';
-                            notaFilme = filme.vote_average ? filme.vote_average.toFixed(1) : '0.0';
-
-                            if (filme.genres && filme.genres.length > 0) {
-                                generosFilme = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
-                            }
-
-                            bancoDeFilmesLocal.set(filme.id, {
-                                id: filme.id, titulo: filme.title, ano: anoFilme, notaTmdb: notaFilme, capa: capaFilme, sinopse: filme.overview || 'Sem sinopse.'
-                            });
-                        } catch(e) {}
-                    }
+                for (const cena of cenas) {
+                    if (!cena.video_url) continue;
 
                     const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
                     const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                     const likesCount = curtidasArray.length;
 
-                    // 🚀 MÁGICA 2: preload="metadata" (Baixa só o tamanho do vídeo, não o vídeo inteiro)
-                    return `
+                    // Usa o nome salvo no banco de dados provisoriamente
+                    const tituloProvisorio = cena.nome_filme || 'A carregar detalhes...';
+
+                    htmlCompleto += `
                         <div class="short-item">
                             <div class="short-video-wrapper">
                                 <video class="short-video" id="vid-${cena.id}" src="${cena.video_url}" loop playsinline preload="metadata"></video>
@@ -1148,24 +1119,59 @@
                                 </div>
 
                                 <div class="short-bottom-card" onclick="abrirDetalhes(${cena.tmdb_id})">
-                                    <img src="${capaFilme}" class="short-big-cover" alt="Capa">
+                                    <img src="https://via.placeholder.com/80x115?text=..." id="capa-${cena.id}" class="short-big-cover" alt="Capa">
                                     <div class="short-card-details">
-                                        <h3 class="short-card-title">${tituloFilme}</h3>
+                                        <h3 class="short-card-title" id="titulo-${cena.id}">${tituloProvisorio}</h3>
                                         <div class="short-card-meta">
-                                            <span class="short-year">${anoFilme}</span> • 
-                                            <span class="short-rating">⭐ ${notaFilme}</span>
+                                            <span class="short-year" id="ano-${cena.id}">N/A</span> • 
+                                            <span class="short-rating" id="nota-${cena.id}">⭐ 0.0</span>
                                         </div>
-                                        <div class="short-card-genres">${generosFilme}</div>
+                                        <div class="short-card-genres" id="generos-${cena.id}">Buscando...</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     `;
-                });
+                }
 
-                // Espera que TODOS terminem ao mesmo tempo e junta o HTML
-                const htmlArray = await Promise.all(promessasTMDB);
-                container.innerHTML = htmlArray.filter(html => html !== null).join('');
+                // Injeta tudo na tela de uma só vez (Zero Lag!)
+                container.innerHTML = htmlCompleto;
+
+                // 3. BUSCA OS DADOS DO TMDB EM SEGUNDO PLANO DE FORMA SILENCIOSA
+                cenas.forEach(async (cena) => {
+                    if (!cena.video_url) return;
+
+                    try {
+                        const resp = await fetch(`${URL_BASE}/movie/${cena.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`);
+                        const filme = await resp.json();
+
+                        // Atualiza a capa
+                        if (filme.poster_path) {
+                            const imgEl = document.getElementById(`capa-${cena.id}`);
+                            if(imgEl) imgEl.src = `${IMG_BASE}${filme.poster_path}`;
+                        }
+
+                        // Atualiza os Textos
+                        const elTitulo = document.getElementById(`titulo-${cena.id}`);
+                        if(elTitulo) elTitulo.innerText = filme.title;
+
+                        const elAno = document.getElementById(`ano-${cena.id}`);
+                        if(elAno && filme.release_date) elAno.innerText = filme.release_date.split('-')[0];
+
+                        const elNota = document.getElementById(`nota-${cena.id}`);
+                        if(elNota && filme.vote_average) elNota.innerText = `⭐ ${filme.vote_average.toFixed(1)}`;
+
+                        const elGen = document.getElementById(`generos-${cena.id}`);
+                        if(elGen && filme.genres && filme.genres.length > 0) {
+                            elGen.innerText = filme.genres.map(g => g.name).slice(0, 2).join(' • ');
+                        }
+
+                        // Salva para quando o utilizador clicar em "Sinopse" funcionar perfeitamente
+                        bancoDeFilmesLocal.set(filme.id, {
+                            id: filme.id, titulo: filme.title, ano: filme.release_date ? filme.release_date.split('-')[0] : 'N/A', notaTmdb: filme.vote_average ? filme.vote_average.toFixed(1) : '0.0', capa: filme.poster_path ? `${IMG_BASE}${filme.poster_path}` : 'https://via.placeholder.com/80x115?text=Capa', sinopse: filme.overview || 'Sem sinopse.'
+                        });
+                    } catch(e) { }
+                });
 
                 // ==========================================
                 // === RADAR NATIVO =======
@@ -1217,7 +1223,6 @@
                 glasses.forEach(glass => {
                     const videoId = glass.getAttribute('data-video');
                     const video = document.getElementById(videoId);
-
                     const pausar = () => video.pause();
                     const tocar = () => video.play().catch(e => {});
 
@@ -1225,26 +1230,9 @@
                     glass.addEventListener('touchend', tocar);
 
                     let mouseApertado = false;
-
-                    glass.addEventListener('mousedown', (e) => {
-                        if (e.button !== 0) return; 
-                        mouseApertado = true;
-                        pausar();
-                    });
-
-                    glass.addEventListener('mouseup', () => {
-                        if (mouseApertado) {
-                            mouseApertado = false;
-                            tocar();
-                        }
-                    });
-
-                    glass.addEventListener('mouseleave', () => {
-                        if (mouseApertado) {
-                            mouseApertado = false;
-                            tocar();
-                        }
-                    });
+                    glass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
+                    glass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                    glass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
                 });
 
             } catch (err) {

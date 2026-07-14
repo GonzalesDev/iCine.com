@@ -1237,8 +1237,13 @@
                         // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
                         if (video.getAttribute('src')) {
                             video.pause();
+                            video.src = ""; // Truque iOS
                             video.removeAttribute('src');
+                            video.removeAttribute('poster'); 
                             video.load(); 
+                            while (video.firstChild) {
+                                video.removeChild(video.firstChild);
+                            }
                         }
                     }
                 });
@@ -1274,20 +1279,23 @@
 
                         const executarPlay = () => {
                             document.querySelectorAll('.short-video').forEach(v => {
-                                if (v.id !== videoId) { v.pause(); } 
+                                if (v.id !== videoId && !v.paused) { 
+                                    v.pause(); 
+                                } 
                             });
 
-                            // Força a ligação caso a pessoa role o ecrã demasiado rápido
-                            if (!video.getAttribute('src')) {
-                                video.setAttribute('src', video.getAttribute('data-src'));
-                                video.load();
-                            }
+                            setTimeout(() => {
+                                if (!video.getAttribute('src')) {
+                                    video.setAttribute('src', video.getAttribute('data-src'));
+                                    video.load();
+                                }
 
-                            video.currentTime = 0;
-                            const playPromise = video.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch(e => console.log("Autoplay retido.", e));
-                            }
+                                video.currentTime = 0;
+                                const playPromise = video.play();
+                                if (playPromise !== undefined) {
+                                    playPromise.catch(e => console.log("Safari pausou o carregamento por segurança."));
+                                }
+                            }, 100);
                         };
 
                         if (primeiroCarregamentoCenas) {

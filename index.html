@@ -1234,11 +1234,25 @@
                             video.load();
                         }
                     } else {
-                        // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
-                        if (video.getAttribute('src')) {
-                            video.pause();
-                            video.removeAttribute('src');
-                            video.load(); 
+                            // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
+                            if (video.getAttribute('src')) {
+                                video.pause();
+
+                                // 🍎 TRUQUE PARA iOS: Define uma string vazia primeiro para esvaziar o buffer
+                                video.src = ""; 
+
+                                // Remove os atributos completamente
+                                video.removeAttribute('src');
+                                video.removeAttribute('poster'); 
+
+                                // Força o descarregamento imediato da memória do Safari
+                                video.load(); 
+
+                                // Opcional mas recomendado: Remove todos os sources internos se existirem
+                                while (video.firstChild) {
+                                    video.removeChild(video.firstChild);
+                                }
+                            } 
                         }
                     }
                 });

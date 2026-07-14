@@ -1105,20 +1105,8 @@
         let cenasTMDBJaCarregadas = new Set();
         let primeiroCarregamentoCenas = true; 
 
-        // 🌟 ARMA SECRETA DEFINITIVA: 1 ÚNICO PLAYER GLOBAL PARA O APP INTEIRO
-        if (!window.iosPlayer) {
-            window.iosPlayer = document.createElement('video');
-            window.iosPlayer.className = 'short-video';
-            window.iosPlayer.loop = true;
-            window.iosPlayer.playsInline = true;
-            window.iosPlayer.setAttribute('webkit-playsinline', 'true');
-            window.iosPlayer.style.width = '100%';
-            window.iosPlayer.style.height = '100%';
-            window.iosPlayer.style.objectFit = 'contain';
-            window.iosPlayer.style.position = 'absolute';
-            window.iosPlayer.style.inset = '0';
-            window.iosPlayer.style.zIndex = '2'; 
-        }
+        // 🌟 ARMA SECRETA: 1 ÚNICO PLAYER GLOBAL
+        let reprodutorUnicoiOS = null;
 
         async function carregarCenas() {
             const container = document.getElementById('feed-shorts');
@@ -1131,12 +1119,27 @@
             cenasTMDBJaCarregadas.clear();
             primeiroCarregamentoCenas = true;
 
+            // Inicializa o player único se não existir
+            if (!reprodutorUnicoiOS) {
+                reprodutorUnicoiOS = document.createElement('video');
+                reprodutorUnicoiOS.className = 'short-video';
+                reprodutorUnicoiOS.loop = true;
+                reprodutorUnicoiOS.playsInline = true;
+                reprodutorUnicoiOS.setAttribute('webkit-playsinline', 'true');
+                reprodutorUnicoiOS.style.width = '100%';
+                reprodutorUnicoiOS.style.height = '100%';
+                reprodutorUnicoiOS.style.objectFit = 'contain';
+                reprodutorUnicoiOS.style.position = 'absolute';
+                reprodutorUnicoiOS.style.inset = '0';
+                reprodutorUnicoiOS.style.zIndex = '2';
+            }
+
             try {
                 const { data: cenas, error } = await supabaseClient.from('cenas_shorts').select('*');
                 if (error) throw error;
 
                 if (!cenas || cenas.length === 0) {
-                    container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Nenhum vídeo encontrado. Adicione no Supabase!</p>';
+                    container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Nenhum vídeo encontrado.</p>';
                     return;
                 }
 
@@ -1174,7 +1177,8 @@
 
                 const tituloProvisorio = cena.nome_filme || 'Carregando detalhes...';
 
-                // 🚨 CÓDIGO LIMPO: Não existe NENHUMA tag <video> aqui! Apenas a caixa vazia pronta para receber o player.
+                // 🚨 CÓDIGO LIMPO: Não criamos NENHUMA tag <video> no HTML! 
+                // Apenas a caixa wrapper vazia que vai receber o player único.
                 htmlLote += `
                     <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
                         <div class="short-video-wrapper" id="wrapper-${cena.id}" data-url="${cena.video_url}" style="position: absolute; inset: 0; width: 100%; height: 100%; background: #000;">
@@ -1228,6 +1232,7 @@
             const itensDoFeed = document.querySelectorAll('.short-item');
 
             if (observerRadarCenas) observerRadarCenas.disconnect();
+            if (observerMemoriaCenas) observerMemoriaCenas.disconnect(); // Desliga o antigo de segurança
 
             let scrollTimeout;
 
@@ -1248,26 +1253,26 @@
                             injetarMaisCenasNoFeed();
                         }
 
-                        // 3. TELETRANSPORTE DO PLAYER (Apenas 1 player no app inteiro)
+                        // 3. TELETRANSPORTE DO PLAYER 
                         const teletransportarPlayer = () => {
-                            if (urlVideoReal) {
-                                window.iosPlayer.pause(); 
-                                
+                            if (urlVideoReal && reprodutorUnicoiOS) {
+                                reprodutorUnicoiOS.pause(); 
+
                                 // Se o player não estiver nesta caixa, movemos para cá
-                                if (window.iosPlayer.parentNode !== wrapper) {
-                                    wrapper.appendChild(window.iosPlayer);
+                                if (reprodutorUnicoiOS.parentNode !== wrapper) {
+                                    wrapper.appendChild(reprodutorUnicoiOS);
                                 }
-                                
+
                                 // Só recarregamos o SRC se for um vídeo diferente
-                                if (window.iosPlayer.src !== urlVideoReal) {
-                                    window.iosPlayer.src = urlVideoReal; 
-                                    window.iosPlayer.load();
+                                if (reprodutorUnicoiOS.getAttribute('src') !== urlVideoReal) {
+                                    reprodutorUnicoiOS.setAttribute('src', urlVideoReal); 
+                                    reprodutorUnicoiOS.load();
                                 }
-                                
-                                window.iosPlayer.currentTime = 0;
-                                const playPromise = window.iosPlayer.play();
+
+                                reprodutorUnicoiOS.currentTime = 0;
+                                const playPromise = reprodutorUnicoiOS.play();
                                 if (playPromise !== undefined) {
-                                    playPromise.catch(e => console.log("Aguardando toque para autoplay."));
+                                    playPromise.catch(e => console.log("Aguardando interação para autoplay.", e));
                                 }
                             }
                         };
@@ -1276,14 +1281,14 @@
                             teletransportarPlayer(); 
                             primeiroCarregamentoCenas = false;
                         } else {
-                            // Atraso de 200ms garante que o iPhone parou de rolar antes de processar o vídeo
+                            // Atraso de 200ms para evitar engasgos ao rolar rápido
                             scrollTimeout = setTimeout(teletransportarPlayer, 200); 
                         }
                     }
                 });
             }, { 
                 root: containerFeed,
-                threshold: 0.6 // Dispara quando 60% da cena estiver visível
+                threshold: 0.55 // Dispara quando 55% da cena estiver visível
             });
 
             itensDoFeed.forEach(item => {
@@ -1295,10 +1300,10 @@
                 const novoGlass = glass.cloneNode(true);
                 glass.parentNode.replaceChild(novoGlass, glass);
 
-                const pausar = () => { if (window.iosPlayer) window.iosPlayer.pause(); };
+                const pausar = () => { if (reprodutorUnicoiOS) reprodutorUnicoiOS.pause(); };
                 const tocar = () => { 
-                    if (window.iosPlayer) {
-                        const playPromise = window.iosPlayer.play();
+                    if (reprodutorUnicoiOS) {
+                        const playPromise = reprodutorUnicoiOS.play();
                         if (playPromise !== undefined) playPromise.catch(e => {});
                     }
                 };

@@ -558,8 +558,9 @@
 
         let usuarioAtual = null;
         const bancoDeFilmesLocal = new Map();
-        const bancoDeComentariosLocal = new Map();
+        const bancoDeComentariosLocal = new Map(); // 🌟 NOVO: Cache local para velocidade instantânea
 
+        // 🌟 CORREÇÃO CRÍTICA PWA: Declarando variáveis para evitar ReferenceError no mobile
         let meuPerfil = null; 
         let pedidosPendentes = [];
         let listaAmigos = [];
@@ -1035,7 +1036,7 @@
         }
         document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
 
-        // =========================================
+// =========================================
         // === BLOCO: JS MODAL DETALHES DO FILME ===
         // =========================================
         function abrirModal(id, contexto = 'explorar') { 
@@ -1095,21 +1096,26 @@
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
         
+
         // =========================================
         // === BLOCO: JS CENAS (NATIVO HTML5) ===
         // =========================================
+
+        // Variáveis de controlo do Feed Otimizado
         let listaCenasTotal = [];
         let contadorCenasExibidas = 0;
         const TAMANHO_LOTE_CENAS = 3; 
         let observerRadarCenas = null;
         let observerMemoriaCenas = null;
         let cenasTMDBJaCarregadas = new Set();
-        let primeiroCarregamentoCenas = true;
+        let primeiroCarregamentoCenas = true; // 🌟 Controla o autoplay inicial corretamente
 
         async function carregarCenas() {
             const container = document.getElementById('feed-shorts');
             if (container.innerHTML.trim() !== '' && listaCenasTotal.length > 0) return; 
+
             container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">A sintonizar o feed... ⏳</p>';
+
             listaCenasTotal = [];
             contadorCenasExibidas = 0;
             cenasTMDBJaCarregadas.clear();
@@ -1118,14 +1124,18 @@
             try {
                 const { data: cenas, error } = await supabaseClient.from('cenas_shorts').select('*');
                 if (error) throw error;
+
                 if (!cenas || cenas.length === 0) {
                     container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Nenhum vídeo encontrado. Adicione no Supabase!</p>';
                     return;
                 }
+
                 cenas.sort(() => Math.random() - 0.5);
                 listaCenasTotal = cenas;
                 container.innerHTML = ''; 
+
                 injetarMaisCenasNoFeed();
+
             } catch (err) {
                 console.error(err);
                 container.innerHTML = '<p class="empty-msg" style="margin-top: 50vh;">Erro ao carregar o feed.</p>';
@@ -1135,11 +1145,14 @@
         function injetarMaisCenasNoFeed() {
             const container = document.getElementById('feed-shorts');
             const proximoLote = listaCenasTotal.slice(contadorCenasExibidas, contadorCenasExibidas + TAMANHO_LOTE_CENAS);
+
             if (proximoLote.length === 0) return;
 
             let htmlLote = '';
+
             for (const cena of proximoLote) {
                 if (!cena.video_url) continue;
+
                 const curtidasArray = Array.isArray(cena.curtidas) ? cena.curtidas : [];
                 const isLiked = usuarioAtual && curtidasArray.includes(usuarioAtual.id);
                 const likesCount = curtidasArray.length;
@@ -1151,6 +1164,7 @@
 
                 const tituloProvisorio = cena.nome_filme || 'Carregando detalhes...';
 
+                // 🌟 O vídeo nasce vazio (sem SRC) para enganar o limite da Apple
                 htmlLote += `
                     <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
                         <div class="short-video-wrapper">
@@ -1206,6 +1220,7 @@
             if (observerRadarCenas) observerRadarCenas.disconnect();
             if (observerMemoriaCenas) observerMemoriaCenas.disconnect();
 
+            // 🛡️ O SALVADOR DO IPHONE: Root rigoroso para evitar conexões fantasmas
             observerMemoriaCenas = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const idCena = entry.target.getAttribute('data-cena-id');
@@ -1213,28 +1228,26 @@
                     if (!video) return;
 
                     if (entry.isIntersecting) {
+                        // O vídeo chega perto: Conectamos os cabos!
                         if (!video.getAttribute('src')) {
                             video.setAttribute('src', video.getAttribute('data-src'));
                             video.load();
                         }
                     } else {
+                        // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
                         if (video.getAttribute('src')) {
                             video.pause();
-                            video.src = ""; 
                             video.removeAttribute('src');
-                            video.removeAttribute('poster'); 
                             video.load(); 
-                            while (video.firstChild) {
-                                video.removeChild(video.firstChild);
-                            }
                         }
                     }
                 });
             }, { 
-                root: containerFeed, 
-                rootMargin: '25% 0px' 
+                root: containerFeed, // 🌟 Obriga o iPhone a respeitar a caixa de scroll e não a tela toda
+                rootMargin: '25% 0px' // A margem apertada garante que só existem 2 vídeos carregados no máximo!
             });
 
+            // 🎬 O MOTOR DE PLAY/PAUSE
             let scrollTimeout;
             let videoAtivoId = null;
 
@@ -1261,23 +1274,20 @@
 
                         const executarPlay = () => {
                             document.querySelectorAll('.short-video').forEach(v => {
-                                if (v.id !== videoId && !v.paused) { 
-                                    v.pause(); 
-                                } 
+                                if (v.id !== videoId) { v.pause(); } 
                             });
 
-                            setTimeout(() => {
-                                if (!video.getAttribute('src')) {
-                                    video.setAttribute('src', video.getAttribute('data-src'));
-                                    video.load();
-                                }
+                            // Força a ligação caso a pessoa role o ecrã demasiado rápido
+                            if (!video.getAttribute('src')) {
+                                video.setAttribute('src', video.getAttribute('data-src'));
+                                video.load();
+                            }
 
-                                video.currentTime = 0;
-                                const playPromise = video.play();
-                                if (playPromise !== undefined) {
-                                    playPromise.catch(e => console.log("Safari pausou o carregamento."));
-                                }
-                            }, 100);
+                            video.currentTime = 0;
+                            const playPromise = video.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(e => console.log("Autoplay retido.", e));
+                            }
                         };
 
                         if (primeiroCarregamentoCenas) {
@@ -1302,11 +1312,13 @@
                 observerRadarCenas.observe(item);
             });
 
+            // 🛡️ Limpeza de Eventos Fantasma do iPhone
             document.querySelectorAll('.short-glass').forEach(glass => {
                 const videoId = glass.getAttribute('data-video');
                 const video = document.getElementById(videoId);
                 if(!video) return;
 
+                // Garante que não se multiplicam botões na memória a cada scroll
                 const novoGlass = glass.cloneNode(true);
                 glass.parentNode.replaceChild(novoGlass, glass);
 
@@ -1364,18 +1376,28 @@
             const txtNota = document.getElementById(`nota-${idCena}`); if (txtNota) txtNota.innerText = `⭐ ${filme.notaTmdb}`;
             const txtGen = document.getElementById(`generos-${idCena}`); if (txtGen && generosTextoOpcional) txtGen.innerText = generosTextoOpcional;
         }
-
         // =========================================
         // === MOTOR DE LIKES (CURTIDAS) ===
         // =========================================
         async function curtirCena(event, cenaId, btnElement) {
-            if (event) { event.preventDefault(); event.stopPropagation(); }
-            if (!usuarioAtual) { alert("Precisas de entrar na tua conta para curtir cenas!"); return; }
+            // 1. Impede que o clique pause o vídeo
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
 
+            // 2. Proteção: Só quem tem conta pode curtir
+            if (!usuarioAtual) {
+                alert("Precisas de entrar na tua conta para curtir cenas!");
+                return;
+            }
+
+            // 3. Pega o número atual de curtidas na tela
             const spanCount = btnElement.nextElementSibling;
             let countAtual = parseInt(spanCount.innerText) || 0;
-            const jaEstavaCurtido = btnElement.classList.contains('liked');
 
+            // 4. MÁGICA VISUAL INSTANTÂNEA (Optimistic UI)
+            const jaEstavaCurtido = btnElement.classList.contains('liked');
             if (jaEstavaCurtido) {
                 btnElement.classList.remove('liked');
                 btnElement.innerText = '🤍';
@@ -1386,15 +1408,25 @@
                 spanCount.innerText = countAtual + 1;
             }
 
+            // 5. Comunicação silenciosa com o Supabase em Background
             try {
+                // Vai buscar a lista atualizada de quem curtiu
                 const { data } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
                 let curtidas = Array.isArray(data?.curtidas) ? data.curtidas : [];
 
-                if (jaEstavaCurtido) { curtidas = curtidas.filter(id => id !== usuarioAtual.id); } 
-                else { if (!curtidas.includes(usuarioAtual.id)) curtidas.push(usuarioAtual.id); }
+                if (jaEstavaCurtido) {
+                    // Remove o utilizador atual da lista
+                    curtidas = curtidas.filter(id => id !== usuarioAtual.id);
+                } else {
+                    // Adiciona o utilizador atual à lista
+                    if (!curtidas.includes(usuarioAtual.id)) curtidas.push(usuarioAtual.id);
+                }
 
+                // Salva a nova lista no banco de dados
                 await supabaseClient.from('cenas_shorts').update({ curtidas }).eq('id', cenaId);
-            } catch (e) { console.error("Erro ao processar a curtida no banco de dados:", e); }
+            } catch (e) {
+                console.error("Erro ao processar a curtida no banco de dados:", e);
+            }
         }
 
         // =========================================
@@ -1406,21 +1438,32 @@
             if (!dadoBruto) return [];
             if (Array.isArray(dadoBruto)) return dadoBruto;
             if (typeof dadoBruto === 'string') {
-                try { const parseado = JSON.parse(dadoBruto); return Array.isArray(parseado) ? parseado : []; } catch (e) { return []; }
+                try { 
+                    const parseado = JSON.parse(dadoBruto); 
+                    return Array.isArray(parseado) ? parseado : [];
+                } catch (e) { return []; }
             }
             return [];
         }
 
         async function abrirComentarios(event, cenaId) {
             if (event) { event.preventDefault(); event.stopPropagation(); } 
+
             cenaComentarioAbertaId = cenaId;
             abrirModalSeguro('modal-comentarios');
             const lista = document.getElementById('lista-comentarios');
             lista.innerHTML = '<p class="empty-msg" style="margin-top:20px;">A sintonizar os comentários... ⏳</p>';
 
             try {
-                const { data, error } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
+                // 🚀 O SEGREDO PWA: Força a busca diretamente no servidor, ignorando a cache da app!
+                const { data, error } = await supabaseClient
+                    .from('cenas_shorts')
+                    .select('comentarios')
+                    .eq('id', cenaId)
+                    .single();
+
                 if (error) throw error;
+
                 const comentariosLimpos = garantirArrayComentarios(data.comentarios);
                 renderizarComentarios(comentariosLimpos);
             } catch (err) {
@@ -1447,6 +1490,7 @@
                     </div>
                 </div>
             `).join('');
+
             lista.scrollTop = lista.scrollHeight;
         }
 
@@ -1463,9 +1507,17 @@
             }
 
             input.value = ''; 
-            const novoComentario = { user_id: usuarioAtual.id, username: meuPerfil.username, texto: texto, data: new Date().toLocaleDateString('pt-PT') };
+
+            const novoComentario = {
+                user_id: usuarioAtual.id,
+                username: meuPerfil.username,
+                texto: texto,
+                data: new Date().toLocaleDateString('pt-PT')
+            };
+
             const { data } = await supabaseClient.from('cenas_shorts').select('comentarios').eq('id', cenaId).single();
             let comentariosDb = garantirArrayComentarios(data?.comentarios);
+
             comentariosDb.push(novoComentario);
 
             renderizarComentarios(comentariosDb);
@@ -1474,6 +1526,7 @@
 
             await supabaseClient.from('cenas_shorts').update({ comentarios: comentariosDb }).eq('id', cenaId);
         }
+
 
         // =========================================
         // === BLOCO: JS AMIGOS E REDE SOCIAL ===
@@ -1597,12 +1650,15 @@
 
         function renderizarComunidade() {
             const container = document.getElementById('comunidade-grid');
+            
+            // Ordena as playlists por número de curtidas
             playlistsComunidadeAtual.sort((a, b) => { 
                 const likesA = (a.curtidas || []).length; 
                 const likesB = (b.curtidas || []).length; 
                 if (likesB !== likesA) return likesB - likesA; 
                 return a.nome.localeCompare(b.nome); 
             });
+            
             container.innerHTML = playlistsComunidadeAtual.map(p => {
                 const likes = (p.curtidas || []).length; 
                 const jaCurtiu = (p.curtidas || []).includes(usuarioAtual.id); 
@@ -1616,8 +1672,10 @@
                         <div style="position:absolute;inset:0;background:linear-gradient(to top, #030712, transparent);"></div>
                         <h3 style="position:absolute;bottom:12px;left:15px;margin:0;font-size:1.15rem;text-shadow:0 2px 4px rgba(0,0,0,0.9);z-index:2;color:white;">${p.nome}</h3>
                     </div>
+                    
                     <div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;">
                         <div style="font-size:0.85rem; color:var(--text-muted);">👤 @${p.username_criador}<br><span style="font-size:0.75rem;">${(p.filmes || []).length} filmes na lista</span></div>
+                        
                         <button onclick="alternarLikePlaylist(event, '${p.id}')" style="background:rgba(255,255,255,0.05); border:1px solid #374151; padding:6px 14px; border-radius:20px; display:flex; align-items:center; gap:6px; cursor:pointer; color:${corLike}; transition:0.2s; z-index:10;">
                             <span style="font-size:1.1rem;">${iconeLike}</span> 
                             <span style="font-weight:bold;">${likes}</span>
@@ -1628,16 +1686,24 @@
         }
 
         async function alternarLikePlaylist(event, playlistId) {
-            if (event) { event.preventDefault(); event.stopPropagation(); }
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
             const playlist = playlistsComunidadeAtual.find(p => String(p.id) === String(playlistId)); 
             if (!playlist) return;
             
             let curtidas = playlist.curtidas || []; 
-            if (curtidas.includes(usuarioAtual.id)) { curtidas = curtidas.filter(id => id !== usuarioAtual.id); } 
-            else { curtidas.push(usuarioAtual.id); }
+            if (curtidas.includes(usuarioAtual.id)) { 
+                curtidas = curtidas.filter(id => id !== usuarioAtual.id); 
+            } else { 
+                curtidas.push(usuarioAtual.id); 
+            }
             
             playlist.curtidas = curtidas; 
             renderizarComunidade(); 
+            
             await supabaseClient.from('playlists').update({ curtidas: curtidas }).eq('id', playlist.id);
         }
 

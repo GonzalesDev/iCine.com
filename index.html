@@ -1220,39 +1220,49 @@
             if (observerRadarCenas) observerRadarCenas.disconnect();
             if (observerMemoriaCenas) observerMemoriaCenas.disconnect();
 
-            // 🛡️ O SALVADOR DO IPHONE: Root rigoroso para evitar conexões fantasmas
+            // 🛡️ MODO EXTREMO PARA iOS: Remover a tag <video> completamente do HTML
             observerMemoriaCenas = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const idCena = entry.target.getAttribute('data-cena-id');
-                    const video = document.getElementById(`vid-${idCena}`);
-                    if (!video) return;
+                    const wrapper = entry.target.querySelector('.short-video-wrapper');
+                    let video = document.getElementById(`vid-${idCena}`);
 
                     if (entry.isIntersecting) {
-                        // O vídeo chega perto: Conectamos os cabos!
-                        if (!video.getAttribute('src')) {
+                        // 1. O item chegou perto da tela: Se o vídeo não existe, recriamos do zero!
+                        if (!video) {
+                            const videoUrl = wrapper.getAttribute('data-salvo-url');
+                            if (videoUrl) {
+                                wrapper.innerHTML = `<video class="short-video" id="vid-${idCena}" data-src="${videoUrl}" loop playsinline webkit-playsinline preload="none"></video>`;
+                                video = document.getElementById(`vid-${idCena}`);
+                            }
+                        }
+
+                        // 2. Coloca o link para carregar
+                        if (video && !video.getAttribute('src')) {
                             video.setAttribute('src', video.getAttribute('data-src'));
                             video.load();
                         }
                     } else {
-                        // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
-                        if (video.getAttribute('src')) {
+                        // 3. O item saiu de perto: MATAMOS O VÍDEO COMPLETO!
+                        if (video) {
+                            // Guardamos o link antes de apagar para podermos recriar mais tarde
+                            wrapper.setAttribute('data-salvo-url', video.getAttribute('data-src'));
+
                             video.pause();
-                            video.src = ""; // Truque iOS
+                            video.src = "";
                             video.removeAttribute('src');
-                            video.removeAttribute('poster'); 
                             video.load(); 
-                            while (video.firstChild) {
-                                video.removeChild(video.firstChild);
-                            }
+
+                            // DESTRÓI O ELEMENTO: Única forma de forçar o iOS a libertar a memória
+                            wrapper.innerHTML = ''; 
                         }
                     }
                 });
             }, { 
-                root: containerFeed, // 🌟 Obriga o iPhone a respeitar a caixa de scroll e não a tela toda
-                rootMargin: '25% 0px' // A margem apertada garante que só existem 2 vídeos carregados no máximo!
+                root: containerFeed, 
+                rootMargin: '100% 0px' // Mantém os vídeos vivos apenas 1 ecrã para cima e 1 para baixo
             });
 
-            // 🎬 O MOTOR DE PLAY/PAUSE
             let scrollTimeout;
             let videoAtivoId = null;
 
@@ -1262,9 +1272,6 @@
                     const idCena = itemEl.getAttribute('data-cena-id');
                     const tmdbId = itemEl.getAttribute('data-tmdb-id');
                     const videoId = `vid-${idCena}`;
-                    const video = document.getElementById(videoId);
-
-                    if (!video) return;
 
                     if (entry.isIntersecting) {
                         videoAtivoId = videoId;
@@ -1285,15 +1292,19 @@
                             });
 
                             setTimeout(() => {
-                                if (!video.getAttribute('src')) {
-                                    video.setAttribute('src', video.getAttribute('data-src'));
-                                    video.load();
-                                }
+                                // Busca na DOM novamente porque o vídeo pode ter acabado de ser recriado!
+                                const videoFinal = document.getElementById(videoId);
+                                if (videoFinal) {
+                                    if (!videoFinal.getAttribute('src')) {
+                                        videoFinal.setAttribute('src', videoFinal.getAttribute('data-src'));
+                                        videoFinal.load();
+                                    }
 
-                                video.currentTime = 0;
-                                const playPromise = video.play();
-                                if (playPromise !== undefined) {
-                                    playPromise.catch(e => console.log("Safari pausou o carregamento por segurança."));
+                                    videoFinal.currentTime = 0;
+                                    const playPromise = videoFinal.play();
+                                    if (playPromise !== undefined) {
+                                        playPromise.catch(e => console.log("Safari pausou o play automático."));
+                                    }
                                 }
                             }, 100);
                         };
@@ -1307,7 +1318,8 @@
                             }, 320); 
                         }
                     } else {
-                        video.pause();
+                        const videoPerdido = document.getElementById(videoId);
+                        if (videoPerdido) videoPerdido.pause();
                     }
                 });
             }, { 
@@ -1323,17 +1335,22 @@
             // 🛡️ Limpeza de Eventos Fantasma do iPhone
             document.querySelectorAll('.short-glass').forEach(glass => {
                 const videoId = glass.getAttribute('data-video');
-                const video = document.getElementById(videoId);
-                if(!video) return;
 
-                // Garante que não se multiplicam botões na memória a cada scroll
+                // Troca o nó para remover eventos antigos duplicados e evitar travagens nos cliques
                 const novoGlass = glass.cloneNode(true);
                 glass.parentNode.replaceChild(novoGlass, glass);
 
-                const pausar = () => video.pause();
+                // Funções dinâmicas que garantem que encontram o vídeo mesmo depois de ele ser recriado
+                const pausar = () => {
+                    const vid = document.getElementById(videoId);
+                    if (vid) vid.pause();
+                };
                 const tocar = () => {
-                    const playPromise = video.play();
-                    if (playPromise !== undefined) playPromise.catch(e => {});
+                    const vid = document.getElementById(videoId);
+                    if (vid) {
+                        const playPromise = vid.play();
+                        if (playPromise !== undefined) playPromise.catch(e => {});
+                    }
                 };
 
                 novoGlass.addEventListener('touchstart', pausar, {passive: true});

@@ -1228,37 +1228,27 @@
                     if (!video) return;
 
                     if (entry.isIntersecting) {
-                        // O vídeo chega perto: Conectamos os cabos!
                         if (!video.getAttribute('src')) {
                             video.setAttribute('src', video.getAttribute('data-src'));
                             video.load();
                         }
                     } else {
-                                // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
-                                if (video.getAttribute('src')) {
-                                    video.pause();
-
-                                    // 🍎 TRUQUE PARA iOS: Define uma string vazia primeiro para esvaziar o buffer
-                                    video.src = ""; 
-
-                                    // Remove os atributos completamente
-                                    video.removeAttribute('src');
-                                    video.removeAttribute('poster'); 
-
-                                    // Força o descarregamento imediato da memória do Safari
-                                    video.load(); 
-
-                                    // Opcional mas recomendado: Remove todos os sources internos se existirem
-                                    while (video.firstChild) {
-                                        video.removeChild(video.firstChild);
-                                    }
-                                }
+                        if (video.getAttribute('src')) {
+                            video.pause();
+                            video.src = ""; 
+                            video.removeAttribute('src');
+                            video.removeAttribute('poster'); 
+                            video.load(); 
+                            while (video.firstChild) {
+                                video.removeChild(video.firstChild);
                             }
-                        }); // <-- Repare que a chave do else liga direto aqui
-                    }, { 
-                        root: containerFeed, // 🌟 Obriga o iPhone a respeitar a caixa de scroll e não a tela toda
-                        rootMargin: '25% 0px' // A margem apertada garante que só existem 2 vídeos carregados no máximo!
-                    });
+                        }
+                    }
+                });
+            }, { 
+                root: containerFeed, 
+                rootMargin: '25% 0px' 
+            });
 
             // 🎬 O MOTOR DE PLAY/PAUSE
             let scrollTimeout;
@@ -1286,21 +1276,26 @@
                         }
 
                         const executarPlay = () => {
+                            // Pausa tudo o que não seja o vídeo atual
                             document.querySelectorAll('.short-video').forEach(v => {
-                                if (v.id !== videoId) { v.pause(); } 
+                                if (v.id !== videoId && !v.paused) { 
+                                    v.pause(); 
+                                } 
                             });
 
-                            // Força a ligação caso a pessoa role o ecrã demasiado rápido
-                            if (!video.getAttribute('src')) {
-                                video.setAttribute('src', video.getAttribute('data-src'));
-                                video.load();
-                            }
+                            // Dá 100 milissegundos para o iPhone "respirar"
+                            setTimeout(() => {
+                                if (!video.getAttribute('src')) {
+                                    video.setAttribute('src', video.getAttribute('data-src'));
+                                    video.load();
+                                }
 
-                            video.currentTime = 0;
-                            const playPromise = video.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch(e => console.log("Autoplay retido.", e));
-                            }
+                                video.currentTime = 0;
+                                const playPromise = video.play();
+                                if (playPromise !== undefined) {
+                                    playPromise.catch(e => console.log("Safari pausou o carregamento por segurança."));
+                                }
+                            }, 100);
                         };
 
                         if (primeiroCarregamentoCenas) {
@@ -1331,7 +1326,6 @@
                 const video = document.getElementById(videoId);
                 if(!video) return;
 
-                // Garante que não se multiplicam botões na memória a cada scroll
                 const novoGlass = glass.cloneNode(true);
                 glass.parentNode.replaceChild(novoGlass, glass);
 
@@ -1346,6 +1340,10 @@
 
                 let mouseApertado = false;
                 novoGlass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
+                novoGlass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                novoGlass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+            });
+        }          novoGlass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
                 novoGlass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
                 novoGlass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
             });

@@ -1213,55 +1213,115 @@
             configurarRadarFeedCenas();
         }
 
-        function configurarRadarFeedCenas() {
-            const containerFeed = document.getElementById('feed-shorts');
-            const itensDoFeed = document.querySelectorAll('.short-item');
+            let reprodutorUnicoiOS = null; // 🌟 A ARMA SECRETA: Apenas 1 player global!
 
-            if (observerRadarCenas) observerRadarCenas.disconnect();
-            if (observerMemoriaCenas) observerMemoriaCenas.disconnect();
+            function configurarRadarFeedCenas() {
+                const containerFeed = document.getElementById('feed-shorts');
+                const itensDoFeed = document.querySelectorAll('.short-item');
 
-            // 🛡️ MODO EXTREMO PARA iOS: Remover a tag <video> completamente do HTML
-            observerMemoriaCenas = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    const idCena = entry.target.getAttribute('data-cena-id');
-                    const wrapper = entry.target.querySelector('.short-video-wrapper');
-                    let video = document.getElementById(`vid-${idCena}`);
+                // 1. CRIA O PLAYER ÚNICO (Se ainda não existir na memória)
+                if (!reprodutorUnicoiOS) {
+                    reprodutorUnicoiOS = document.createElement('video');
+                    reprodutorUnicoiOS.className = 'short-video';
+                    reprodutorUnicoiOS.loop = true;
+                    reprodutorUnicoiOS.playsInline = true;
+                    reprodutorUnicoiOS.setAttribute('webkit-playsinline', 'true');
+                    // Garante que o formato fica igualzinho ao antigo
+                    reprodutorUnicoiOS.style.width = '100%';
+                    reprodutorUnicoiOS.style.height = '100%';
+                    reprodutorUnicoiOS.style.objectFit = 'contain';
+                    reprodutorUnicoiOS.style.position = 'absolute';
+                    reprodutorUnicoiOS.style.inset = '0';
+                }
 
-                    if (entry.isIntersecting) {
-                        // 1. O item chegou perto da tela: Se o vídeo não existe, recriamos do zero!
-                        if (!video) {
-                            const videoUrl = wrapper.getAttribute('data-salvo-url');
-                            if (videoUrl) {
-                                wrapper.innerHTML = `<video class="short-video" id="vid-${idCena}" data-src="${videoUrl}" loop playsinline webkit-playsinline preload="none"></video>`;
-                                video = document.getElementById(`vid-${idCena}`);
+                if (observerRadarCenas) observerRadarCenas.disconnect();
+
+                // ATENÇÃO: Retiramos o observerMemoriaCenas porque com apenas 1 vídeo, ele já não é necessário!
+
+                let scrollTimeout;
+
+                observerRadarCenas = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const itemEl = entry.target;
+                        const idCena = itemEl.getAttribute('data-cena-id');
+                        const tmdbId = itemEl.getAttribute('data-tmdb-id');
+                        const wrapper = itemEl.querySelector('.short-video-wrapper');
+
+                        // 2. LIMPEZA AUTOMÁTICA
+                        // Vamos apagar os <videos> originais que o HTML gerou e guardar só o Link
+                        let urlVideoReal = wrapper.getAttribute('data-url-segura');
+                        const videoFalsoHTML = wrapper.querySelector('video[id^="vid-"]');
+
+                        if (videoFalsoHTML && videoFalsoHTML !== reprodutorUnicoiOS) {
+                            urlVideoReal = videoFalsoHTML.getAttribute('data-src');
+                            wrapper.setAttribute('data-url-segura', urlVideoReal);
+                            videoFalsoHTML.remove(); // Destrói da memória o falso!
+                        }
+
+                        if (entry.isIntersecting) {
+                            clearTimeout(scrollTimeout);
+                            solicitarDadosTMDBPreguicoso(idCena, tmdbId);
+
+                            const todosCards = document.querySelectorAll('.short-item');
+                            if (itemEl === todosCards[todosCards.length - 2]) {
+                                injetarMaisCenasNoFeed();
+                            }
+
+                            // 3. TELETRANSPORTE DO PLAYER
+                            const teletransportarPlayer = () => {
+                                if (urlVideoReal) {
+                                    reprodutorUnicoiOS.pause(); // Para o atual
+                                    wrapper.appendChild(reprodutorUnicoiOS); // Move para a nova cena!
+                                    reprodutorUnicoiOS.src = urlVideoReal; // Muda o filme
+                                    reprodutorUnicoiOS.currentTime = 0;
+
+                                    const playPromise = reprodutorUnicoiOS.play();
+                                    if (playPromise !== undefined) {
+                                        playPromise.catch(e => console.log("Aguardando toque para autoplay."));
+                                    }
+                                }
+                            };
+
+                            if (primeiroCarregamentoCenas) {
+                                teletransportarPlayer(); 
+                                primeiroCarregamentoCenas = false;
+                            } else {
+                                // Um pequeno atraso garante que o teletransporte só acontece quando parar o dedo
+                                scrollTimeout = setTimeout(teletransportarPlayer, 150); 
                             }
                         }
-
-                        // 2. Coloca o link para carregar
-                        if (video && !video.getAttribute('src')) {
-                            video.setAttribute('src', video.getAttribute('data-src'));
-                            video.load();
-                        }
-                    } else {
-                        // 3. O item saiu de perto: MATAMOS O VÍDEO COMPLETO!
-                        if (video) {
-                            // Guardamos o link antes de apagar para podermos recriar mais tarde
-                            wrapper.setAttribute('data-salvo-url', video.getAttribute('data-src'));
-
-                            video.pause();
-                            video.src = "";
-                            video.removeAttribute('src');
-                            video.load(); 
-
-                            // DESTRÓI O ELEMENTO: Única forma de forçar o iOS a libertar a memória
-                            wrapper.innerHTML = ''; 
-                        }
-                    }
+                    });
+                }, { 
+                    root: containerFeed,
+                    threshold: 0.6 // Dispara quando 60% da cena estiver visível
                 });
-            }, { 
-                root: containerFeed, 
-                rootMargin: '100% 0px' // Mantém os vídeos vivos apenas 1 ecrã para cima e 1 para baixo
-            });
+
+                itensDoFeed.forEach(item => {
+                    observerRadarCenas.observe(item);
+                });
+
+                // 🛡️ REFAZENDO OS CONTROLES DE TOQUE PARA O PLAYER ÚNICO
+                document.querySelectorAll('.short-glass').forEach(glass => {
+                    const novoGlass = glass.cloneNode(true);
+                    glass.parentNode.replaceChild(novoGlass, glass);
+
+                    const pausar = () => { if (reprodutorUnicoiOS) reprodutorUnicoiOS.pause(); };
+                    const tocar = () => { 
+                        if (reprodutorUnicoiOS) {
+                            const playPromise = reprodutorUnicoiOS.play();
+                            if (playPromise !== undefined) playPromise.catch(e => {});
+                        }
+                    };
+
+                    novoGlass.addEventListener('touchstart', pausar, {passive: true});
+                    novoGlass.addEventListener('touchend', tocar, {passive: true});
+
+                    let mouseApertado = false;
+                    novoGlass.addEventListener('mousedown', (e) => { if (e.button !== 0) return; mouseApertado = true; pausar(); });
+                    novoGlass.addEventListener('mouseup', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                    novoGlass.addEventListener('mouseleave', () => { if (mouseApertado) { mouseApertado = false; tocar(); } });
+                });
+            }
 
             let scrollTimeout;
             let videoAtivoId = null;

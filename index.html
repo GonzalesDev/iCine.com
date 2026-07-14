@@ -1234,32 +1234,31 @@
                             video.load();
                         }
                     } else {
-                            // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
-                            if (video.getAttribute('src')) {
-                                video.pause();
+                                // O vídeo sai de perto: Cortamos os cabos e matamos a ligação!
+                                if (video.getAttribute('src')) {
+                                    video.pause();
 
-                                // 🍎 TRUQUE PARA iOS: Define uma string vazia primeiro para esvaziar o buffer
-                                video.src = ""; 
+                                    // 🍎 TRUQUE PARA iOS: Define uma string vazia primeiro para esvaziar o buffer
+                                    video.src = ""; 
 
-                                // Remove os atributos completamente
-                                video.removeAttribute('src');
-                                video.removeAttribute('poster'); 
+                                    // Remove os atributos completamente
+                                    video.removeAttribute('src');
+                                    video.removeAttribute('poster'); 
 
-                                // Força o descarregamento imediato da memória do Safari
-                                video.load(); 
+                                    // Força o descarregamento imediato da memória do Safari
+                                    video.load(); 
 
-                                // Opcional mas recomendado: Remove todos os sources internos se existirem
-                                while (video.firstChild) {
-                                    video.removeChild(video.firstChild);
+                                    // Opcional mas recomendado: Remove todos os sources internos se existirem
+                                    while (video.firstChild) {
+                                        video.removeChild(video.firstChild);
+                                    }
                                 }
-                            } 
-                        }
-                    }
-                });
-            }, { 
-                root: containerFeed, // 🌟 Obriga o iPhone a respeitar a caixa de scroll e não a tela toda
-                rootMargin: '25% 0px' // A margem apertada garante que só existem 2 vídeos carregados no máximo!
-            });
+                            }
+                        }); // <-- Repare que a chave do else liga direto aqui
+                    }, { 
+                        root: containerFeed, // 🌟 Obriga o iPhone a respeitar a caixa de scroll e não a tela toda
+                        rootMargin: '25% 0px' // A margem apertada garante que só existem 2 vídeos carregados no máximo!
+                    });
 
             // 🎬 O MOTOR DE PLAY/PAUSE
             let scrollTimeout;

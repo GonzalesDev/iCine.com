@@ -1853,7 +1853,22 @@
             secInbox.style.display = 'block';
             contadorInbox.innerText = `${recomendacoesRecebidas.length} Novas`;
 
-            listaInbox.innerHTML = recomendacoesRecebidas.map(rec => `
+            listaInbox.innerHTML = recomendacoesRecebidas.map(rec => {
+
+                // 👇 O SEGREDO ESTÁ AQUI: Salva o filme na memória local para os botões funcionarem!
+                const idNum = parseInt(rec.tmdb_id);
+                if (!bancoDeFilmesLocal.has(idNum)) {
+                    bancoDeFilmesLocal.set(idNum, {
+                        id: idNum,
+                        titulo: rec.titulo_filme,
+                        capa: rec.capa_filme,
+                        ano: 'N/A',
+                        notaTmdb: 'N/A',
+                        sinopse: rec.mensagem || 'Recomendação de um amigo.'
+                    });
+                }
+
+                return `
                 <div style="background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 12px; display: flex; gap: 12px; position: relative;">
                     <button onclick="apagarRecomendacao('${rec.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">&times;</button>
                     <img src="${rec.capa_filme}" style="width: 50px; height: 75px; border-radius: 6px; object-fit: cover; cursor: pointer;" onclick="abrirDetalhes(${rec.tmdb_id})">
@@ -1864,7 +1879,8 @@
                         <button onclick="abrirModal(${rec.tmdb_id}, 'explorar')" class="btn-modal btn-modal-quero" style="padding: 6px 12px; font-size: 0.8rem; width: auto; margin-top: 8px; box-shadow: none;">➕ Organizar Filme</button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // 4. Apaga a notificação quando clica no "X"

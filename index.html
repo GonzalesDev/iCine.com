@@ -389,6 +389,17 @@
                 <div id="lista-pedidos"></div>
             </div>
 
+            <!-- NOVA SEÇÃO: Caixa de Entrada -->
+            <div id="secao-inbox" style="display:none; margin-bottom: 1.5rem;">
+                <div class="secao-label" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>📬 Caixa de Entrada</span>
+                    <span id="contador-inbox" style="background: var(--pink); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">0 Novas</span>
+                </div>
+                <div id="lista-inbox" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <!-- Mensagens de recomendação vão aparecer aqui -->
+                </div>
+            </div>
+
             <div id="secao-amigos-lista" style="display:none;">
                 <div class="secao-label">👥 Os teus Amigos</div>
                 <div id="lista-amigos"><p class="empty-msg">Ainda não tens amigos no iCine.</p></div>
@@ -495,6 +506,7 @@
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
                 <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
+                <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
                 <button id="btn-fechar-detalhes" class="btn-modal btn-modal-cancel">Fechar</button>
@@ -528,6 +540,48 @@
         </div>
     </div>
 
+    <div id="modal-perfil-amigo" class="modal" style="z-index: 2400; display:none;">
+        <div class="modal-content modal-detalhes-content">
+            <!-- (código do perfil do amigo) -->
+            <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
+        </div>
+    </div>
+
+
+    <!-- NOVO MODAL: Enviar Recomendação -->
+    <div id="modal-enviar-recomendacao" class="modal" style="z-index: 2900; display:none;">
+        <div class="modal-content">
+            <h3 style="display: flex; align-items: center; justify-content: center; gap: 8px;">✈️ Enviar Recomendação</h3>
+
+            <!-- Resumo do filme a ser enviado -->
+            <div id="resumo-filme-recomendacao" style="display: flex; align-items: center; gap: 10px; background: #1f2937; padding: 10px; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #374151;">
+                <img id="img-filme-recomendacao" src="" style="width: 40px; height: 60px; border-radius: 6px; object-fit: cover;">
+                <div style="text-align: left;">
+                    <div id="titulo-filme-recomendacao" style="font-weight: bold; font-size: 0.9rem; color: white; line-height: 1.2;">Nome do Filme</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Vai ser enviado como anexo.</div>
+                </div>
+            </div>
+
+            <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">1. Escolha o Amigo:</label>
+            <select id="select-amigo-recomendacao" class="filter-input" style="margin-bottom: 1rem; appearance: none; background-color: #111827;">
+                <option value="" disabled selected>Selecione da sua lista de amigos...</option>
+                <!-- Os amigos vão aparecer aqui -->
+            </select>
+
+            <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">2. Escreva uma mensagem (Opcional):</label>
+            <input type="text" id="input-msg-recomendacao" class="filter-input" placeholder="Ex: Assisti ontem e lembrei de ti! Achei que ias gostar." style="margin-bottom: 1.5rem; background-color: #111827;">
+
+            <div class="modal-buttons">
+                <button id="btn-confirmar-envio-recomendacao" class="btn-modal btn-modal-quero" style="background-color: #ec4899; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);">🚀 Enviar Recomendação</button>
+                <button onclick="document.getElementById('modal-enviar-recomendacao').style.display='none'" class="btn-modal btn-modal-cancel">Cancelar</button>
+            </div>
+            <p id="status-envio-recomendacao" style="color: var(--pink); font-size: 0.85rem; margin-top: 1rem; min-height: 15px;"></p>
+        </div>
+    </div>
+
+    <button id="btn-chat-fab" class="chat-fab">✨</button>
+    <div id="chat-window" class="chat-window">
+
     <button id="btn-chat-fab" class="chat-fab">✨</button>
     <div id="chat-window" class="chat-window">
         <div class="chat-header"><div class="title">✨ IA do iCine</div><button id="btn-fechar-chat">&times;</button></div>
@@ -535,6 +589,15 @@
         <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios..."><button id="btn-enviar-chat">➤</button></div>
     </div>
 
+
+
+
+
+
+
+
+
+    
     <script>
         console.log("iCine Full Stack Core Active!");
 
@@ -1062,6 +1125,26 @@
             if (txtStreaming) txtStreaming.style.display = 'none'; if (containerStreaming) { containerStreaming.style.display = 'none'; containerStreaming.innerHTML = ''; }
             const btnShorts = document.getElementById('detalhe-shorts'); btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
+
+            // Mostra o modal de enviar quando clica no botão "Recomendar a um Amigo"
+            const btnRecomendar = document.getElementById('btn-recomendar-amigo');
+            if (btnRecomendar) {
+                btnRecomendar.onclick = () => {
+                    document.getElementById('img-filme-recomendacao').src = filme.capa;
+                    document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
+
+                    // Preenche o seletor com os amigos (mesmo sendo um teste visual)
+                    const select = document.getElementById('select-amigo-recomendacao');
+                    select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
+                    listaAmigos.forEach(a => {
+                        select.innerHTML += `<option value="${a.user_id}">@${a.username}</option>`;
+                    });
+
+                    document.getElementById('input-msg-recomendacao').value = '';
+                    document.getElementById('status-envio-recomendacao').innerText = '';
+                    document.getElementById('modal-enviar-recomendacao').style.display = 'flex';
+                };
+            }
 
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {

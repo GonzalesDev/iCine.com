@@ -506,7 +506,7 @@
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
                 <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
-                <button onclick="abrirModoCinema(filmeSelecionadoTemporario.id || filmeSelecionadoTemporario.tmdb_id, document.getElementById('detalhe-titulo').innerText)" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.1rem;">▶️ Assistir Filme</button>
+                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.1rem;">▶️ Assistir Filme</button>
                 <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
@@ -1148,6 +1148,14 @@
                     document.getElementById('input-msg-recomendacao').value = '';
                     document.getElementById('status-envio-recomendacao').innerText = '';
                     abrirModalSeguro('modal-enviar-recomendacao');
+                };
+            }
+
+            // O Código do Botão Assistir Agora
+            const btnAssistir = document.getElementById('btn-assistir-agora');
+            if (btnAssistir) {
+                btnAssistir.onclick = () => {
+                    abrirModoCinema(filme.id || filme.tmdb_id, filme.titulo);
                 };
             }
 

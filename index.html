@@ -640,6 +640,8 @@
         let playlistAbertaAtualId = null;
         let playlistsComunidadeAtual = [];
         let pilhaModais = [];
+        let filmeParaRecomendar = null;
+        let recomendacoesRecebidas = [];
 
         window.addEventListener('load', () => { window.history.replaceState({ base: true }, '', window.location.pathname); });
 
@@ -1126,14 +1128,14 @@
             const btnShorts = document.getElementById('detalhe-shorts'); btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
 
-            // Mostra o modal de enviar quando clica no botão "Recomendar a um Amigo"
+            // O Código do Modal de Recomendações
             const btnRecomendar = document.getElementById('btn-recomendar-amigo');
             if (btnRecomendar) {
                 btnRecomendar.onclick = () => {
+                    filmeParaRecomendar = filme; // 🌟 SALVA O FILME REAL AQUI!
                     document.getElementById('img-filme-recomendacao').src = filme.capa;
                     document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
 
-                    // Preenche o seletor com os amigos (mesmo sendo um teste visual)
                     const select = document.getElementById('select-amigo-recomendacao');
                     select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
                     listaAmigos.forEach(a => {
@@ -1142,7 +1144,7 @@
 
                     document.getElementById('input-msg-recomendacao').value = '';
                     document.getElementById('status-envio-recomendacao').innerText = '';
-                    document.getElementById('modal-enviar-recomendacao').style.display = 'flex';
+                    abrirModalSeguro('modal-enviar-recomendacao');
                 };
             }
 
@@ -1581,6 +1583,9 @@
             }
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
+
+            // 👇 A ÚNICA LINHA NOVA É ESTA AQUI 👇
+            carregarCaixaEntrada();
         }
 
         function atualizarBadgeAmigos() {
@@ -1779,6 +1784,95 @@
             } catch (err) {}
         }
 
+        // =========================================
+        // === MOTOR DE RECOMENDAÇÕES (DIRECT) ===
+        // =========================================
+
+        // 1. O botão que envia para o banco de dados
+        document.getElementById('btn-confirmar-envio-recomendacao').addEventListener('click', async () => {
+            const select = document.getElementById('select-amigo-recomendacao');
+            const destinatarioId = select.value;
+            const mensagem = document.getElementById('input-msg-recomendacao').value.trim();
+            const msgStatus = document.getElementById('status-envio-recomendacao');
+
+            if (!destinatarioId) return msgStatus.innerText = "Por favor, selecione um amigo.";
+            if (!filmeParaRecomendar) return;
+
+            msgStatus.innerText = "A enviar... ✈️";
+
+            const novaRec = {
+                remetente_id: usuarioAtual.id,
+                destinatario_id: destinatarioId,
+                tmdb_id: filmeParaRecomendar.id,
+                titulo_filme: filmeParaRecomendar.titulo,
+                capa_filme: filmeParaRecomendar.capa,
+                mensagem: mensagem
+            };
+
+            const { error } = await supabaseClient.from('recomendacoes_amigos').insert([novaRec]);
+
+            if (error) {
+                msgStatus.innerText = "Erro ao enviar. Tente novamente.";
+            } else {
+                msgStatus.style.color = "#10b981";
+                msgStatus.innerText = "✅ Recomendação enviada com sucesso!";
+                setTimeout(() => {
+                    fecharModalSeguro('modal-enviar-recomendacao');
+                    msgStatus.style.color = "var(--pink)";
+                    msgStatus.innerText = "";
+                }, 1500);
+            }
+        });
+
+        // 2. Busca as mensagens recebidas
+        async function carregarCaixaEntrada() {
+            if (!usuarioAtual) return;
+            const { data } = await supabaseClient.from('recomendacoes_amigos').select('*').eq('destinatario_id', usuarioAtual.id).order('created_at', { ascending: false });
+            if (!data) return;
+
+            recomendacoesRecebidas = [];
+            // Associa o ID de quem enviou ao seu devido @username
+            for (const rec of data) {
+                const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', rec.remetente_id).maybeSingle();
+                recomendacoesRecebidas.push({ ...rec, username_remetente: perf ? perf.username : 'cinefilo' });
+            }
+            renderizarCaixaEntrada();
+        }
+
+        // 3. Desenha as caixinhas na aba Amigos
+        function renderizarCaixaEntrada() {
+            const secInbox = document.getElementById('secao-inbox');
+            const listaInbox = document.getElementById('lista-inbox');
+            const contadorInbox = document.getElementById('contador-inbox');
+
+            if (recomendacoesRecebidas.length === 0) {
+                secInbox.style.display = 'none';
+                return;
+            }
+
+            secInbox.style.display = 'block';
+            contadorInbox.innerText = `${recomendacoesRecebidas.length} Novas`;
+
+            listaInbox.innerHTML = recomendacoesRecebidas.map(rec => `
+                <div style="background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 12px; display: flex; gap: 12px; position: relative;">
+                    <button onclick="apagarRecomendacao('${rec.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">&times;</button>
+                    <img src="${rec.capa_filme}" style="width: 50px; height: 75px; border-radius: 6px; object-fit: cover; cursor: pointer;" onclick="abrirDetalhes(${rec.tmdb_id})">
+                    <div style="flex: 1; padding-right: 15px;">
+                        <div style="font-size: 0.8rem; color: var(--purple); font-weight: bold; margin-bottom: 4px;">@${rec.username_remetente} recomendou:</div>
+                        <div style="font-weight: bold; font-size: 0.95rem; line-height: 1.1; margin-bottom: 6px;">${rec.titulo_filme}</div>
+                        ${rec.mensagem ? `<div style="font-size: 0.85rem; color: #d1d5db; font-style: italic; background: #111827; padding: 6px 10px; border-radius: 8px; border-left: 2px solid var(--pink);">"${rec.mensagem}"</div>` : ''}
+                        <button onclick="abrirModal(${rec.tmdb_id}, 'explorar')" class="btn-modal btn-modal-quero" style="padding: 6px 12px; font-size: 0.8rem; width: auto; margin-top: 8px; box-shadow: none;">➕ Organizar Filme</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 4. Apaga a notificação quando clica no "X"
+        async function apagarRecomendacao(idRec) {
+            await supabaseClient.from('recomendacoes_amigos').delete().eq('id', idRec);
+            carregarCaixaEntrada();
+        }
+        
         checarSessao();
     </script>
 </body>

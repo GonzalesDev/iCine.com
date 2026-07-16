@@ -558,9 +558,9 @@
         <!-- Seletor de Servidores Embaixo -->
         <div style="width: 100%; padding: 15px; background: #111827; border-top: 1px solid #374151; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;">
             <span style="color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; margin-right: 5px; white-space: nowrap;">⚙️ Servidores:</span>
-            <button onclick="trocarServidorCinema('vidsrc')" class="btn-modal" style="background: var(--purple); color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">VidSrc (Global)</button>
-            <button onclick="trocarServidorCinema('super')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">SuperEmbed</button>
-            <button onclick="trocarServidorCinema('auto')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">AutoEmbed</button>
+            <button onclick="trocarServidorCinema('superflix')" class="btn-modal" style="background: var(--purple); color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">🇧🇷 Dublado BR</button>
+            <button onclick="trocarServidorCinema('auto')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">🇺🇸 Legendado</button>
+            <button onclick="trocarServidorCinema('super')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">🌍 Alternativo</button>
         </div>
     </div>
 
@@ -1901,12 +1901,10 @@
         function abrirModoCinema(tmdbId, titulo) {
             filmeCinemaAtualId = tmdbId;
             document.getElementById('cinema-titulo').innerText = titulo;
-
-            // Abre o modal
             abrirModalSeguro('modal-cinema');
 
-            // Inicia pelo servidor principal (VidSrc)
-            trocarServidorCinema('vidsrc');
+            // Inicia pelo servidor focado no Brasil
+            trocarServidorCinema('superflix');
         }
 
         function trocarServidorCinema(servidor) {
@@ -1917,13 +1915,12 @@
             iframe.src = ''; 
 
             setTimeout(() => {
-                if (servidor === 'vidsrc') {
-                    // Atualizado para o domínio .net que é mais estável
-                    iframe.src = `https://vidsrc.net/embed/movie/${filmeCinemaAtualId}`;
+                if (servidor === 'superflix') {
+                    // API focada no Brasil (Geralmente Dublado)
+                    iframe.src = `https://superflixapi.dev/filme/${filmeCinemaAtualId}`;
                 } else if (servidor === 'super') {
                     iframe.src = `https://multiembed.mov/directstream.php?video_id=${filmeCinemaAtualId}&tmdb=1`;
                 } else if (servidor === 'auto') {
-                    // Trocado o AutoEmbed pelo Embed.SU, que tem muito mais qualidade
                     iframe.src = `https://embed.su/embed/movie/${filmeCinemaAtualId}`;
                 }
             }, 100);

@@ -558,10 +558,9 @@
         <!-- Seletor de Servidores Embaixo -->
         <div style="width: 100%; padding: 15px; background: #111827; border-top: 1px solid #374151; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;">
             <span style="color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; margin-right: 5px; white-space: nowrap;">⚙️ Servidores:</span>
-            <button onclick="trocarServidorCinema('superflix')" class="btn-modal" style="background: var(--purple); color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">🇧🇷 Dublado BR</button>
-            <button onclick="trocarServidorCinema('auto')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">🇺🇸 Legendado</button>
-            <button onclick="trocarServidorCinema('super')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">🌍 Alternativo</button>
-        </div>
+        <button onclick="trocarServidorCinema('auto')" class="btn-modal" style="background: var(--purple); color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">AutoEmbed</button>
+        <button onclick="trocarServidorCinema('vids')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">VidSrc (Oficial)</button>
+        <button onclick="trocarServidorCinema('smas')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">SmashyStream</button>
     </div>
 
     <!-- NOVO MODAL: Enviar Recomendação -->
@@ -1903,32 +1902,34 @@
             document.getElementById('cinema-titulo').innerText = titulo;
             abrirModalSeguro('modal-cinema');
 
-            // Inicia pelo servidor focado no Brasil
-            trocarServidorCinema('superflix');
+            // Força a iniciar pelo AutoEmbed, que foi o que funcionou para si antes!
+            trocarServidorCinema('auto');
         }
 
         function trocarServidorCinema(servidor) {
             if (!filmeCinemaAtualId) return;
             const iframe = document.getElementById('iframe-player');
 
-            // Animação de carregamento visual
             iframe.src = ''; 
 
             setTimeout(() => {
-                if (servidor === 'superflix') {
-                    // API focada no Brasil (Geralmente Dublado)
-                    iframe.src = `https://superflixapi.dev/filme/${filmeCinemaAtualId}`;
-                } else if (servidor === 'super') {
-                    iframe.src = `https://multiembed.mov/directstream.php?video_id=${filmeCinemaAtualId}&tmdb=1`;
-                } else if (servidor === 'auto') {
-                    iframe.src = `https://embed.su/embed/movie/${filmeCinemaAtualId}`;
+                if (servidor === 'auto') {
+                    // O servidor que lhe trouxe sucesso no teste anterior
+                    iframe.src = `https://autoembed.co/movie/tmdb/${filmeCinemaAtualId}`;
+                } else if (servidor === 'vids') {
+                    // O domínio oficial e principal (não o .cc ou .net)
+                    iframe.src = `https://vidsrc.me/embed/movie?tmdb=${filmeCinemaAtualId}`;
+                } else if (servidor === 'smas') {
+                    // Um agregador gigante de links
+                    iframe.src = `https://embed.smashystream.com/playere.php?tmdb=${filmeCinemaAtualId}`;
                 }
             }, 100);
 
-            // Atualiza as cores dos botões para mostrar qual está ativo
+            // Sistema para pintar o botão ativo de roxo
             const botoes = document.getElementById('modal-cinema').querySelectorAll('.btn-modal');
             botoes.forEach(b => {
-                if(b.innerText.toLowerCase().includes(servidor.slice(0,4))) {
+                // Ex: se o nome do botão ("AutoEmbed") incluir "Auto" (em minúsculas)
+                if(b.innerText.toLowerCase().includes(servidor)) {
                     b.style.background = 'var(--purple)';
                 } else {
                     b.style.background = '#374151';

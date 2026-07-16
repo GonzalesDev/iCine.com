@@ -157,7 +157,6 @@
             font-size: 0.8rem; 
             font-weight: 700; 
             text-shadow: 0 1px 3px #000; 
-            /* Magia Anti-Fantasma para iPhone */
             display: inline-block;
             transform: translateZ(0);
             -webkit-transform: translateZ(0);
@@ -384,11 +383,6 @@
                 <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
             </div>
 
-            <div id="secao-pedidos" style="display:none;">
-                <div class="secao-label">📬 Pedidos Pendentes</div>
-                <div id="lista-pedidos"></div>
-            </div>
-
             <!-- NOVA SEÇÃO: Caixa de Entrada -->
             <div id="secao-inbox" style="display:none; margin-bottom: 1.5rem;">
                 <div class="secao-label" style="display: flex; justify-content: space-between; align-items: center;">
@@ -398,6 +392,11 @@
                 <div id="lista-inbox" style="display: flex; flex-direction: column; gap: 0.8rem;">
                     <!-- Mensagens de recomendação vão aparecer aqui -->
                 </div>
+            </div>
+
+            <div id="secao-pedidos" style="display:none;">
+                <div class="secao-label">📬 Pedidos Pendentes</div>
+                <div id="lista-pedidos"></div>
             </div>
 
             <div id="secao-amigos-lista" style="display:none;">
@@ -540,20 +539,11 @@
         </div>
     </div>
 
-    <div id="modal-perfil-amigo" class="modal" style="z-index: 2400; display:none;">
-        <div class="modal-content modal-detalhes-content">
-            <!-- (código do perfil do amigo) -->
-            <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
-        </div>
-    </div>
-
-
     <!-- NOVO MODAL: Enviar Recomendação -->
     <div id="modal-enviar-recomendacao" class="modal" style="z-index: 2900; display:none;">
         <div class="modal-content">
             <h3 style="display: flex; align-items: center; justify-content: center; gap: 8px;">✈️ Enviar Recomendação</h3>
-
-            <!-- Resumo do filme a ser enviado -->
+            
             <div id="resumo-filme-recomendacao" style="display: flex; align-items: center; gap: 10px; background: #1f2937; padding: 10px; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #374151;">
                 <img id="img-filme-recomendacao" src="" style="width: 40px; height: 60px; border-radius: 6px; object-fit: cover;">
                 <div style="text-align: left;">
@@ -565,7 +555,6 @@
             <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">1. Escolha o Amigo:</label>
             <select id="select-amigo-recomendacao" class="filter-input" style="margin-bottom: 1rem; appearance: none; background-color: #111827;">
                 <option value="" disabled selected>Selecione da sua lista de amigos...</option>
-                <!-- Os amigos vão aparecer aqui -->
             </select>
 
             <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">2. Escreva uma mensagem (Opcional):</label>
@@ -581,23 +570,11 @@
 
     <button id="btn-chat-fab" class="chat-fab">✨</button>
     <div id="chat-window" class="chat-window">
-
-    <button id="btn-chat-fab" class="chat-fab">✨</button>
-    <div id="chat-window" class="chat-window">
         <div class="chat-header"><div class="title">✨ IA do iCine</div><button id="btn-fechar-chat">&times;</button></div>
         <div id="chat-messages" class="chat-messages"><div class="chat-msg msg-bot">Olá! Sou o cérebro cinéfilo do iCine. Diga-me a "vibe" que procura e eu encontro o filme perfeito para si! 🍿</div></div>
         <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios..."><button id="btn-enviar-chat">➤</button></div>
     </div>
 
-
-
-
-
-
-
-
-
-    
     <script>
         console.log("iCine Full Stack Core Active!");
 
@@ -640,6 +617,7 @@
         let playlistAbertaAtualId = null;
         let playlistsComunidadeAtual = [];
         let pilhaModais = [];
+
         let filmeParaRecomendar = null;
         let recomendacoesRecebidas = [];
 
@@ -1128,20 +1106,20 @@
             const btnShorts = document.getElementById('detalhe-shorts'); btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
             const btnTrailer = document.getElementById('detalhe-trailer'); btnTrailer.style.display = 'none';
 
-            // O Código do Modal de Recomendações
+            // FUNCIONALIDADE RECOMENDAR A UM AMIGO
             const btnRecomendar = document.getElementById('btn-recomendar-amigo');
             if (btnRecomendar) {
                 btnRecomendar.onclick = () => {
-                    filmeParaRecomendar = filme; // 🌟 SALVA O FILME REAL AQUI!
+                    filmeParaRecomendar = filme;
                     document.getElementById('img-filme-recomendacao').src = filme.capa;
                     document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
-
+                    
                     const select = document.getElementById('select-amigo-recomendacao');
                     select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
                     listaAmigos.forEach(a => {
                         select.innerHTML += `<option value="${a.user_id}">@${a.username}</option>`;
                     });
-
+                    
                     document.getElementById('input-msg-recomendacao').value = '';
                     document.getElementById('status-envio-recomendacao').innerText = '';
                     abrirModalSeguro('modal-enviar-recomendacao');
@@ -1341,18 +1319,18 @@
                         const teletransportarPlayer = () => {
                             if (urlVideoReal && reprodutorUnicoiOS) {
                                 reprodutorUnicoiOS.pause(); 
-
+                                
                                 // Se o player não estiver nesta caixa, movemos para cá
                                 if (reprodutorUnicoiOS.parentNode !== wrapper) {
                                     wrapper.appendChild(reprodutorUnicoiOS);
                                 }
-
+                                
                                 // Só recarregamos o SRC se for um vídeo diferente
                                 if (reprodutorUnicoiOS.getAttribute('src') !== urlVideoReal) {
                                     reprodutorUnicoiOS.setAttribute('src', urlVideoReal); 
                                     reprodutorUnicoiOS.load();
                                 }
-
+                                
                                 reprodutorUnicoiOS.currentTime = 0;
                                 const playPromise = reprodutorUnicoiOS.play();
                                 if (playPromise !== undefined) {
@@ -1582,8 +1560,8 @@
             }
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
-
-            // 👇 A ÚNICA LINHA NOVA É ESTA AQUI 👇
+            
+            // CARREGA A CAIXA DE ENTRADA QUANDO CARREGA OS AMIGOS
             carregarCaixaEntrada();
         }
 
@@ -1786,8 +1764,6 @@
         // =========================================
         // === MOTOR DE RECOMENDAÇÕES (DIRECT) ===
         // =========================================
-
-        // 1. O botão que envia para o banco de dados
         document.getElementById('btn-confirmar-envio-recomendacao').addEventListener('click', async () => {
             const select = document.getElementById('select-amigo-recomendacao');
             const destinatarioId = select.value;
@@ -1823,14 +1799,12 @@
             }
         });
 
-        // 2. Busca as mensagens recebidas
         async function carregarCaixaEntrada() {
             if (!usuarioAtual) return;
             const { data } = await supabaseClient.from('recomendacoes_amigos').select('*').eq('destinatario_id', usuarioAtual.id).order('created_at', { ascending: false });
             if (!data) return;
 
             recomendacoesRecebidas = [];
-            // Associa o ID de quem enviou ao seu devido @username
             for (const rec of data) {
                 const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', rec.remetente_id).maybeSingle();
                 recomendacoesRecebidas.push({ ...rec, username_remetente: perf ? perf.username : 'cinefilo' });
@@ -1838,7 +1812,6 @@
             renderizarCaixaEntrada();
         }
 
-        // 3. Desenha as caixinhas na aba Amigos
         function renderizarCaixaEntrada() {
             const secInbox = document.getElementById('secao-inbox');
             const listaInbox = document.getElementById('lista-inbox');
@@ -1853,8 +1826,6 @@
             contadorInbox.innerText = `${recomendacoesRecebidas.length} Novas`;
 
             listaInbox.innerHTML = recomendacoesRecebidas.map(rec => {
-
-                // 👇 O SEGREDO ESTÁ AQUI: Salva o filme na memória local para os botões funcionarem!
                 const idNum = parseInt(rec.tmdb_id);
                 if (!bancoDeFilmesLocal.has(idNum)) {
                     bancoDeFilmesLocal.set(idNum, {
@@ -1882,12 +1853,11 @@
             }).join('');
         }
 
-        // 4. Apaga a notificação quando clica no "X"
         async function apagarRecomendacao(idRec) {
             await supabaseClient.from('recomendacoes_amigos').delete().eq('id', idRec);
             carregarCaixaEntrada();
         }
-        
+
         checarSessao();
     </script>
 </body>

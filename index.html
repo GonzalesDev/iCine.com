@@ -541,25 +541,37 @@
         </div>
     </div>
 
-    <!-- NOVO MODAL: Modo Cinema (Player) -->
-    <div id="modal-cinema" class="modal" style="z-index: 3500; background: #000; display:none; flex-direction: column; justify-content: flex-start; align-items: center;">
+<!-- NOVO MODAL: Instruções Stremio -->
+    <div id="modal-stremio" class="modal" style="z-index: 3500; background: rgba(0,0,0,0.85); display:none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background-color: #1f2937; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; position: relative; border: 1px solid #374151; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
 
-        <!-- Barra de Topo do Player -->
-        <div style="width: 100%; height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; background: rgba(0,0,0,0.8); position: absolute; top: 0; z-index: 10;">
-            <div id="cinema-titulo" style="color: white; font-weight: bold; font-size: 1rem; text-shadow: 0 2px 4px #000;">A Carregar Filme...</div>
-            <button onclick="fecharModoCinema()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid var(--red); color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+            <!-- Botão de Fechar -->
+            <button onclick="document.getElementById('modal-stremio').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: #9ca3af; font-size: 1.8rem; cursor: pointer;">&times;</button>
+
+            <h3 style="color: white; margin-top: 0; text-align: center; font-size: 1.4rem;">🎬 Preparar Sessão</h3>
+            <p style="color: #9ca3af; font-size: 0.9rem; text-align: center; margin-bottom: 20px;">Para assistir de graça e dublado, siga estes passos rápidos (só é necessário fazer uma vez):</p>
+
+            <!-- Passo 1 -->
+            <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
+                <p style="color: #10b981; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">1. Baixe o Aplicativo Base</p>
+                <a href="https://www.stremio.com/downloads" target="_blank" style="background-color: #374151; color: white; display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 0.9rem;">📥 Baixar Stremio (Grátis)</a>
+            </div>
+
+            <!-- Passo 2 -->
+            <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
+                <p style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">2. Instale os Motores Dublados</p>
+                <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado/sort=qualitysize/resolutions=screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🇧🇷 Instalar Motor PT-BR</button>
+                <button onclick="window.location.href='stremio://brazuca.strem.fun/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🦜 Instalar Brazuca</button>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #4b5563; margin: 20px 0;">
+
+            <!-- Passo 3 (Assistir) -->
+            <div style="text-align: center;">
+                <p style="color: white; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold;">Tudo pronto?</p>
+                <button id="btn-abrir-stremio-final" class="btn-modal" style="background-color: #8b5cf6; color: white; font-size: 1.1rem; width: 100%; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer;">▶️ Abrir Filme no Stremio</button>
+            </div>
         </div>
-
-        <!-- Onde a Mágica Acontece: A Prisão do Iframe -->
-        <div style="width: 100%; flex: 1; margin-top: 60px; position: relative;">
-            <iframe id="iframe-player" src="" style="width: 100%; height: 100%; border: none;" allowfullscreen allow="autoplay; fullscreen"></iframe>
-        </div>
-
-        <!-- Seletor de Servidores Embaixo -->
-        <div style="width: 100%; padding: 15px; background: #111827; border-top: 1px solid #374151; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;">
-            <span style="color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; margin-right: 5px; white-space: nowrap;">⚙️ Servidores:</span>
-        <button onclick="trocarServidorCinema('auto')" class="btn-modal" style="background: var(--purple); color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">AutoEmbed</button>
-        <button onclick="trocarServidorCinema('smas')" class="btn-modal" style="background: #374151; color: white; padding: 6px 12px; width: auto; font-size: 0.8rem; white-space: nowrap;">SmashyStream</button>
     </div>
 
     <!-- NOVO MODAL: Enviar Recomendação -->
@@ -1930,41 +1942,6 @@
         }
 
         checarSessao();
-        
-
-        // NOVO MODAL: Instruções Stremo //
-        <div id="modal-stremio" class="modal" style="z-index: 3500; background: rgba(0,0,0,0.85); display:none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
-            <div style="background-color: #1f2937; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; position: relative; border: 1px solid #374151; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-
-                <!-- Botão de Fechar -->
-                <button onclick="document.getElementById('modal-stremio').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: #9ca3af; font-size: 1.8rem; cursor: pointer;">&times;</button>
-
-                <h3 style="color: white; margin-top: 0; text-align: center; font-size: 1.4rem;">🎬 Preparar Sessão</h3>
-                <p style="color: #9ca3af; font-size: 0.9rem; text-align: center; margin-bottom: 20px;">Para assistir de graça e dublado, siga estes passos rápidos (só é necessário fazer uma vez):</p>
-
-                <!-- Passo 1 -->
-                <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
-                    <p style="color: #10b981; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">1. Baixe o Aplicativo Base</p>
-                    <a href="https://www.stremio.com/downloads" target="_blank" style="background-color: #374151; color: white; display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 0.9rem;">📥 Baixar Stremio (Grátis)</a>
-                </div>
-
-                <!-- Passo 2 -->
-                <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
-                    <p style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">2. Instale os Motores Dublados</p>
-                    <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado/sort=qualitysize/resolutions=screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🇧🇷 Instalar Motor PT-BR</button>
-                    <button onclick="window.location.href='stremio://brazuca.strem.fun/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🦜 Instalar Brazuca</button>
-                </div>
-
-                <hr style="border: 0; border-top: 1px solid #4b5563; margin: 20px 0;">
-
-                <!-- Passo 3 (Assistir) -->
-                <div style="text-align: center;">
-                    <p style="color: white; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold;">Tudo pronto?</p>
-                    <button id="btn-abrir-stremio-final" class="btn-modal" style="background-color: #8b5cf6; color: white; font-size: 1.1rem; width: 100%; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer;">▶️ Abrir Filme no Stremio</button>
-                </div>
-            </div>
-        </div>
-
         
     </script>
 </body>

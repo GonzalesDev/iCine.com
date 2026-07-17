@@ -354,8 +354,7 @@
         </div>
 
         <div id="aba-cenas" class="aba" style="position: fixed; top: 0; left: 0; right: 0; bottom: 65px; padding: 0; margin: 0; z-index: 100; overflow: hidden; background: #000;">
-            <div id="feed-shorts" class="feed-shorts-container">
-                </div>
+            <div id="feed-shorts" class="feed-shorts-container"></div>
         </div>
 
         <div id="aba-comunidade" class="aba">
@@ -383,16 +382,13 @@
                 <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
             </div>
             
-
             <!-- NOVA SEÇÃO: Caixa de Entrada -->
             <div id="secao-inbox" style="display:none; margin-bottom: 1.5rem;">
                 <div class="secao-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>📬 Caixa de Entrada</span>
                     <span id="contador-inbox" style="background: var(--pink); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">0 Novas</span>
                 </div>
-                <div id="lista-inbox" style="display: flex; flex-direction: column; gap: 0.8rem;">
-                    <!-- Mensagens de recomendação vão aparecer aqui -->
-                </div>
+                <div id="lista-inbox" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
             </div>
 
             <div id="secao-pedidos" style="display:none;">
@@ -407,6 +403,7 @@
         </div>
     </main>
 
+    <!-- Modais do Sistema -->
     <div id="modal-escolha" class="modal" style="z-index: 2700;">
         <div class="modal-content">
             <h3>Organizar Filme</h3>
@@ -427,10 +424,7 @@
                 <h3 style="margin:0;">💬 Comentários</h3>
                 <button onclick="fecharModalSeguro('modal-comentarios')" style="background:none;border:none;color:white;font-size:1.8rem;cursor:pointer;">&times;</button>
             </div>
-
-            <div id="lista-comentarios" style="flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1.2rem; text-align: left;">
-                </div>
-
+            <div id="lista-comentarios" style="flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1.2rem; text-align: left;"></div>
             <div style="padding: 1rem; border-top: 1px solid #374151; display: flex; gap: 0.5rem; background: #111827; padding-bottom: max(1rem, env(safe-area-inset-bottom));">
                 <input type="text" id="input-comentario" placeholder="Adicione um comentário..." class="filter-input" style="flex:1; margin:0;">
                 <button id="btn-enviar-comentario" class="btn-modal btn-modal-quero" style="width:auto; padding: 0 1.2rem;">Enviar</button>
@@ -506,7 +500,10 @@
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
                 <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
+                
+                <!-- O NOVO BOTÃO DE ASSISTIR -->
                 <button id="btn-assistir-agora" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">▶️ Assistir Filme</button>
+                
                 <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
@@ -541,31 +538,29 @@
         </div>
     </div>
 
-<!-- NOVO MODAL: Instruções Stremio -->
+    <!-- NOVO MODAL: Instruções Stremio -->
     <div id="modal-stremio" class="modal" style="z-index: 3500; background: rgba(0,0,0,0.85); display:none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
         <div style="background-color: #1f2937; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; position: relative; border: 1px solid #374151; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-
             <!-- Botão de Fechar -->
             <button onclick="document.getElementById('modal-stremio').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: #9ca3af; font-size: 1.8rem; cursor: pointer;">&times;</button>
-
             <h3 style="color: white; margin-top: 0; text-align: center; font-size: 1.4rem;">🎬 Preparar Sessão</h3>
             <p style="color: #9ca3af; font-size: 0.9rem; text-align: center; margin-bottom: 20px;">Para assistir de graça e dublado, siga estes passos rápidos (só é necessário fazer uma vez):</p>
-
+            
             <!-- Passo 1 -->
             <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
                 <p style="color: #10b981; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">1. Baixe o Aplicativo Base</p>
                 <a href="https://www.stremio.com/downloads" target="_blank" style="background-color: #374151; color: white; display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 0.9rem;">📥 Baixar Stremio (Grátis)</a>
             </div>
-
+            
             <!-- Passo 2 -->
             <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
                 <p style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">2. Instale os Motores Dublados</p>
                 <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado/sort=qualitysize/resolutions=screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🇧🇷 Instalar Motor PT-BR</button>
                 <button onclick="window.location.href='stremio://brazuca.strem.fun/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🦜 Instalar Brazuca</button>
             </div>
-
+            
             <hr style="border: 0; border-top: 1px solid #4b5563; margin: 20px 0;">
-
+            
             <!-- Passo 3 (Assistir) -->
             <div style="text-align: center;">
                 <p style="color: white; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold;">Tudo pronto?</p>
@@ -578,7 +573,6 @@
     <div id="modal-enviar-recomendacao" class="modal" style="z-index: 2900; display:none;">
         <div class="modal-content">
             <h3 style="display: flex; align-items: center; justify-content: center; gap: 8px;">✈️ Enviar Recomendação</h3>
-            
             <div id="resumo-filme-recomendacao" style="display: flex; align-items: center; gap: 10px; background: #1f2937; padding: 10px; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #374151;">
                 <img id="img-filme-recomendacao" src="" style="width: 40px; height: 60px; border-radius: 6px; object-fit: cover;">
                 <div style="text-align: left;">
@@ -586,15 +580,12 @@
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Vai ser enviado como anexo.</div>
                 </div>
             </div>
-
             <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">1. Escolha o Amigo:</label>
             <select id="select-amigo-recomendacao" class="filter-input" style="margin-bottom: 1rem; appearance: none; background-color: #111827;">
                 <option value="" disabled selected>Selecione da sua lista de amigos...</option>
             </select>
-
             <label style="display:block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">2. Escreva uma mensagem (Opcional):</label>
             <input type="text" id="input-msg-recomendacao" class="filter-input" placeholder="Ex: Assisti ontem e lembrei de ti! Achei que ias gostar." style="margin-bottom: 1.5rem; background-color: #111827;">
-
             <div class="modal-buttons">
                 <button id="btn-confirmar-envio-recomendacao" class="btn-modal btn-modal-quero" style="background-color: #ec4899; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);">🚀 Enviar Recomendação</button>
                 <button onclick="document.getElementById('modal-enviar-recomendacao').style.display='none'" class="btn-modal btn-modal-cancel">Cancelar</button>
@@ -603,6 +594,7 @@
         </div>
     </div>
 
+    <!-- CHAT FAB -->
     <button id="btn-chat-fab" class="chat-fab">✨</button>
     <div id="chat-window" class="chat-window">
         <div class="chat-header"><div class="title">✨ IA do iCine</div><button id="btn-fechar-chat">&times;</button></div>
@@ -610,6 +602,7 @@
         <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Ex: Filmes anos 80 sombrios..."><button id="btn-enviar-chat">➤</button></div>
     </div>
 
+    <!-- O CÓDIGO JAVASCRIPT CORRETO E UNIFICADO -->
     <script>
         console.log("iCine Full Stack Core Active!");
 
@@ -1323,8 +1316,6 @@
 
                 const tituloProvisorio = cena.nome_filme || 'Carregando detalhes...';
 
-                // 🚨 CÓDIGO LIMPO: Não criamos NENHUMA tag <video> no HTML! 
-                // Apenas a caixa wrapper vazia que vai receber o player único.
                 htmlLote += `
                     <div class="short-item" data-cena-id="${cena.id}" data-tmdb-id="${cena.tmdb_id}">
                         <div class="short-video-wrapper" id="wrapper-${cena.id}" data-url="${cena.video_url}" style="position: absolute; inset: 0; width: 100%; height: 100%; background: #000;">
@@ -1397,18 +1388,15 @@
                         if (itemEl === todosCards[todosCards.length - 2]) {
                             injetarMaisCenasNoFeed();
                         }
-
-                        // 3. TELETRANSPORTE DO PLAYER 
+ 
                         const teletransportarPlayer = () => {
                             if (urlVideoReal && reprodutorUnicoiOS) {
                                 reprodutorUnicoiOS.pause(); 
                                 
-                                // Se o player não estiver nesta caixa, movemos para cá
                                 if (reprodutorUnicoiOS.parentNode !== wrapper) {
                                     wrapper.appendChild(reprodutorUnicoiOS);
                                 }
                                 
-                                // Só recarregamos o SRC se for um vídeo diferente
                                 if (reprodutorUnicoiOS.getAttribute('src') !== urlVideoReal) {
                                     reprodutorUnicoiOS.setAttribute('src', urlVideoReal); 
                                     reprodutorUnicoiOS.load();
@@ -1426,21 +1414,19 @@
                             teletransportarPlayer(); 
                             primeiroCarregamentoCenas = false;
                         } else {
-                            // Atraso de 200ms para evitar engasgos ao rolar rápido
                             scrollTimeout = setTimeout(teletransportarPlayer, 200); 
                         }
                     }
                 });
             }, { 
                 root: containerFeed,
-                threshold: 0.55 // Dispara quando 55% da cena estiver visível
+                threshold: 0.55 
             });
 
             itensDoFeed.forEach(item => {
                 observerRadarCenas.observe(item);
             });
 
-            // 🛡️ REFAZENDO OS CONTROLES DE TOQUE
             document.querySelectorAll('.short-glass').forEach(glass => {
                 const novoGlass = glass.cloneNode(true);
                 glass.parentNode.replaceChild(novoGlass, glass);
@@ -1496,9 +1482,7 @@
 
         function atualizarElementosHTMLCena(idCena, filme, generosTextoOpcional = "") {
             const imgEl = document.getElementById(`capa-${idCena}`); if (imgEl && filme.capa) imgEl.src = filme.capa;
-            
             const bgCena = document.getElementById(`capa-bg-${idCena}`); if (bgCena && filme.capa) bgCena.src = filme.capa;
-
             const txtTitulo = document.getElementById(`titulo-${idCena}`); if (txtTitulo) txtTitulo.innerText = filme.titulo;
             const txtAno = document.getElementById(`ano-${idCena}`); if (txtAno) txtAno.innerText = filme.ano;
             const txtNota = document.getElementById(`nota-${idCena}`); if (txtNota) txtNota.innerText = `⭐ ${filme.notaTmdb}`;
@@ -1529,12 +1513,10 @@
             try {
                 const { data } = await supabaseClient.from('cenas_shorts').select('curtidas').eq('id', cenaId).single();
                 let curtidas = Array.isArray(data?.curtidas) ? data.curtidas : [];
-
                 if (jaEstavaCurtido) { curtidas = curtidas.filter(id => id !== usuarioAtual.id); } 
                 else { if (!curtidas.includes(usuarioAtual.id)) curtidas.push(usuarioAtual.id); }
-
                 await supabaseClient.from('cenas_shorts').update({ curtidas }).eq('id', cenaId);
-            } catch (e) { console.error("Erro ao processar a curtida no banco de dados:", e); }
+            } catch (e) { console.error("Erro ao processar a curtida:", e); }
         }
 
         // =========================================
@@ -1564,10 +1546,8 @@
                 const comentariosLimpos = garantirArrayComentarios(data.comentarios);
                 renderizarComentarios(comentariosLimpos);
             } catch (err) {
-                console.error("Erro na PWA ao buscar comentários:", err);
                 lista.innerHTML = '<p class="empty-msg" style="margin-top:20px; color: var(--pink);">Erro de ligação. Tenta novamente.</p>';
             }
-
             document.getElementById('btn-enviar-comentario').onclick = () => enviarComentario(cenaId);
         }
 
@@ -1644,7 +1624,6 @@
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
             
-            // CARREGA A CAIXA DE ENTRADA QUANDO CARREGA OS AMIGOS
             carregarCaixaEntrada();
         }
 

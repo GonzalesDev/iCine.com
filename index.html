@@ -1199,28 +1199,34 @@
                     if (imdbId) {
                         btnAssistir.innerText = "▶️ Assistir Filme";
 
-                        // 1. Abre a nova janela de instruções
-                        document.getElementById('modal-stremio').style.display = 'flex';
+            // 1. Abre a nova janela de instruções
+                document.getElementById('modal-stremio').style.display = 'flex';
 
-                        // 2. Prepara o botão roxo final (dentro das instruções) para abrir o filme
-                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
-                        btnFinal.onclick = () => {
-                            // Dispara o Deep Link para abrir o App nativo
-                            window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+                // Verifica plataformas
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                const isAndroid = /Android/i.test(navigator.userAgent);
 
-                            // Fallback para PC
-                            setTimeout(() => {
-                                if (document.visibilityState === 'visible') {
-                                    window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
-                                }
-                            }, 2000);
-                        };
+                if (isIOS) {
+                    document.getElementById('aviso-ios').style.display = 'block';
+                } else {
+                    document.getElementById('aviso-ios').style.display = 'none';
+                }
+
+                // 2. Prepara o botão roxo final com Roteamento Inteligente
+                const btnFinal = document.getElementById('btn-abrir-stremio-final');
+                btnFinal.onclick = () => {
+                    if (isAndroid) {
+                        // No Android, o Deep Link funciona perfeitamente para abrir o filme
+                        window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
                     } else {
-                        btnAssistir.innerText = "❌ Filme indisponível";
-                        btnAssistir.disabled = true;
-                        btnAssistir.style.opacity = '0.5';
+                        // No iPhone e no PC (Windows/Mac/Linux), usamos a rota da Web.
+                        window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
                     }
                 };
+            } else {
+                btnAssistir.innerText = "❌ Filme indisponível";
+                btnAssistir.disabled = true;
+                btnAssistir.style.opacity = '0.5';
             }
 
             const btnRadar = document.getElementById('btn-fixar-radar');

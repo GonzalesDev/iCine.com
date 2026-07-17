@@ -506,7 +506,7 @@
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
                 <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
-                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.1rem;">▶️ Assistir Filme</button>
+                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">▶️ Assistir Filme</button>
                 <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
@@ -1149,11 +1149,51 @@
                 };
             }
 
-            // O Código do Botão Assistir Agora
+            // O Código do Botão Assistir Inicial
             const btnAssistir = document.getElementById('btn-assistir-agora');
             if (btnAssistir) {
-                btnAssistir.onclick = () => {
-                    abrirModoCinema(filme.id || filme.tmdb_id, filme.titulo);
+                // Reset visual do botão ao abrir um novo filme
+                btnAssistir.innerText = "▶️ Assistir Filme";
+                btnAssistir.disabled = false;
+                btnAssistir.style.opacity = '1';
+
+                btnAssistir.onclick = async () => {
+                    btnAssistir.innerText = "A carregar... ⏳";
+                    let imdbId = null;
+
+                    try {
+                        // Busca o ID do IMDb
+                        const respImdb = await fetch(`${URL_BASE}/movie/${id}?api_key=${TMDB_KEY}`);
+                        const dadosImdb = await respImdb.json();
+                        imdbId = dadosImdb.imdb_id;
+                    } catch(e) {
+                        console.error("Erro ao buscar IMDb:", e);
+                    }
+
+                    if (imdbId) {
+                        btnAssistir.innerText = "▶️ Assistir Filme";
+
+                        // 1. Abre a nova janela de instruções
+                        document.getElementById('modal-stremio').style.display = 'flex';
+
+                        // 2. Prepara o botão roxo final (dentro das instruções) para abrir o filme
+                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
+                        btnFinal.onclick = () => {
+                            // Dispara o Deep Link para abrir o App nativo
+                            window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+
+                            // Fallback para PC
+                            setTimeout(() => {
+                                if (document.visibilityState === 'visible') {
+                                    window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                                }
+                            }, 2000);
+                        };
+                    } else {
+                        btnAssistir.innerText = "❌ Filme indisponível";
+                        btnAssistir.disabled = true;
+                        btnAssistir.style.opacity = '0.5';
+                    }
                 };
             }
 
@@ -1890,57 +1930,42 @@
         }
 
         checarSessao();
+        
 
-        // =========================================
-        // === MODO CINEMA (IFRAME PLAYER) ===
-        // =========================================
-        let filmeCinemaAtualId = null;
+        // NOVO MODAL: Instruções Stremo //
+        <div id="modal-stremio" class="modal" style="z-index: 3500; background: rgba(0,0,0,0.85); display:none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+            <div style="background-color: #1f2937; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; position: relative; border: 1px solid #374151; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
 
-        function abrirModoCinema(tmdbId, titulo) {
-            filmeCinemaAtualId = tmdbId;
-            document.getElementById('cinema-titulo').innerText = titulo;
-            abrirModalSeguro('modal-cinema');
+                <!-- Botão de Fechar -->
+                <button onclick="document.getElementById('modal-stremio').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: #9ca3af; font-size: 1.8rem; cursor: pointer;">&times;</button>
 
-            // Força a iniciar pelo AutoEmbed, que foi o que funcionou para si antes!
-            trocarServidorCinema('auto');
-        }
+                <h3 style="color: white; margin-top: 0; text-align: center; font-size: 1.4rem;">🎬 Preparar Sessão</h3>
+                <p style="color: #9ca3af; font-size: 0.9rem; text-align: center; margin-bottom: 20px;">Para assistir de graça e dublado, siga estes passos rápidos (só é necessário fazer uma vez):</p>
 
-        function trocarServidorCinema(servidor) {
-            if (!filmeCinemaAtualId) return;
-            const iframe = document.getElementById('iframe-player');
+                <!-- Passo 1 -->
+                <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
+                    <p style="color: #10b981; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">1. Baixe o Aplicativo Base</p>
+                    <a href="https://www.stremio.com/downloads" target="_blank" style="background-color: #374151; color: white; display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 0.9rem;">📥 Baixar Stremio (Grátis)</a>
+                </div>
 
-            iframe.src = ''; 
+                <!-- Passo 2 -->
+                <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
+                    <p style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">2. Instale os Motores Dublados</p>
+                    <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado/sort=qualitysize/resolutions=screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🇧🇷 Instalar Motor PT-BR</button>
+                    <button onclick="window.location.href='stremio://brazuca.strem.fun/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🦜 Instalar Brazuca</button>
+                </div>
 
-            setTimeout(() => {
-                if (servidor === 'auto') {
-                    // O servidor que lhe trouxe sucesso no teste anterior
-                    iframe.src = `https://autoembed.co/movie/tmdb/${filmeCinemaAtualId}`;
-                } else if (servidor === 'vids') {
-                    // O domínio oficial e principal (não o .cc ou .net)
-                    iframe.src = `https://vidsrc.me/embed/movie?tmdb=${filmeCinemaAtualId}`;
-                } else if (servidor === 'smas') {
-                    // Um agregador gigante de links
-                    iframe.src = `https://embed.smashystream.com/playere.php?tmdb=${filmeCinemaAtualId}`;
-                }
-            }, 100);
+                <hr style="border: 0; border-top: 1px solid #4b5563; margin: 20px 0;">
 
-            // Sistema para pintar o botão ativo de roxo
-            const botoes = document.getElementById('modal-cinema').querySelectorAll('.btn-modal');
-            botoes.forEach(b => {
-                // Ex: se o nome do botão ("AutoEmbed") incluir "Auto" (em minúsculas)
-                if(b.innerText.toLowerCase().includes(servidor)) {
-                    b.style.background = 'var(--purple)';
-                } else {
-                    b.style.background = '#374151';
-                }
-            });
-        }
+                <!-- Passo 3 (Assistir) -->
+                <div style="text-align: center;">
+                    <p style="color: white; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold;">Tudo pronto?</p>
+                    <button id="btn-abrir-stremio-final" class="btn-modal" style="background-color: #8b5cf6; color: white; font-size: 1.1rem; width: 100%; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer;">▶️ Abrir Filme no Stremio</button>
+                </div>
+            </div>
+        </div>
 
-        function fecharModoCinema() {
-            // MATAR O IFRAME: Extremamente importante para o áudio parar de tocar no iOS!
-            document.getElementById('iframe-player').src = '';
-            fecharModalSeguro('modal-cinema');
-        }
+        
     </script>
 </body>
 </html>

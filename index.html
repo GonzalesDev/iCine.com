@@ -555,11 +555,18 @@
             <!-- Passo 2 -->
             <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
                 <p style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">2. Instale os Motores Dublados</p>
-                <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado/sort=qualitysize/resolutions=screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🇧🇷 Instalar Motor PT-BR</button>
-                <button onclick="window.location.href='stremio://brazuca.strem.fun/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; width: 100%; padding: 8px; border-radius: 6px; cursor: pointer;">🦜 Instalar Brazuca</button>
+                <p style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4;">Se o botão falhar, copie o link e cole na barra de pesquisa da aba <strong>Addons</strong> dentro do Stremio.</p>
+
+                <!-- Botão Torrentio (Abre a página web já configurada) -->
+                <button onclick="window.open('https://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado/sort=qualitysize/resolutions=screener,cam/configure', '_blank')" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    🌐 Abrir Site do Torrentio BR
+                </button>
+
+                <!-- Botão Brazuca (Copia para a área de transferência) -->
+                <button onclick="copiarParaStremio('https://brazuca.strem.fun/manifest.json', this)" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    📋 Copiar Link do Brazuca
+                </button>
             </div>
-            
-            <hr style="border: 0; border-top: 1px solid #4b5563; margin: 20px 0;">
             
             <!-- Passo 3 (Assistir) -->
             <div style="text-align: center;">
@@ -1921,6 +1928,25 @@
         }
 
         checarSessao();
+
+        // =========================================
+        // === FUNÇÃO DE FEEDBACK: COPIAR ADDON ===
+        // =========================================
+        function copiarParaStremio(link, botao) {
+            navigator.clipboard.writeText(link).then(() => {
+                const textoOriginal = botao.innerHTML;
+                botao.innerHTML = "✅ Copiado! Cole no Stremio";
+                botao.style.backgroundColor = "rgba(59, 130, 246, 0.2)"; // Fundo azul translúcido
+
+                // Volta ao normal depois de 4 segundos
+                setTimeout(() => {
+                    botao.innerHTML = textoOriginal;
+                    botao.style.backgroundColor = "transparent";
+                }, 4000);
+            }).catch(err => {
+                alert("Erro ao copiar. Tente selecionar o link manualmente: " + link);
+            });
+        }
         
     </script>
 </body>

@@ -1212,21 +1212,17 @@
                     document.getElementById('aviso-ios').style.display = 'none';
                 }
 
-                        // 2. Prepara o botão roxo final com Roteamento Inteligente
-                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
-                        btnFinal.onclick = () => {
-
-                            // O console vai "dedurar" qual caminho o código está tomando
-                            console.log("É Android?", isAndroid);
-
-                            if (isAndroid) {
-                                console.log("Caminho escolhido: Aplicativo (Android)");
-                                window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
-                            } else {
-                                console.log("Caminho escolhido: Stremio Web (PC/iOS)");
-                                window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
-                            }
-                        };
+                // 2. Prepara o botão roxo final com Roteamento Inteligente
+                const btnFinal = document.getElementById('btn-abrir-stremio-final');
+                btnFinal.onclick = () => {
+                    if (isAndroid) {
+                        // No Android, o Deep Link funciona perfeitamente para abrir o filme
+                        window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+                    } else {
+                        // No iPhone e no PC (Windows/Mac/Linux), usamos a rota da Web.
+                        window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                    }
+                };
             } else {
                 btnAssistir.innerText = "❌ Filme indisponível";
                 btnAssistir.disabled = true;

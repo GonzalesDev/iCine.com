@@ -1162,13 +1162,13 @@
                     filmeParaRecomendar = filme;
                     document.getElementById('img-filme-recomendacao').src = filme.capa;
                     document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
-                    
+
                     const select = document.getElementById('select-amigo-recomendacao');
                     select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
                     listaAmigos.forEach(a => {
                         select.innerHTML += `<option value="${a.user_id}">@${a.username}</option>`;
                     });
-                    
+
                     document.getElementById('input-msg-recomendacao').value = '';
                     document.getElementById('status-envio-recomendacao').innerText = '';
                     abrirModalSeguro('modal-enviar-recomendacao');
@@ -1199,35 +1199,37 @@
                     if (imdbId) {
                         btnAssistir.innerText = "▶️ Assistir Filme";
 
-            // 1. Abre a nova janela de instruções
-                document.getElementById('modal-stremio').style.display = 'flex';
+                        // 1. Abre a nova janela de instruções
+                        document.getElementById('modal-stremio').style.display = 'flex';
 
-                // Verifica plataformas
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                const isAndroid = /Android/i.test(navigator.userAgent);
+                        // Verifica plataformas
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                        const isAndroid = /Android/i.test(navigator.userAgent);
 
-                if (isIOS) {
-                    document.getElementById('aviso-ios').style.display = 'block';
-                } else {
-                    document.getElementById('aviso-ios').style.display = 'none';
-                }
+                        if (isIOS) {
+                            document.getElementById('aviso-ios').style.display = 'block';
+                        } else {
+                            document.getElementById('aviso-ios').style.display = 'none';
+                        }
 
-                // 2. Prepara o botão roxo final com Roteamento Inteligente
-                const btnFinal = document.getElementById('btn-abrir-stremio-final');
-                btnFinal.onclick = () => {
-                    if (isAndroid) {
-                        // No Android, o Deep Link funciona perfeitamente para abrir o filme
-                        window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+                        // 2. Prepara o botão roxo final com Roteamento Inteligente
+                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
+                        btnFinal.onclick = () => {
+                            if (isAndroid) {
+                                // No Android, o Deep Link funciona perfeitamente para abrir o filme
+                                window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+                            } else {
+                                // No iPhone e no PC (Windows/Mac/Linux), usamos a rota da Web.
+                                window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                            }
+                        };
                     } else {
-                        // No iPhone e no PC (Windows/Mac/Linux), usamos a rota da Web.
-                        window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                        btnAssistir.innerText = "❌ Filme indisponível";
+                        btnAssistir.disabled = true;
+                        btnAssistir.style.opacity = '0.5';
                     }
-                };
-            } else {
-                btnAssistir.innerText = "❌ Filme indisponível";
-                btnAssistir.disabled = true;
-                btnAssistir.style.opacity = '0.5';
-            }
+                }; // <-- ESTA CHAVE ESTAVA FALTANDO!
+            } // <-- ESTA CHAVE TAMBÉM ESTAVA FALTANDO!
 
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {

@@ -1193,10 +1193,12 @@
 
                         const btnFinal = document.getElementById('btn-abrir-stremio-final');
                         btnFinal.onclick = () => {
-                            if (isAndroid) {
-                                window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
-                            } else {
+                            if (isIOS) {
+                                // Apenas iPhone/iPad vai para a Web (para usar com o Outplayer)
                                 window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                            } else {
+                                // PC (Windows, Mac) e Android abrem o aplicativo nativo!
+                                window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
                             }
                         };
                     } else {

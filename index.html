@@ -507,9 +507,8 @@
             <!-- Seleção de Servidores -->
             <div style="background: #1f2937; padding: 8px 15px; display: flex; gap: 10px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #374151;">
                 <span style="color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center;">Servidor:</span>
-                <button class="btn-server" onclick="trocarServidorCinema(1, this)" style="background: var(--purple); color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Dublado 1</button>
-                <button class="btn-server" onclick="trocarServidorCinema(2, this)" style="background: #374151; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Dublado 2</button>
-                <button class="btn-server" onclick="trocarServidorCinema(3, this)" style="background: #374151; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Legendado</button>
+                <button class="btn-server" onclick="trocarServidorCinema(2, this)" style="background: var(--purple); color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Legendado 1</button>
+                <button class="btn-server" onclick="trocarServidorCinema(3, this)" style="background: #374151; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Legendado 2</button>
             </div>
             <!-- O Iframe Mágico onde roda o filme -->
             <div style="flex: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center;">
@@ -1180,33 +1179,24 @@
 
                     if (imdbId) {
                         btnAssistir.innerText = "🎬 Assistir com Stremio";
-                        document.getElementById('modal-stremio').style.display = 'flex';
 
-                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                        // DETECÇÃO DE PLATAFORMA MAIS ROBUSTA
                         const isAndroid = /Android/i.test(navigator.userAgent);
+                        const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-                        if (isIOS) {
-                            document.getElementById('aviso-ios').style.display = 'block';
+                        if (isAndroid) {
+                            // Android abre o App direto
+                            window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
                         } else {
-                            document.getElementById('aviso-ios').style.display = 'none';
+                            // PC e iOS abrem a versão Web (mais seguro e compatível)
+                            window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
                         }
-
-                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
-                        btnFinal.onclick = () => {
-                            if (isIOS) {
-                                // Apenas iPhone/iPad vai para a Web (para usar com o Outplayer)
-                                window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
-                            } else {
-                                // PC (Windows, Mac) e Android abrem o aplicativo nativo!
-                                window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
-                            }
-                        };
                     } else {
                         btnAssistir.innerText = "❌ Indisponível no Stremio";
                         btnAssistir.disabled = true;
                         btnAssistir.style.opacity = '0.5';
                     }
-                }; 
+                };
             } 
 
             // ==========================================
@@ -1217,13 +1207,12 @@
                 btnAssistirWeb.onclick = () => {
                     document.getElementById('modal-cinema').style.display = 'flex';
                     document.getElementById('cinema-titulo').innerText = filme.titulo;
-                    
-                    // Guarda o ID do filme numa variável global (no elemento iframe) para podermos trocar de servidor
+
                     document.getElementById('cinema-iframe').setAttribute('data-tmdb-id', id);
-                    
-                    // Carrega o servidor 1 por padrão
+
+                    // Carrega o Legendado 1 (Número 2) por padrão ao abrir o player
                     const primeiroBotaoServidor = document.querySelector('.btn-server');
-                    trocarServidorCinema(1, primeiroBotaoServidor);
+                    trocarServidorCinema(2, primeiroBotaoServidor);
                 };
             }
 
@@ -1279,11 +1268,9 @@
                 if (firstBtn) firstBtn.style.background = 'var(--purple)';
             }
 
-            // Escolhe a API de streaming gratuita
+            // Escolhe a API de streaming gratuita (Apenas as duas opções legendadas estáveis)
             let urlVideo = '';
-            if (servidorNum === 1) {
-                urlVideo = `https://embed.su/embed/movie/${tmdbId}`;
-            } else if (servidorNum === 2) {
+            if (servidorNum === 2) {
                 urlVideo = `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
             } else if (servidorNum === 3) {
                 urlVideo = `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;

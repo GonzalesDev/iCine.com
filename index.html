@@ -140,37 +140,20 @@
             -webkit-transform: translateZ(0);
         }
 
-        /* Gradiente mais escuro e alto para destacar os textos e botões novos */
         .short-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 60%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 100%); z-index: 5; pointer-events: none; }
-        
-        /* Container UI a ocupar a tela toda */
         .short-ui { position: absolute; inset: 0; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-end; padding: 15px; padding-bottom: 25px; }
         
-        /* === Barra Lateral Direita (Ações) === */
         .short-side-actions { position: absolute; right: 15px; bottom: 30px; display: flex; flex-direction: column; gap: 12px; pointer-events: auto; align-items: center; z-index: 20; }
         .action-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .btn-side-action { width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.2s, background 0.2s; }
         .btn-side-action:active { transform: scale(0.9); }
         .btn-side-action.liked { color: var(--red); border-color: var(--red); background: rgba(239, 68, 68, 0.15); }
-        .action-label { 
-            color: white; 
-            font-size: 0.8rem; 
-            font-weight: 700; 
-            text-shadow: 0 1px 3px #000; 
-            display: inline-block;
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            will-change: transform;
-        }
+        .action-label { color: white; font-size: 0.8rem; font-weight: 700; text-shadow: 0 1px 3px #000; display: inline-block; }
 
-        /* === Card Inferior (Poster, Título e Dados) === */
         .short-bottom-card { display: flex; gap: 12px; pointer-events: auto; align-items: center; max-width: calc(100% - 70px); cursor: pointer; border-radius: 12px; padding: 10px; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); transition: background 0.2s; }
         .short-bottom-card:active { background: rgba(0, 0, 0, 0.7); }
         
-        /* Capa Grande */
         .short-big-cover { width: 80px; height: 115px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.8); flex-shrink: 0; }
-        
-        /* Textos do Card */
         .short-card-details { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
         .short-card-title { color: white; font-size: 1.15rem; font-weight: 900; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 4px #000; }
         .short-card-meta { display: flex; align-items: center; gap: 8px; color: #e5e7eb; font-size: 0.9rem; font-weight: bold; margin-bottom: 6px; text-shadow: 0 1px 3px #000; }
@@ -382,7 +365,6 @@
                 <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
             </div>
             
-            <!-- NOVA SEÇÃO: Caixa de Entrada -->
             <div id="secao-inbox" style="display:none; margin-bottom: 1.5rem;">
                 <div class="secao-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>📬 Caixa de Entrada</span>
@@ -498,16 +480,41 @@
             <p id="detalhe-sinopse" style="font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-bottom: 1.5rem;"></p>
             <h4 id="titulo-streaming" style="margin-bottom: 0.5rem; font-size: 1rem; display: none; margin-top: 1rem;">🎬 Onde Assistir (Streaming):</h4>
             <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
+            
             <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
                 <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
                 
-                <!-- O NOVO BOTÃO DE ASSISTIR -->
-                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">▶️ Assistir Filme</button>
+                <!-- OS NOVOS BOTÕES DE ASSISTIR -->
+                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #8b5cf6; color: white; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">🎬 Assistir com Stremio</button>
+                <button id="btn-assistir-web" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🍿 Assistir Online (Navegador)</button>
                 
                 <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
                 <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
                 <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
                 <button id="btn-fechar-detalhes" class="btn-modal btn-modal-cancel">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOVO MODAL: Tela de Cinema Embutida (Web Player) -->
+    <div id="modal-cinema" class="modal" style="z-index: 3800; background: #000; padding: 0; align-items: center;">
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <!-- Barra Superior do Cinema -->
+            <div style="background: #111827; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151;">
+                <h3 id="cinema-titulo" style="color: white; margin: 0; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">A Carregar Filme...</h3>
+                <button onclick="document.getElementById('modal-cinema').style.display='none'; document.getElementById('cinema-iframe').src='';" style="background: var(--red); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">Sair ✕</button>
+            </div>
+            <!-- Seleção de Servidores -->
+            <div style="background: #1f2937; padding: 8px 15px; display: flex; gap: 10px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #374151;">
+                <span style="color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center;">Servidor:</span>
+                <button class="btn-server" onclick="trocarServidorCinema(1, this)" style="background: var(--purple); color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Dublado 1</button>
+                <button class="btn-server" onclick="trocarServidorCinema(2, this)" style="background: #374151; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Dublado 2</button>
+                <button class="btn-server" onclick="trocarServidorCinema(3, this)" style="background: #374151; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Legendado</button>
+            </div>
+            <!-- O Iframe Mágico onde roda o filme -->
+            <div style="flex: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center;">
+                <p id="cinema-loading" style="color: white; position: absolute; z-index: 1;">A carregar player...</p>
+                <iframe id="cinema-iframe" src="" allowfullscreen allow="autoplay; fullscreen" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;"></iframe>
             </div>
         </div>
     </div>
@@ -538,52 +545,29 @@
         </div>
     </div>
 
-    <!-- NOVO MODAL: Instruções Stremio -->
+    <!-- Modal Instruções Stremio -->
     <div id="modal-stremio" class="modal" style="z-index: 3500; background: rgba(0,0,0,0.85); display:none; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
         <div style="background-color: #1f2937; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; position: relative; border: 1px solid #374151; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-
-            <!-- Botão de Fechar -->
             <button onclick="document.getElementById('modal-stremio').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: #9ca3af; font-size: 1.8rem; cursor: pointer;">&times;</button>
-
             <h3 style="color: white; margin-top: 0; text-align: center; font-size: 1.4rem;">🎬 Preparar Sessão</h3>
             <p style="color: #9ca3af; font-size: 0.9rem; text-align: center; margin-bottom: 20px;">Para assistir de graça e dublado, siga estes passos rápidos (só é necessário fazer uma vez):</p>
-
-            <!-- Passo 1 -->
             <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
                 <p style="color: #10b981; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">1. Baixe o Aplicativo Base</p>
                 <a href="https://www.stremio.com/downloads" target="_blank" style="background-color: #374151; color: white; display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 0.9rem;">📥 Baixar Stremio (Grátis)</a>
             </div>
-
-            <!-- Passo 2 -->
             <div style="text-align: left; margin-bottom: 15px; background: #111827; padding: 12px; border-radius: 8px;">
                 <p style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; font-size: 0.95rem;">2. Instalar Motores Dublados (Apenas PT-BR)</p>
                 <p style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4;">Clique nos botões abaixo para abrir o aplicativo do Stremio e instalar os addons instantaneamente.</p>
-
-                <!-- Botão Torrentio -->
-                <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado|sort=quality|foreign_per_quality=0|priority_lang=portuguese|resolutions=4k,screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    🇧🇷 Instalar Torrentio (Só Dublados)
-                </button>
-
-                <!-- Botão Brazuca -->
-                <button onclick="window.location.href='stremio://94c8cb9f702d-brazuca-torrents.baby-beamup.club/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; margin-bottom: 8px; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    🦜 Instalar Brazuca (Link Direto)
-                </button>
-
-                <!-- Botão Froststream -->
-                <button onclick="window.location.href='stremio://froststream.cloutteam.com/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #8b5cf6; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    ❄️ Instalar Froststream
-                </button>
+                <button onclick="window.location.href='stremio://torrentio.strem.fun/providers=ptcomando,ptbludv,ptmicoleaodublado|sort=quality|foreign_per_quality=0|priority_lang=portuguese|resolutions=4k,screener,cam/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #10b981; margin-bottom: 8px; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">🇧🇷 Instalar Torrentio (Só Dublados)</button>
+                <button onclick="window.location.href='stremio://94c8cb9f702d-brazuca-torrents.baby-beamup.club/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #3b82f6; margin-bottom: 8px; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">🦜 Instalar Brazuca (Link Direto)</button>
+                <button onclick="window.location.href='stremio://froststream.cloutteam.com/manifest.json'" style="background-color: transparent; color: #d1d5db; border: 1px solid #8b5cf6; width: 100%; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">❄️ Instalar Froststream</button>
             </div>
-
             <hr style="border: 0; border-top: 1px solid #4b5563; margin: 20px 0;">
-
-            <!-- Passo 3 (Assistir) -->
             <div style="text-align: center;">
                 <div id="aviso-ios" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: left;">
                     <p style="color: var(--red); font-weight: bold; margin-bottom: 5px; font-size: 0.85rem;">🍎 Aviso para iPhone (iOS):</p>
                     <p style="color: #d1d5db; font-size: 0.8rem; line-height: 1.4;">O aplicativo nativo não roda os vídeos. Baixe o app grátis <strong>Outplayer</strong>, e ao abrir o Stremio Web, vá nas Configurações ⚙️ > Player e escolha "Outplayer".</p>
                 </div>
-
                 <p style="color: white; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold;">Tudo pronto?</p>
                 <button id="btn-abrir-stremio-final" class="btn-modal" style="background-color: #8b5cf6; color: white; font-size: 1.1rem; width: 100%; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); border: none; cursor: pointer;">▶️ Abrir Filme no Stremio</button>
             </div>
@@ -1175,11 +1159,12 @@
                 };
             }
 
-            // O Código do Botão Assistir Inicial
+            // ==========================================
+            // O Código do Botão Assistir (STREMIO)
+            // ==========================================
             const btnAssistir = document.getElementById('btn-assistir-agora');
             if (btnAssistir) {
-                // Reset visual do botão ao abrir um novo filme
-                btnAssistir.innerText = "▶️ Assistir Filme";
+                btnAssistir.innerText = "🎬 Assistir com Stremio";
                 btnAssistir.disabled = false;
                 btnAssistir.style.opacity = '1';
 
@@ -1188,21 +1173,15 @@
                     let imdbId = null;
 
                     try {
-                        // Busca o ID do IMDb
                         const respImdb = await fetch(`${URL_BASE}/movie/${id}?api_key=${TMDB_KEY}`);
                         const dadosImdb = await respImdb.json();
                         imdbId = dadosImdb.imdb_id;
-                    } catch(e) {
-                        console.error("Erro ao buscar IMDb:", e);
-                    }
+                    } catch(e) { console.error("Erro ao buscar IMDb:", e); }
 
                     if (imdbId) {
-                        btnAssistir.innerText = "▶️ Assistir Filme";
-
-                        // 1. Abre a nova janela de instruções
+                        btnAssistir.innerText = "🎬 Assistir com Stremio";
                         document.getElementById('modal-stremio').style.display = 'flex';
 
-                        // Verifica plataformas
                         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
                         const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -1212,24 +1191,39 @@
                             document.getElementById('aviso-ios').style.display = 'none';
                         }
 
-                        // 2. Prepara o botão roxo final com Roteamento Inteligente
                         const btnFinal = document.getElementById('btn-abrir-stremio-final');
                         btnFinal.onclick = () => {
                             if (isAndroid) {
-                                // No Android, o Deep Link funciona perfeitamente para abrir o filme
                                 window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
                             } else {
-                                // No iPhone e no PC (Windows/Mac/Linux), usamos a rota da Web.
                                 window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
                             }
                         };
                     } else {
-                        btnAssistir.innerText = "❌ Filme indisponível";
+                        btnAssistir.innerText = "❌ Indisponível no Stremio";
                         btnAssistir.disabled = true;
                         btnAssistir.style.opacity = '0.5';
                     }
-                }; // <-- ESTA CHAVE ESTAVA FALTANDO!
-            } // <-- ESTA CHAVE TAMBÉM ESTAVA FALTANDO!
+                }; 
+            } 
+
+            // ==========================================
+            // NOVO: O Código do Botão Assistir (WEB PLAYER ONLINE)
+            // ==========================================
+            const btnAssistirWeb = document.getElementById('btn-assistir-web');
+            if (btnAssistirWeb) {
+                btnAssistirWeb.onclick = () => {
+                    document.getElementById('modal-cinema').style.display = 'flex';
+                    document.getElementById('cinema-titulo').innerText = filme.titulo;
+                    
+                    // Guarda o ID do filme numa variável global (no elemento iframe) para podermos trocar de servidor
+                    document.getElementById('cinema-iframe').setAttribute('data-tmdb-id', id);
+                    
+                    // Carrega o servidor 1 por padrão
+                    const primeiroBotaoServidor = document.querySelector('.btn-server');
+                    trocarServidorCinema(1, primeiroBotaoServidor);
+                };
+            }
 
             const btnRadar = document.getElementById('btn-fixar-radar');
             if (btnRadar) {
@@ -1263,6 +1257,40 @@
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
         
+        // =========================================
+        // === MOTOR DE STREAMING WEB (IFRAMES) ===
+        // =========================================
+        function trocarServidorCinema(servidorNum, clickedBtn = null) {
+            const iframe = document.getElementById('cinema-iframe');
+            const tmdbId = iframe.getAttribute('data-tmdb-id');
+            if (!tmdbId) return;
+
+            // Atualiza os botões visuais
+            document.querySelectorAll('.btn-server').forEach(btn => {
+                btn.style.background = '#374151'; 
+            });
+            
+            if (clickedBtn) {
+                clickedBtn.style.background = 'var(--purple)';
+            } else {
+                const firstBtn = document.querySelector('.btn-server');
+                if (firstBtn) firstBtn.style.background = 'var(--purple)';
+            }
+
+            // Escolhe a API de streaming gratuita
+            let urlVideo = '';
+            if (servidorNum === 1) {
+                urlVideo = `https://embed.su/embed/movie/${tmdbId}`;
+            } else if (servidorNum === 2) {
+                urlVideo = `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
+            } else if (servidorNum === 3) {
+                urlVideo = `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+            }
+
+            // Carrega o filme no Iframe
+            iframe.src = urlVideo;
+        }
+
         // =========================================
         // === BLOCO: JS CENAS (NATIVO HTML5) ===
         // =========================================
@@ -1958,9 +1986,8 @@
             navigator.clipboard.writeText(link).then(() => {
                 const textoOriginal = botao.innerHTML;
                 botao.innerHTML = "✅ Copiado! Cole no Stremio";
-                botao.style.backgroundColor = "rgba(59, 130, 246, 0.2)"; // Fundo azul translúcido
+                botao.style.backgroundColor = "rgba(59, 130, 246, 0.2)"; 
 
-                // Volta ao normal depois de 4 segundos
                 setTimeout(() => {
                     botao.innerHTML = textoOriginal;
                     botao.style.backgroundColor = "transparent";

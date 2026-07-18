@@ -1180,16 +1180,32 @@
                     if (imdbId) {
                         btnAssistir.innerText = "🎬 Assistir com Stremio";
 
-                        // DETECÇÃO DE PLATAFORMA MAIS ROBUSTA
-                        const isAndroid = /Android/i.test(navigator.userAgent);
-                        const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        // 1. ABRE A TELA DE INSTRUÇÕES (MODAL) PRIMEIRO
+                        const modalStremio = document.getElementById('modal-stremio');
+                        if (modalStremio) modalStremio.style.display = 'flex';
 
-                        if (isAndroid) {
-                            // Android abre o App direto
-                            window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
-                        } else {
-                            // PC e iOS abrem a versão Web (mais seguro e compatível)
-                            window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                        // Verifica a plataforma para exibir avisos e rotear corretamente
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                        const isAndroid = /Android/i.test(navigator.userAgent);
+
+                        // Mostra o aviso da Apple se for iOS
+                        const avisoIos = document.getElementById('aviso-ios');
+                        if (avisoIos) {
+                            avisoIos.style.display = isIOS ? 'block' : 'none';
+                        }
+
+                        // 2. CONFIGURA O BOTÃO FINAL DENTRO DO MODAL COM O ROTEAMENTO CORRETO
+                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
+                        if (btnFinal) {
+                            btnFinal.onclick = () => {
+                                if (isAndroid) {
+                                    // Android abre o App nativo direto
+                                    window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+                                } else {
+                                    // PC (Windows/Mac) e iOS abrem a versão Web para evitar o erro "Failed to fetch"
+                                    window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                                }
+                            };
                         }
                     } else {
                         btnAssistir.innerText = "❌ Indisponível no Stremio";
@@ -1197,7 +1213,7 @@
                         btnAssistir.style.opacity = '0.5';
                     }
                 };
-            } 
+            }
 
             // ==========================================
             // NOVO: O Código do Botão Assistir (WEB PLAYER ONLINE)

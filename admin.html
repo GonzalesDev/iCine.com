@@ -115,8 +115,10 @@
             padding: 9px 10px !important;
             margin: 0 !important;
             appearance: none;
-            background: linear-gradient(145deg, rgba(var(--action-accent), 0.16), rgba(15, 23, 42, 0.78)) !important;
-            border: 1px solid rgba(var(--action-accent), 0.28) !important;
+            background:
+                linear-gradient(145deg, rgba(var(--action-accent), 0.16), rgba(15, 23, 42, 0.88)) padding-box,
+                linear-gradient(135deg, #7c3aed 0%, #a855f7 46%, #ec4899 100%) border-box !important;
+            border: 1.5px solid transparent !important;
             border-radius: 17px !important;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.18);
             color: #f8fafc !important;
@@ -179,9 +181,14 @@
         @media (hover: hover) {
             .actions-container .btn-acao-glass:hover {
                 transform: translateY(-2px);
-                border-color: rgba(var(--action-accent), 0.62) !important;
-                background: linear-gradient(145deg, rgba(var(--action-accent), 0.25), rgba(15, 23, 42, 0.84)) !important;
-                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 28px rgba(var(--action-accent), 0.16);
+                border-color: transparent !important;
+                background:
+                    linear-gradient(145deg, rgba(var(--action-accent), 0.25), rgba(15, 23, 42, 0.9)) padding-box,
+                    linear-gradient(135deg, #8b5cf6 0%, #c026d3 48%, #f43f5e 100%) border-box !important;
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                    0 10px 28px rgba(var(--action-accent), 0.16),
+                    0 0 18px rgba(217, 70, 239, 0.16);
             }
 
             .actions-container .btn-acao-glass:hover .action-icon {
@@ -191,13 +198,14 @@
         }
 
         .actions-container .btn-acao-glass:focus-visible {
-            outline: 2px solid rgb(var(--action-accent));
+            outline: 2px solid #d946ef;
             outline-offset: 3px;
         }
 
         .actions-container .btn-acao-glass:active {
             transform: scale(0.97) !important;
-            border-color: rgba(var(--action-accent), 0.72) !important;
+            border-color: transparent !important;
+            box-shadow: inset 0 0 18px rgba(168, 85, 247, 0.2), 0 0 14px rgba(236, 72, 153, 0.18);
         }
 
         @media (max-width: 360px) {

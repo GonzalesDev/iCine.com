@@ -485,7 +485,7 @@
                 <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
                 
                 <!-- OS NOVOS BOTÕES DE ASSISTIR -->
-                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #8b5cf6; color: white; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">🎬 Assistir no Stremio (Dublado)</button>
+                <button id="btn-assistir-agora" class="action-btn" style="background: var(--purple); color: white;">🎬 Assistir com Stremio (Dublado)</button>
                 <button id="btn-assistir-web" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🍿 Assistir Online (Legendado)</button>
                 
                 <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
@@ -1163,7 +1163,8 @@
             // ==========================================
             const btnAssistir = document.getElementById('btn-assistir-agora');
             if (btnAssistir) {
-                btnAssistir.innerText = "🎬 Assistir com Stremio";
+                // ALTERADO AQUI: Nome inicial do botão
+                btnAssistir.innerText = "🎬 Assistir com Stremio (Dublado)";
                 btnAssistir.disabled = false;
                 btnAssistir.style.opacity = '1';
 
@@ -1178,7 +1179,8 @@
                     } catch(e) { console.error("Erro ao buscar IMDb:", e); }
 
                     if (imdbId) {
-                        btnAssistir.innerText = "🎬 Assistir com Stremio";
+                        // ALTERADO AQUI: Nome do botão após carregar o ID
+                        btnAssistir.innerText = "🎬 Assistir com Stremio (Dublado)";
 
                         // 1. ABRE A TELA DE INSTRUÇÕES (MODAL) PRIMEIRO
                         const modalStremio = document.getElementById('modal-stremio');

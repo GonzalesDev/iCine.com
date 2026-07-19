@@ -228,8 +228,8 @@
         /* ========================================= */
         /* === BLOCO: CSS CHAT IA === */
         /* ========================================= */
-        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 3100; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .chat-fab:active { transform: scale(0.9); }
+        .chat-fab { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4); z-index: 3100; cursor: grab; touch-action: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .chat-fab:active { transform: scale(0.9); cursor: grabbing; }
         .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 3100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
         @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
         @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -2005,7 +2005,74 @@
                 alert("Erro ao copiar. Tente selecionar o link manualmente: " + link);
             });
         }
-        
+        // ==========================================
+        // CÓDIGO PARA TORNAR O ÍCONE DO CHAT ARRASTÁVEL
+        // ==========================================
+        const dragItem = document.getElementById("btn-chat-fab"); 
+
+        if (dragItem) {
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            // Eventos para PC (Mouse)
+            dragItem.addEventListener("mousedown", dragStart);
+            document.addEventListener("mouseup", dragEnd);
+            document.addEventListener("mousemove", drag);
+
+            // Eventos para Mobile (Toque)
+            dragItem.addEventListener("touchstart", dragStart, { passive: false });
+            document.addEventListener("touchend", dragEnd);
+            document.addEventListener("touchmove", drag, { passive: false });
+
+            function dragStart(e) {
+                if (e.type === "touchstart") {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+
+                // Verifica se o clique foi mesmo no ícone antes de começar a arrastar
+                if (e.target === dragItem || dragItem.contains(e.target)) {
+                    isDragging = true;
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault(); 
+
+                    if (e.type === "touchmove") {
+                        currentX = e.touches[0].clientX - initialX;
+                        currentY = e.touches[0].clientY - initialY;
+                    } else {
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                    }
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, dragItem);
+                }
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+            }
+        }
     </script>
 </body>
 </html>

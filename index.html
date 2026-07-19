@@ -94,6 +94,148 @@
             border-color: rgba(255, 255, 255, 0.3) !important;
         }
 
+        .actions-container {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin: 2px 0 4px;
+        }
+
+        .actions-container .btn-acao-glass {
+            --action-accent: 139, 92, 246;
+            position: relative;
+            isolation: isolate;
+            grid-column: span 2;
+            min-width: 0;
+            min-height: 54px;
+            display: flex !important;
+            gap: 8px !important;
+            overflow: hidden;
+            padding: 9px 10px !important;
+            margin: 0 !important;
+            appearance: none;
+            background:
+                linear-gradient(145deg, rgba(var(--action-accent), 0.16), rgba(15, 23, 42, 0.88)) padding-box,
+                linear-gradient(135deg, #7c3aed 0%, #a855f7 46%, #ec4899 100%) border-box !important;
+            border: 2px solid #a855f7 !important;
+            border-radius: 17px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.18);
+            color: #f8fafc !important;
+            font-family: inherit;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
+            text-decoration: none !important;
+            -webkit-tap-highlight-color: transparent;
+            backdrop-filter: blur(14px) saturate(130%) !important;
+            -webkit-backdrop-filter: blur(14px) saturate(130%);
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease !important;
+        }
+
+        .actions-container .btn-acao-glass:nth-child(-n + 2) {
+            grid-column: span 3;
+            font-size: 13px !important;
+        }
+
+        .actions-container .btn-acao-glass[style*="display: none"] {
+            display: none !important;
+        }
+
+        .actions-container .btn-acao-glass::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            inset: auto -25% -70% 20%;
+            height: 90%;
+            border-radius: 50%;
+            background: rgba(var(--action-accent), 0.2);
+            filter: blur(18px);
+            pointer-events: none;
+        }
+
+        .actions-container .btn-acao-glass::after {
+            content: '';
+            position: absolute;
+            z-index: 3;
+            inset: -2px;
+            padding: 2px;
+            border-radius: inherit;
+            background: linear-gradient(125deg, #7c3aed 0%, #a855f7 38%, #d946ef 68%, #ec4899 100%);
+            pointer-events: none;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            filter: drop-shadow(0 0 3px rgba(217, 70, 239, 0.32));
+            transition: filter 180ms ease, opacity 180ms ease;
+        }
+
+        .action-icon {
+            width: 29px;
+            height: 29px;
+            flex: 0 0 29px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(var(--action-accent), 0.3);
+            border-radius: 10px;
+            background: rgba(var(--action-accent), 0.18);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            font-size: 14px;
+            line-height: 1;
+            transition: transform 180ms ease, background 180ms ease;
+        }
+
+        #btn-modal-organizar-novo { --action-accent: 168, 85, 247; }
+        #btn-recomendar-amigo-novo { --action-accent: 56, 189, 248; }
+        #detalhe-shorts-novo { --action-accent: 251, 146, 60; }
+        #detalhe-trailer-novo { --action-accent: 59, 130, 246; }
+        #btn-fixar-radar-novo { --action-accent: 244, 63, 94; }
+
+        @media (hover: hover) {
+            .actions-container .btn-acao-glass:hover {
+                transform: translateY(-2px);
+                border-color: #c026d3 !important;
+                background:
+                    linear-gradient(145deg, rgba(var(--action-accent), 0.25), rgba(15, 23, 42, 0.9)) padding-box,
+                    linear-gradient(135deg, #8b5cf6 0%, #c026d3 48%, #f43f5e 100%) border-box !important;
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                    0 10px 28px rgba(var(--action-accent), 0.16),
+                    0 0 18px rgba(217, 70, 239, 0.16);
+            }
+
+            .actions-container .btn-acao-glass:hover .action-icon {
+                transform: scale(1.08) rotate(-3deg);
+                background: rgba(var(--action-accent), 0.28);
+            }
+
+            .actions-container .btn-acao-glass:hover::after {
+                filter: brightness(1.28) drop-shadow(0 0 6px rgba(236, 72, 153, 0.5));
+            }
+        }
+
+        .actions-container .btn-acao-glass:focus-visible {
+            outline: 2px solid #d946ef;
+            outline-offset: 3px;
+        }
+
+        .actions-container .btn-acao-glass:active {
+            transform: scale(0.97) !important;
+            border-color: #ec4899 !important;
+            box-shadow: inset 0 0 18px rgba(168, 85, 247, 0.2), 0 0 14px rgba(236, 72, 153, 0.18);
+        }
+
+        @media (max-width: 360px) {
+            .actions-container { gap: 8px; }
+            .actions-container .btn-acao-glass { min-height: 52px; padding: 8px 7px !important; font-size: 11px !important; }
+            .actions-container .btn-acao-glass:nth-child(-n + 2) { font-size: 12px !important; }
+            .action-icon { width: 27px; height: 27px; flex-basis: 27px; }
+        }
+
         /* ========================================= */
         /* === NOVO MODAL IMERSIVO (DARK UI) === */
         /* ========================================= */
@@ -595,11 +737,11 @@
                 </div>
 
                 <div class="actions-container">
-                    <button id="btn-modal-organizar-novo" class="btn-acao-glass">➕ Organizar</button>
-                    <button id="btn-recomendar-amigo-novo" class="btn-acao-glass">✈️ Recomendar</button>
-                    <a id="detalhe-shorts-novo" href="#" target="_blank" class="btn-acao-glass">⚡ Edits</a>
-                    <a id="detalhe-trailer-novo" href="#" target="_blank" class="btn-acao-glass">▶️ Trailer</a>
-                    <button id="btn-fixar-radar-novo" class="btn-acao-glass">📌 Fixar</button>
+                    <button id="btn-modal-organizar-novo" class="btn-acao-glass" type="button"><span class="action-icon" aria-hidden="true">＋</span><span>Organizar</span></button>
+                    <button id="btn-recomendar-amigo-novo" class="btn-acao-glass" type="button"><span class="action-icon" aria-hidden="true">➤</span><span>Recomendar</span></button>
+                    <a id="detalhe-shorts-novo" href="#" target="_blank" rel="noopener noreferrer" class="btn-acao-glass"><span class="action-icon" aria-hidden="true">⚡</span><span>Edits</span></a>
+                    <a id="detalhe-trailer-novo" href="#" target="_blank" rel="noopener noreferrer" class="btn-acao-glass"><span class="action-icon" aria-hidden="true">▶</span><span>Trailer</span></a>
+                    <button id="btn-fixar-radar-novo" class="btn-acao-glass" type="button"><span class="action-icon" aria-hidden="true">◆</span><span>Fixar</span></button>
                 </div>
 
                 <!-- Sinopse e Streaming -->

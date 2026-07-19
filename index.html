@@ -798,6 +798,7 @@
                 if (session) {
                     usuarioAtual = session.user;
                     document.getElementById('tela-login').style.display = 'none';
+                    // Garante que o conteúdo seja mostrado
                     carregarFilmesDaNuvem(); 
                     carregarPlaylistsDaNuvem();
                     aplicarFiltros(true);
@@ -806,7 +807,9 @@
                 } else {
                     document.getElementById('tela-login').style.display = 'flex';
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error("Erro na sessão:", err); 
+            }
         }
 
         document.getElementById('btn-entrar-acao').addEventListener('click', async () => {
@@ -814,9 +817,11 @@
             const senha = document.getElementById('senha-login').value;
             const msg = document.getElementById('login-msg');
             msg.innerText = "A carregar...";
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
-            if (error) msg.innerText = "Erro: " + error.message;
-            else checarSessao();
+            try {
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+                if (error) msg.innerText = "Erro: " + error.message;
+                else checarSessao();
+            } catch(e) { msg.innerText = "Erro de conexão"; }
         });
 
         document.getElementById('btn-registrar-acao').addEventListener('click', async () => {
@@ -1244,55 +1249,39 @@
         }
         document.getElementById('btn-cancelar-modal').addEventListener('click', () => { fecharModalSeguro('modal-escolha'); });
 
-                async function abrirDetalhes(id) {
-                    const filme = bancoDeFilmesLocal.get(id); 
-                    if (!filme) return;
+        async function abrirDetalhes(id) {
+            const filme = bancoDeFilmesLocal.get(id); 
+            if (!filme) return;
 
-                    // Preenche as informações básicas
-                    document.getElementById('detalhe-titulo').innerText = filme.titulo; 
-                    document.getElementById('detalhe-ano').innerText = filme.ano; 
-                    document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); 
-                    document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
-                    document.getElementById('detalhe-hero').style.backgroundImage = `url('${filme.capa}')`;
+            // Preenche os elementos do modal
+            document.getElementById('detalhe-titulo').innerText = filme.titulo; 
+            document.getElementById('detalhe-ano').innerText = filme.ano; 
+            document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); 
+            document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
+            document.getElementById('detalhe-hero').style.backgroundImage = `url('${filme.capa}')`;
 
-                    // 1. Configura os Botões de Ação Glass
-                    document.getElementById('btn-modal-organizar-novo').onclick = () => { 
-                        fecharModalSeguro('modal-detalhes'); 
-                        setTimeout(() => abrirModal(id, 'explorar'), 150); 
-                    };
+            // Configuração do botão Organizar
+            const btnOrg = document.getElementById('btn-modal-organizar-novo');
+            if(btnOrg) {
+                btnOrg.onclick = () => { 
+                    fecharModalSeguro('modal-detalhes'); 
+                    setTimeout(() => abrirModal(id, 'explorar'), 150); 
+                };
+            }
 
-                    document.getElementById('btn-recomendar-amigo-novo').onclick = () => {
-                        filmeParaRecomendar = filme;
-                        document.getElementById('img-filme-recomendacao').src = filme.capa;
-                        document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
-                        const select = document.getElementById('select-amigo-recomendacao');
-                        select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
-                        listaAmigos.forEach(a => { select.innerHTML += `<option value="${a.user_id}">@${a.username}</option>`; });
-                        abrirModalSeguro('modal-enviar-recomendacao');
-                    };
+            // Configuração do botão Recomendar
+            const btnRec = document.getElementById('btn-recomendar-amigo-novo');
+            if(btnRec) {
+                btnRec.onclick = () => {
+                    filmeParaRecomendar = filme;
+                    document.getElementById('img-filme-recomendacao').src = filme.capa;
+                    document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
+                    abrirModalSeguro('modal-enviar-recomendacao');
+                };
+            }
 
-                    // 2. Links (YouTube / Edits)
-                    document.getElementById('detalhe-shorts-novo').href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;
-
-                    // Trailer (Lógica original)
-                    const btnTrailer = document.getElementById('detalhe-trailer-novo'); // Use o ID novo
-                    btnTrailer.style.display = 'none';
-                    try {
-                        let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`); 
-                        let dados = await resp.json();
-                        if (dados.results.length === 0) { resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); dados = await resp.json(); }
-                        const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
-                        if (trailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'inline-flex'; }
-                    } catch (e) {}
-
-                    // 3. Streaming e Reset
-                    const txtStreaming = document.getElementById('titulo-streaming'); 
-                    const containerStreaming = document.getElementById('detalhe-streaming');
-                    if (txtStreaming) txtStreaming.style.display = 'none'; 
-                    if (containerStreaming) { containerStreaming.style.display = 'none'; containerStreaming.innerHTML = ''; }
-
-                    abrirModalSeguro('modal-detalhes');
-                }
+            abrirModalSeguro('modal-detalhes');
+        }
 
             // FUNCIONALIDADE RECOMENDAR A UM AMIGO
             const btnRecomendar = document.getElementById('btn-recomendar-amigo');

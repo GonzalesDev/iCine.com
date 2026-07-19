@@ -16,6 +16,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
 
+        .btn-assistir {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 16px 20px; border-radius: 50px;
+            font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none;
+            border: none; transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-stremio {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        .btn-online {
+            background: linear-gradient(135deg, #f43f5e, #be123c);
+            box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
+        }
+        .btn-assistir:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
         /* ========================================= */
         /* === NOVO MODAL IMERSIVO (DARK UI) === */
         /* ========================================= */
@@ -512,8 +531,8 @@
 
                 <!-- Botões Principais -->
                 <div class="hero-buttons">
-                    <button id="btn-assistir-agora" class="btn-hero-primary">🎬 Assistir com Stremio (Dublado)</button>
-                    <button id="btn-assistir-web" class="btn-hero-secondary">🍿 Assistir Online (Legendado)</button>
+                    <button id="btn-assistir-agora" class="btn-assistir btn-stremio">🎬 Assistir com Stremio (Dublado)</button>
+                    <button id="btn-assistir-web" class="btn-assistir btn-online">🍿 Assistir Online (Legendado)</button>
                 </div>
 
                 <!-- Ações Secundárias -->

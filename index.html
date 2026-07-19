@@ -1172,7 +1172,12 @@
             document.getElementById('detalhe-titulo').innerText = filme.titulo; document.getElementById('detalhe-ano').innerText = filme.ano; 
             document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
             document.getElementById('detalhe-hero').style.backgroundImage = `url('${filme.capa}')`;
-            document.getElementById('btn-modal-organizar').onclick = () => { fecharModalSeguro('modal-detalhes'); abrirModal(id, 'explorar'); };
+            document.getElementById('btn-modal-organizar').onclick = () => { 
+                fecharModalSeguro('modal-detalhes'); 
+                setTimeout(() => {
+                    abrirModal(id, 'explorar'); 
+                }, 150); 
+            };
             const txtStreaming = document.getElementById('titulo-streaming'); const containerStreaming = document.getElementById('detalhe-streaming');
             if (txtStreaming) txtStreaming.style.display = 'none'; if (containerStreaming) { containerStreaming.style.display = 'none'; containerStreaming.innerHTML = ''; }
             const btnShorts = document.getElementById('detalhe-shorts'); btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;

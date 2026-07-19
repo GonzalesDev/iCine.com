@@ -1250,15 +1250,45 @@
         document.getElementById('btn-cancelar-modal').addEventListener('click', () => { fecharModalSeguro('modal-escolha'); });
 
         async function abrirDetalhes(id) {
-            const filme = bancoDeFilmesLocal.get(id); 
-            if (!filme) return;
+            try {
+                const idNumerico = Number(id);
+                const filme = bancoDeFilmesLocal.get(id)
+                    || bancoDeFilmesLocal.get(idNumerico)
+                    || bancoDeFilmesLocal.get(String(id));
+                if (!filme) {
+                    console.warn('Filme nao encontrado no cache local:', id);
+                    return;
+                }
 
-            // Preenche os elementos do modal
-            document.getElementById('detalhe-titulo').innerText = filme.titulo; 
-            document.getElementById('detalhe-ano').innerText = filme.ano; 
-            document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); 
-            document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
-            document.getElementById('detalhe-hero').style.backgroundImage = `url('${filme.capa}')`;
+                const detalheTitulo = document.getElementById('detalhe-titulo');
+                const detalheAno = document.getElementById('detalhe-ano');
+                const detalheNota = document.getElementById('detalhe-nota');
+                const detalheSinopse = document.getElementById('detalhe-sinopse');
+                const detalheHero = document.getElementById('detalhe-hero');
+                const txtStreaming = document.getElementById('titulo-streaming');
+                const containerStreaming = document.getElementById('detalhe-streaming');
+                const btnTrailer = document.getElementById('detalhe-trailer-novo');
+                const btnShorts = document.getElementById('detalhe-shorts-novo');
+
+                if (detalheTitulo) detalheTitulo.innerText = filme.titulo || 'Titulo indisponivel';
+                if (detalheAno) detalheAno.innerText = filme.ano || '';
+                if (detalheNota) detalheNota.innerHTML = renderScoreBadge(filme);
+                if (detalheSinopse) detalheSinopse.innerText = filme.sinopse || 'Sinopse indisponivel.';
+                if (detalheHero) detalheHero.style.backgroundImage = filme.capa ? `url('${filme.capa}')` : 'none';
+                if (txtStreaming) txtStreaming.style.display = 'none';
+                if (containerStreaming) {
+                    containerStreaming.style.display = 'none';
+                    containerStreaming.innerHTML = '';
+                }
+                if (btnTrailer) {
+                    btnTrailer.href = '#';
+                    btnTrailer.style.display = 'none';
+                }
+                if (btnShorts) {
+                    const buscaShorts = `${filme.titulo || ''} ${filme.ano || ''} filme edit shorts`.trim();
+                    btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(buscaShorts)}`;
+                    btnShorts.style.display = 'inline-flex';
+                }
 
             // Configuração do botão Organizar
             const btnOrg = document.getElementById('btn-modal-organizar-novo');
@@ -1280,25 +1310,31 @@
                 };
             }
 
-            abrirModalSeguro('modal-detalhes');
-        }
-
             // FUNCIONALIDADE RECOMENDAR A UM AMIGO
-            const btnRecomendar = document.getElementById('btn-recomendar-amigo');
+            const btnRecomendar = document.getElementById('btn-recomendar-amigo-novo');
             if (btnRecomendar) {
                 btnRecomendar.onclick = () => {
                     filmeParaRecomendar = filme;
-                    document.getElementById('img-filme-recomendacao').src = filme.capa;
-                    document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
+                    const imgRecomendacao = document.getElementById('img-filme-recomendacao');
+                    const tituloRecomendacao = document.getElementById('titulo-filme-recomendacao');
+                    if (imgRecomendacao) imgRecomendacao.src = filme.capa || '';
+                    if (tituloRecomendacao) tituloRecomendacao.innerText = filme.titulo || 'Filme';
 
                     const select = document.getElementById('select-amigo-recomendacao');
-                    select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
-                    listaAmigos.forEach(a => {
-                        select.innerHTML += `<option value="${a.user_id}">@${a.username}</option>`;
-                    });
+                    if (select) {
+                        select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
+                        listaAmigos.forEach(a => {
+                            const option = document.createElement('option');
+                            option.value = a.user_id;
+                            option.textContent = `@${a.username}`;
+                            select.appendChild(option);
+                        });
+                    }
 
-                    document.getElementById('input-msg-recomendacao').value = '';
-                    document.getElementById('status-envio-recomendacao').innerText = '';
+                    const inputMsgRecomendacao = document.getElementById('input-msg-recomendacao');
+                    const statusRecomendacao = document.getElementById('status-envio-recomendacao');
+                    if (inputMsgRecomendacao) inputMsgRecomendacao.value = '';
+                    if (statusRecomendacao) statusRecomendacao.innerText = '';
                     abrirModalSeguro('modal-enviar-recomendacao');
                 };
             }
@@ -1368,18 +1404,22 @@
             const btnAssistirWeb = document.getElementById('btn-assistir-web');
             if (btnAssistirWeb) {
                 btnAssistirWeb.onclick = () => {
-                    document.getElementById('modal-cinema').style.display = 'flex';
-                    document.getElementById('cinema-titulo').innerText = filme.titulo;
-
-                    document.getElementById('cinema-iframe').setAttribute('data-tmdb-id', id);
+                    const modalCinema = document.getElementById('modal-cinema');
+                    const cinemaTitulo = document.getElementById('cinema-titulo');
+                    const cinemaIframe = document.getElementById('cinema-iframe');
+                    if (modalCinema) modalCinema.style.display = 'flex';
+                    if (cinemaTitulo) cinemaTitulo.innerText = filme.titulo || 'Filme';
+                    if (cinemaIframe) cinemaIframe.setAttribute('data-tmdb-id', idNumerico || id);
 
                     // Carrega o Legendado 1 (Número 2) por padrão ao abrir o player
                     const primeiroBotaoServidor = document.querySelector('.btn-server');
-                    trocarServidorCinema(2, primeiroBotaoServidor);
+                    if (cinemaIframe && typeof trocarServidorCinema === 'function') {
+                        trocarServidorCinema(2, primeiroBotaoServidor);
+                    }
                 };
             }
 
-            const btnRadar = document.getElementById('btn-fixar-radar');
+            const btnRadar = document.getElementById('btn-fixar-radar-novo');
             if (btnRadar) {
                 const SEU_ID_DE_ADMIN = "34bc00a4-00b1-4470-9439-1f793ac3b9f0"; 
                 if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) { btnRadar.style.display = 'block'; } else { btnRadar.style.display = 'none'; }
@@ -1406,8 +1446,11 @@
                 let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`); let dados = await resp.json();
                 if (dados.results.length === 0) { resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); dados = await resp.json(); }
                 const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
-                if (trailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'block'; }
+                if (trailer && btnTrailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'inline-flex'; }
             } catch (e) {}
+            } catch (erro) {
+                console.error('Nao foi possivel abrir os detalhes do filme:', erro);
+            }
         }
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
         

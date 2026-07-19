@@ -68,6 +68,32 @@
             transform: scale(0.96) !important;
         }
 
+        /* Novo design para os botões secundários (Efeito Vidro) */
+        .btn-acao-glass {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            padding: 10px 18px !important;
+            background: rgba(255, 255, 255, 0.08) !important; /* Fundo levemente claro/transparente */
+            border: 1px solid rgba(255, 255, 255, 0.12) !important; /* Borda bem suave */
+            border-radius: 40px !important; /* Formato de pílula arredondado */
+            color: #e2e8f0 !important; /* Texto branco levemente prateado */
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            backdrop-filter: blur(8px) !important; /* Desfoque do fundo (efeito vidro) */
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            margin: 4px !important; /* Espaçamento entre eles */
+        }
+
+        /* Efeito ao clicar no botão */
+        .btn-acao-glass:active {
+            transform: scale(0.95) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
         /* ========================================= */
         /* === NOVO MODAL IMERSIVO (DARK UI) === */
         /* ========================================= */
@@ -568,13 +594,12 @@
                     <button id="btn-assistir-web" class="btn-assistir btn-online">🍿 Assistir Online (Legendado)</button>
                 </div>
 
-                <!-- Ações Secundárias -->
-                <div class="secondary-actions">
-                    <button id="btn-modal-organizar">➕ Organizar Filme</button>
-                    <button id="btn-recomendar-amigo">✈️ Recomendar</button>
-                    <a id="detalhe-shorts" href="#" target="_blank">⚡ Edits</a>
-                    <a id="detalhe-trailer" href="#" target="_blank" style="display: none;">▶️ Trailer</a>
-                    <button id="btn-fixar-radar" style="display: none;">📌 Fixar Lançamento</button>
+                <div class="actions-container">
+                    <button class="btn-acao-glass">➕ Organizar Filme</button>
+                    <button class="btn-acao-glass">✈️ Recomendar</button>
+                    <button class="btn-acao-glass">⚡ Edits</button>
+                    <button class="btn-acao-glass">▶️ Trailer</button>
+                    <button class="btn-acao-glass">📌 Fixar Lançamento</button>
                 </div>
 
                 <!-- Sinopse e Streaming -->

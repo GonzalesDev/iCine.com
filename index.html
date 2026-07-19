@@ -15,6 +15,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+
+        /* ========================================= */
+        /* === NOVO MODAL IMERSIVO (DARK UI) === */
+        /* ========================================= */
+        .immersive-modal { width: 100%; max-width: 600px; height: 90vh; padding: 0; border-radius: 20px 20px 0 0; overflow-y: auto; background-color: var(--bg-color); position: relative; display: flex; flex-direction: column; scrollbar-width: none; margin: 0 auto; }
+        .immersive-modal::-webkit-scrollbar { display: none; }
+        .btn-close-floating { position: absolute; top: 15px; right: 15px; z-index: 3000; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; }
+        .detalhe-hero { width: 100%; height: 50vh; min-height: 380px; background-size: cover; background-position: center; position: relative; flex-shrink: 0; }
+        .detalhe-hero-gradient { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color) 0%, rgba(3, 7, 18, 0.4) 50%, rgba(3, 7, 18, 0.1) 100%); }
+        .detalhe-body { padding: 0 20px 40px 20px; margin-top: -80px; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .hero-title { font-size: 2.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 0.5rem; text-shadow: 0 4px 15px rgba(0,0,0,0.9); color: white; }
+        .hero-meta { display: flex; gap: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 1.5rem; align-items: center; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .detalhe-sinopse { font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-top: 1.5rem; text-align: left; width: 100%; background: rgba(17, 24, 39, 0.6); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+
+        /* Botões Estilo Pílula (Modernos) */
+        .hero-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-bottom: 15px; }
+        .btn-hero-primary { background: var(--purple); color: white; border: none; padding: 14px 24px; border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-hero-secondary { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px 24px; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .secondary-actions { display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; }
+        .secondary-actions button, .secondary-actions a { background: transparent; border: 1px solid #4b5563; color: #d1d5db; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .secondary-actions button:active, .secondary-actions a:active { background: rgba(255,255,255,0.1); }
+        
         /* ========================================= */
         /* === BLOCO: CSS BASE & VARIÁVEIS === */
         /* ========================================= */
@@ -470,30 +492,44 @@
         </div>
     </div>
 
-    <div id="modal-detalhes" class="modal" style="z-index: 2800;">
-        <div class="modal-content modal-detalhes-content">
-            <h3 id="detalhe-titulo" style="font-size: 1.4rem; margin-bottom: 0.2rem; color: var(--purple);">Título</h3>
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <span>Ano: <span id="detalhe-ano"></span></span> | <span id="detalhe-nota" style="display:flex; gap:0.5rem; align-items:center;"></span>
+    <!-- MODAL DE DETALHES IMERSIVO (DARK UI) -->
+    <div id="modal-detalhes" class="modal" style="z-index: 2800; align-items: flex-end; padding: 0;">
+        <div class="modal-content immersive-modal">
+            <!-- Botão flutuante para fechar -->
+            <button id="btn-fechar-detalhes" class="btn-close-floating">&times;</button>
+
+            <!-- A imagem de capa gigante que vai no fundo -->
+            <div id="detalhe-hero" class="detalhe-hero">
+                <div class="detalhe-hero-gradient"></div>
             </div>
-            <h4 style="margin-bottom: 0.4rem; font-size: 1rem;">Sinopse:</h4>
-            <p id="detalhe-sinopse" style="font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-bottom: 1.5rem;"></p>
-            <h4 id="titulo-streaming" style="margin-bottom: 0.5rem; font-size: 1rem; display: none; margin-top: 1rem;">🎬 Onde Assistir (Streaming):</h4>
-            <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 10px; align-items: center;"></div>
-            
-            <div class="modal-buttons" style="flex-direction: column; gap: 0.5rem;">
-                <button id="btn-fixar-radar" class="btn-modal" style="background-color: var(--blue); color: white; display: none;">📌 Fixar nos Lançamentos</button>
-                
-                <!-- OS NOVOS BOTÕES DE ASSISTIR -->
-                <button id="btn-assistir-agora" class="btn-modal" style="background-color: #9b59b6; color: white; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);">
-                    🎬 Assistir com Stremio (Dublado)
-                </button>
-                <button id="btn-assistir-web" class="btn-modal" style="background-color: #10b981; color: white; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🍿 Assistir Online (Legendado)</button>
-                
-                <button id="btn-recomendar-amigo" class="btn-modal" style="background-color: #ec4899; color: white;">✈️ Recomendar a um Amigo</button>
-                <a id="detalhe-trailer" href="#" target="_blank" class="btn-modal btn-modal-youtube">▶️ Assistir Trailer</a>
-                <a id="detalhe-shorts" href="#" target="_blank" class="btn-modal btn-modal-shorts">⚡ Ver Edits (Shorts)</a>
-                <button id="btn-fechar-detalhes" class="btn-modal btn-modal-cancel">Fechar</button>
+
+            <!-- Informações que ficam por cima da imagem -->
+            <div class="detalhe-body">
+                <h3 id="detalhe-titulo" class="hero-title">Título</h3>
+                <div class="hero-meta">
+                    <span id="detalhe-ano">Ano</span><span>•</span><span id="detalhe-nota" style="display: flex; gap: 4px; align-items: center;"></span>
+                </div>
+
+                <!-- Botões Principais -->
+                <div class="hero-buttons">
+                    <button id="btn-assistir-agora" class="btn-hero-primary">🎬 Assistir com Stremio (Dublado)</button>
+                    <button id="btn-assistir-web" class="btn-hero-secondary">🍿 Assistir Online (Legendado)</button>
+                </div>
+
+                <!-- Ações Secundárias -->
+                <div class="secondary-actions">
+                    <button id="btn-modal-organizar">➕ Organizar Filme</button>
+                    <button id="btn-recomendar-amigo">✈️ Recomendar</button>
+                    <a id="detalhe-shorts" href="#" target="_blank">⚡ Edits</a>
+                    <a id="detalhe-trailer" href="#" target="_blank" style="display: none;">▶️ Trailer</a>
+                    <button id="btn-fixar-radar" style="display: none;">📌 Fixar Lançamento</button>
+                </div>
+
+                <!-- Sinopse e Streaming -->
+                <p id="detalhe-sinopse" class="detalhe-sinopse"></p>
+
+                <h4 id="titulo-streaming" style="display: none; margin-top: 1.5rem; text-align: left; width: 100%; color: white;">🎬 Onde Assistir Oficial:</h4>
+                <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 12px; align-items: center; width: 100%;"></div>
             </div>
         </div>
     </div>
@@ -1131,10 +1167,12 @@
         }
         document.getElementById('btn-cancelar-modal').addEventListener('click', () => { fecharModalSeguro('modal-escolha'); });
 
-        async function abrirDetalhes(id) {
+            async function abrirDetalhes(id) {
             const filme = bancoDeFilmesLocal.get(id); if (!filme) return;
             document.getElementById('detalhe-titulo').innerText = filme.titulo; document.getElementById('detalhe-ano').innerText = filme.ano; 
             document.getElementById('detalhe-nota').innerHTML = renderScoreBadge(filme); document.getElementById('detalhe-sinopse').innerText = filme.sinopse;
+            document.getElementById('detalhe-hero').style.backgroundImage = `url('${filme.capa}')`;
+            document.getElementById('btn-modal-organizar').onclick = () => { fecharModalSeguro('modal-detalhes'); abrirModal(id, 'explorar'); };
             const txtStreaming = document.getElementById('titulo-streaming'); const containerStreaming = document.getElementById('detalhe-streaming');
             if (txtStreaming) txtStreaming.style.display = 'none'; if (containerStreaming) { containerStreaming.style.display = 'none'; containerStreaming.innerHTML = ''; }
             const btnShorts = document.getElementById('detalhe-shorts'); btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(filme.titulo + ' edit shorts')}`;

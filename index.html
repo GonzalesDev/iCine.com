@@ -235,55 +235,64 @@
         }
 
         /* ========================================== */
-        /* FORÇAR TAMANHO E CENTRALIZAR AÇÕES (FLEX)  */
+        /* FORÇAR TAMANHO E CENTRALIZAR (GRID ESTRITO)*/
         /* ========================================== */
         div.actions-container {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            justify-content: center !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important; /* Cria exatamente 2 colunas idênticas e simétricas */
             gap: 10px !important;
             width: 100% !important;
             box-sizing: border-box !important;
+            margin: 10px 0 !important;
         }
 
         div.actions-container button.btn-acao-glass,
         div.actions-container a.btn-acao-glass {
-            flex: 1 1 calc(50% - 10px) !important; /* Obriga a ter exatamente 2 botões por linha */
-            max-width: calc(50% - 5px) !important; /* Impede que eles estourem a margem */
+            width: 100% !important;
             margin: 0 !important;
-            font-size: 13.5px !important;
-            gap: 8px !important;
-            padding: 10px 4px !important; /* Diminui o padding interno lateral para caber melhor */
-            justify-content: center !important; 
+            padding: 10px 4px !important; /* Reduz a pressão nas bordas laterais */
+            font-size: 13px !important; /* Tamanho equilibrado para caber 'Recomendar' */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important; /* Espaço entre emoji e texto */
+
+            /* Trava de segurança: impede que o texto fure a caixa do botão */
+            white-space: nowrap !important; 
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
         }
 
-        div.actions-container button.btn-acao-glass:nth-child(-n + 2),
-        div.actions-container a.btn-acao-glass:nth-child(-n + 2) {
-            font-size: 14.5px !important;
+        /* Regra para o botão de Administrador (Fixar) ficar centralizado e inteiro na base */
+        #btn-fixar-radar-novo {
+            grid-column: span 2 !important;
         }
 
+        /* Emojis padronizados */
         div.actions-container .btn-acao-glass .action-icon {
-            font-size: 19px !important; 
-            width: 32px !important;
-            height: 32px !important;
-            flex-basis: 32px !important;
+            font-size: 18px !important; 
+            width: 30px !important;
+            height: 30px !important;
+            flex: 0 0 30px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
-        /* Ajuste fino para celulares muito pequenos não quebrarem o layout */
+        /* Modo de sobrevivência para celulares pequenos (ex: iPhone SE, Moto G antigos) */
         @media (max-width: 360px) {
+            div.actions-container { gap: 6px !important; }
             div.actions-container button.btn-acao-glass,
             div.actions-container a.btn-acao-glass { 
-                font-size: 11.5px !important; 
-            }
-            div.actions-container button.btn-acao-glass:nth-child(-n + 2),
-            div.actions-container a.btn-acao-glass:nth-child(-n + 2) {
-                font-size: 12.5px !important;
+                font-size: 11px !important; 
+                padding: 8px 2px !important;
+                gap: 4px !important;
             }
             div.actions-container .btn-acao-glass .action-icon { 
-                font-size: 16px !important; 
-                width: 26px !important; 
-                height: 26px !important; 
-                flex-basis: 26px !important; 
+                font-size: 15px !important; 
+                width: 24px !important; 
+                height: 24px !important; 
+                flex: 0 0 24px !important;
             }
         }
 

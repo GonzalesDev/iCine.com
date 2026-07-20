@@ -110,7 +110,7 @@
             min-width: 0;
             min-height: 54px;
             display: flex !important;
-            gap: 8px !important;
+            gap: 10px !important; /* Aumentei o espaço para respirar melhor o ícone */
             overflow: hidden;
             padding: 9px 10px !important;
             margin: 0 !important;
@@ -121,7 +121,7 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             color: #f8fafc !important;
             font-family: inherit;
-            font-size: 12px !important;
+            font-size: 14.5px !important; /* Fonte aumentada de 12px para 14.5px */
             font-weight: 700 !important;
             line-height: 1;
             white-space: nowrap;
@@ -135,7 +135,7 @@
 
         .actions-container .btn-acao-glass:nth-child(-n + 2) {
             grid-column: span 3;
-            font-size: 13px !important;
+            font-size: 15px !important; /* Primeiros botões maiores (antes era 13px) */
         }
 
         .actions-container .btn-acao-glass[style*="display: none"] {
@@ -168,13 +168,13 @@
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
             filter: drop-shadow(0 0 3px rgba(217, 70, 239, 0.32));
-            transition: filter 180ms ease, opacity 180ms ease;
+            transition: filter filter 180ms ease, opacity 180ms ease;
         }
 
         .action-icon {
-            width: 29px;
-            height: 29px;
-            flex: 0 0 29px;
+            width: 34px; /* Aumentado a caixa limite do ícone para não cortar (era 29px) */
+            height: 34px;
+            flex: 0 0 34px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -183,7 +183,7 @@
             background: transparent;
             box-shadow: none;
             color: rgb(var(--action-accent));
-            font-size: 14px;
+            font-size: 19px; /* O Ponto Chave: Emoji saltou de 14px para 19px! */
             line-height: 1;
             transition: transform 180ms ease, background 180ms ease;
         }
@@ -226,11 +226,12 @@
             box-shadow: 0 0 14px rgba(236, 72, 153, 0.18);
         }
 
+        /* Adaptação para telas muito pequenas não quebrarem o layout */
         @media (max-width: 360px) {
             .actions-container { gap: 8px; }
-            .actions-container .btn-acao-glass { min-height: 52px; padding: 8px 7px !important; font-size: 11px !important; }
-            .actions-container .btn-acao-glass:nth-child(-n + 2) { font-size: 12px !important; }
-            .action-icon { width: 27px; height: 27px; flex-basis: 27px; }
+            .actions-container .btn-acao-glass { min-height: 52px; padding: 8px 7px !important; font-size: 12.5px !important; }
+            .actions-container .btn-acao-glass:nth-child(-n + 2) { font-size: 13.5px !important; }
+            .action-icon { width: 30px; height: 30px; flex-basis: 30px; font-size: 16px; } 
         }
 
         /* ========================================= */

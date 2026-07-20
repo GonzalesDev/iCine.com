@@ -31,18 +31,8 @@
 
         .form-group { margin-bottom: 15px; position: relative; }
         label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.95rem; outline: none; }
         input:focus { border-color: var(--purple); }
-
-        /* Estilos da Busca Automática */
-        .search-results { display: none; position: absolute; top: 100%; left: 0; right: 0; background-color: #1f2937; border: 1px solid #374151; border-radius: 10px; margin-top: 5px; max-height: 250px; overflow-y: auto; z-index: 10; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
-        .search-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #374151; cursor: pointer; transition: background 0.2s; }
-        .search-item:last-child { border-bottom: none; }
-        .search-item:hover { background-color: #374151; }
-        .search-poster { width: 40px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 12px; background: #111827; }
-        .search-info { display: flex; flex-direction: column; }
-        .search-title { font-weight: bold; font-size: 0.9rem; color: white; }
-        .search-year { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 
         .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: 0.2s; }
         .btn-primary { background: linear-gradient(135deg, var(--purple), #6d28d9); color: white; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
@@ -55,6 +45,12 @@
         .preview-poster { width: 50px; height: 75px; object-fit: cover; border-radius: 6px; }
         .preview-title { font-weight: bold; font-size: 0.95rem; }
         .preview-video { width: 100%; max-height: 250px; background: #000; display: block; }
+
+        /* Dropdown de Busca */
+        #resultado-busca { display: none; position: absolute; width: 100%; background: #1f2937; border: 1px solid #374151; border-radius: 8px; z-index: 10; max-height: 200px; overflow-y: auto; margin-top: 5px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        .busca-item { padding: 10px; border-bottom: 1px solid #374151; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.2s; }
+        .busca-item:hover { background: #374151; }
+        .busca-thumb { width: 30px; height: 45px; object-fit: cover; border-radius: 4px; }
 
         /* Tabela de Cenas */
         .cena-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #1f2937; border-radius: 10px; margin-bottom: 10px; border: 1px solid #374151; }
@@ -77,21 +73,21 @@
         <!-- FORMULÁRIO DE CADASTRO -->
         <div class="card-box">
             <h2 class="card-title">⚡ Cadastrar Nova Cena (Short)</h2>
-
-            <!-- NOVO CAMPO DE BUSCA -->
+            
+            <!-- NOVA BARRA DE PESQUISA -->
             <div class="form-group">
-                <label for="search-movie">🔍 1. Buscar Filme pelo Nome (Automático):</label>
-                <input type="text" id="search-movie" placeholder="Ex: Clube da Luta, Vingadores..." autocomplete="off">
-                <div id="search-results" class="search-results"></div>
+                <label for="buscar-filme">🔍 Buscar Filme pelo Nome:</label>
+                <input type="text" id="buscar-filme" placeholder="Digite o nome do filme..." autocomplete="off">
+                <div id="resultado-busca"></div>
             </div>
 
             <div class="form-group">
-                <label for="tmdb-id">ID do Filme (Preenchido automaticamente):</label>
-                <input type="number" id="tmdb-id" placeholder="ID do TMDB" readonly style="background-color: #111827; cursor: not-allowed;">
+                <label for="tmdb-id">1. ID do Filme no TMDB:</label>
+                <input type="number" id="tmdb-id" placeholder="O ID aparecerá aqui após a busca" readonly style="opacity: 0.7;">
             </div>
 
             <div class="form-group">
-                <label for="video-url">2. Link Direto do Vídeo (Cloudflare/Supabase):</label>
+                <label for="video-url">2. Link Direto do Vídeo (MP4):</label>
                 <input type="text" id="video-url" placeholder="https://.../video.mp4">
             </div>
 
@@ -130,67 +126,53 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let filmeDetectado = null;
 
-        // --- SISTEMA DE BUSCA AUTOMÁTICA ---
-        const searchInput = document.getElementById('search-movie');
-        const searchResults = document.getElementById('search-results');
-        let searchTimeout;
-
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
+        // SISTEMA DE BUSCA DE FILMES (NOVO)
+        document.getElementById('buscar-filme').addEventListener('input', async (e) => {
             const query = e.target.value.trim();
+            const boxResultados = document.getElementById('resultado-busca');
 
-            if (query.length < 2) {
-                searchResults.style.display = 'none';
+            if (query.length < 3) {
+                boxResultados.style.display = 'none';
                 return;
             }
 
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const resp = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
-                    const data = await resp.json();
+            try {
+                const resp = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+                const data = await resp.json();
 
-                    if (data.results && data.results.length > 0) {
-                        searchResults.innerHTML = data.results.slice(0, 5).map(movie => {
-                            const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : 'https://via.placeholder.com/40x60?text=Sem+Capa';
-                            const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
-                            return `
-                                <div class="search-item" onclick="selecionarFilme('${movie.id}', '${movie.title.replace(/'/g, "\\'")}')">
-                                    <img src="${poster}" class="search-poster" alt="Capa">
-                                    <div class="search-info">
-                                        <span class="search-title">${movie.title}</span>
-                                        <span class="search-year">${year}</span>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-                        searchResults.style.display = 'block';
-                    } else {
-                        searchResults.innerHTML = '<div style="padding: 10px; color: var(--text-muted); text-align: center;">Nenhum filme encontrado.</div>';
-                        searchResults.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error('Erro na busca:', error);
+                if (data.results && data.results.length > 0) {
+                    boxResultados.innerHTML = data.results.slice(0, 5).map(filme => `
+                        <div class="busca-item" onclick="selecionarFilme(${filme.id}, '${filme.title.replace(/'/g, "\\'")}')">
+                            <img src="${filme.poster_path ? 'https://image.tmdb.org/t/p/w92' + filme.poster_path : 'https://via.placeholder.com/40x60'}" class="busca-thumb">
+                            <div>
+                                <div style="font-weight: bold; font-size: 0.9rem;">${filme.title}</div>
+                                <div style="font-size: 0.75rem; color: #9ca3af;">${filme.release_date ? filme.release_date.split('-')[0] : 'N/A'}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    boxResultados.style.display = 'block';
+                } else {
+                    boxResultados.innerHTML = '<div style="padding: 10px; color: #9ca3af; text-align: center; font-size: 0.85rem;">Nenhum filme encontrado.</div>';
+                    boxResultados.style.display = 'block';
                 }
-            }, 400); // Aguarda 400ms após parar de digitar para buscar
-        });
-
-        // Função chamada ao clicar em um filme da busca
-        window.selecionarFilme = function(id, title) {
-            document.getElementById('tmdb-id').value = id; // Preenche o ID
-            searchInput.value = title; // Mantém o nome no campo de busca para referência
-            searchResults.style.display = 'none'; // Esconde a lista
-            
-            // Move o foco direto para o campo de vídeo
-            document.getElementById('video-url').focus(); 
-        };
-
-        // Fecha a lista de busca se clicar fora dela
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.style.display = 'none';
+            } catch (err) {
+                console.error("Erro na busca:", err);
             }
         });
 
+        // Selecionar filme na busca
+        window.selecionarFilme = function(id, titulo) {
+            document.getElementById('tmdb-id').value = id;
+            document.getElementById('buscar-filme').value = titulo;
+            document.getElementById('resultado-busca').style.display = 'none';
+        };
+
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'buscar-filme') {
+                document.getElementById('resultado-busca').style.display = 'none';
+            }
+        });
 
         // 1. VERIFICAR ID NO TMDB E ARQUIVO DE VÍDEO
         document.getElementById('btn-verificar').addEventListener('click', async () => {
@@ -201,7 +183,7 @@
 
             if (!tmdbId || !videoUrl) {
                 msg.style.color = 'var(--red)';
-                msg.innerText = 'Preencha a busca do filme e cole o link do vídeo!';
+                msg.innerText = 'Selecione um filme e preencha o link do vídeo!';
                 return;
             }
 
@@ -219,7 +201,6 @@
                     capa: filme.poster_path ? `https://image.tmdb.org/t/p/w500${filme.poster_path}` : 'https://via.placeholder.com/50x75?text=Sem+Capa'
                 };
 
-                // Atualiza visualização
                 document.getElementById('preview-titulo').innerText = filme.title;
                 document.getElementById('preview-ano').innerText = filme.release_date ? filme.release_date.split('-')[0] : 'N/A';
                 document.getElementById('preview-poster').src = filmeDetectado.capa;
@@ -227,7 +208,7 @@
 
                 previewBox.style.display = 'block';
                 msg.style.color = '#10b981';
-                msg.innerText = '✓ Filme carregado! Confirme o vídeo abaixo e clique em Publicar.';
+                msg.innerText = '✓ Filme encontrado! Confirme o vídeo e clique em Publicar.';
 
             } catch (err) {
                 msg.style.color = 'var(--red)';
@@ -244,7 +225,7 @@
 
             if (!tmdbId || !videoUrl) {
                 msg.style.color = 'var(--red)';
-                msg.innerText = 'Verifique o filme e o link do vídeo antes de publicar!';
+                msg.innerText = 'Preencha todos os campos antes de publicar!';
                 return;
             }
 
@@ -254,7 +235,7 @@
             const novaCena = {
                 tmdb_id: parseInt(tmdbId),
                 video_url: videoUrl,
-                nome_filme: filmeDetectado ? filmeDetectado.titulo : 'Filme ID: ' + tmdbId,
+                nome_filme: filmeDetectado ? filmeDetectado.titulo : document.getElementById('buscar-filme').value,
                 curtidas: [],
                 comentarios: []
             };
@@ -267,10 +248,9 @@
             } else {
                 msg.style.color = '#10b981';
                 msg.innerText = '✅ Cena publicada com sucesso no Feed do iCine!';
-
-                // Limpar formulário
-                document.getElementById('search-movie').value = '';
+                
                 document.getElementById('tmdb-id').value = '';
+                document.getElementById('buscar-filme').value = '';
                 document.getElementById('video-url').value = '';
                 document.getElementById('preview-box').style.display = 'none';
                 filmeDetectado = null;

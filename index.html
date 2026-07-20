@@ -235,30 +235,56 @@
         }
 
         /* ========================================== */
-        /* FORÇAR TAMANHO DOS EMOJIS E TEXTOS DA AÇÃO */
+        /* FORÇAR TAMANHO E CENTRALIZAR AÇÕES (FLEX)  */
         /* ========================================== */
+        div.actions-container {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
         div.actions-container button.btn-acao-glass,
         div.actions-container a.btn-acao-glass {
-            font-size: 14.5px !important;
-            gap: 12px !important;
+            flex: 1 1 calc(50% - 10px) !important; /* Obriga a ter exatamente 2 botões por linha */
+            max-width: calc(50% - 5px) !important; /* Impede que eles estourem a margem */
+            margin: 0 !important;
+            font-size: 13.5px !important;
+            gap: 8px !important;
+            padding: 10px 4px !important; /* Diminui o padding interno lateral para caber melhor */
+            justify-content: center !important; 
         }
 
         div.actions-container button.btn-acao-glass:nth-child(-n + 2),
         div.actions-container a.btn-acao-glass:nth-child(-n + 2) {
-            font-size: 15px !important;
+            font-size: 14.5px !important;
         }
 
         div.actions-container .btn-acao-glass .action-icon {
-            font-size: 22px !important; 
-            width: 38px !important;
-            height: 38px !important;
-            flex-basis: 38px !important;
+            font-size: 19px !important; 
+            width: 32px !important;
+            height: 32px !important;
+            flex-basis: 32px !important;
         }
 
+        /* Ajuste fino para celulares muito pequenos não quebrarem o layout */
         @media (max-width: 360px) {
             div.actions-container button.btn-acao-glass,
-            div.actions-container a.btn-acao-glass { font-size: 12.5px !important; gap: 8px !important; }
-            div.actions-container .btn-acao-glass .action-icon { font-size: 18px !important; width: 32px !important; height: 32px !important; flex-basis: 32px !important; }
+            div.actions-container a.btn-acao-glass { 
+                font-size: 11.5px !important; 
+            }
+            div.actions-container button.btn-acao-glass:nth-child(-n + 2),
+            div.actions-container a.btn-acao-glass:nth-child(-n + 2) {
+                font-size: 12.5px !important;
+            }
+            div.actions-container .btn-acao-glass .action-icon { 
+                font-size: 16px !important; 
+                width: 26px !important; 
+                height: 26px !important; 
+                flex-basis: 26px !important; 
+            }
         }
 
         /* ========================================= */

@@ -234,6 +234,33 @@
             .action-icon { width: 30px; height: 30px; flex-basis: 30px; font-size: 16px; } 
         }
 
+        /* ========================================== */
+        /* FORÇAR TAMANHO DOS EMOJIS E TEXTOS DA AÇÃO */
+        /* ========================================== */
+        div.actions-container button.btn-acao-glass,
+        div.actions-container a.btn-acao-glass {
+            font-size: 14.5px !important;
+            gap: 12px !important;
+        }
+
+        div.actions-container button.btn-acao-glass:nth-child(-n + 2),
+        div.actions-container a.btn-acao-glass:nth-child(-n + 2) {
+            font-size: 15px !important;
+        }
+
+        div.actions-container .btn-acao-glass .action-icon {
+            font-size: 22px !important; 
+            width: 38px !important;
+            height: 38px !important;
+            flex-basis: 38px !important;
+        }
+
+        @media (max-width: 360px) {
+            div.actions-container button.btn-acao-glass,
+            div.actions-container a.btn-acao-glass { font-size: 12.5px !important; gap: 8px !important; }
+            div.actions-container .btn-acao-glass .action-icon { font-size: 18px !important; width: 32px !important; height: 32px !important; flex-basis: 32px !important; }
+        }
+
         /* ========================================= */
         /* === NOVO MODAL IMERSIVO (DARK UI) === */
         /* ========================================= */

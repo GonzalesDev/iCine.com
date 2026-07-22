@@ -407,12 +407,80 @@
         .movie-card.aberto .movie-card-overlay { opacity: 1; pointer-events: auto; }
         @media (hover: hover) and (pointer: fine) { .movie-card:hover .movie-card-overlay { opacity: 1; pointer-events: auto; } }
 
-        .btn-action { width: 100%; padding: 0.5rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
-        .btn-add { background-color: var(--purple); color: white; }
-        .btn-watched { background-color: var(--pink); color: white; }
-        .btn-delete { background-color: var(--red); color: white; }
-        .btn-info { background-color: var(--blue); color: white; }
-        .btn-carregar-mais { margin: 1.5rem auto; padding: 0.8rem 2rem; background-color: transparent; border: 2px solid var(--purple); color: var(--purple); border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer; width: 100%; max-width: 300px; text-align: center; transition: background-color 0.2s; }
+        /* ========================================= */
+        /* === NOVO DESIGN PREMIUM: BOTÕES DO CARD === */
+        /* ========================================= */
+        .btn-action { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            font-size: 0.85rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Espaço perfeito entre emoji e texto */
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Efeito de clique fluido */
+        .btn-action:active {
+            transform: scale(0.96);
+        }
+
+        /* 🟣 Botão Lista / Adicionar */
+        .btn-add { 
+            background: rgba(139, 92, 246, 0.15); 
+            border-color: rgba(139, 92, 246, 0.35); 
+            color: #ddd6fe; 
+        }
+        @media (hover: hover) { .btn-add:hover { background: rgba(139, 92, 246, 0.3); border-color: rgba(139, 92, 246, 0.6); color: #fff; box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); } }
+
+        /* 💗 Botão Assistido */
+        .btn-watched { 
+            background: rgba(236, 72, 153, 0.15); 
+            border-color: rgba(236, 72, 153, 0.35); 
+            color: #fbcfe8;
+        }
+        @media (hover: hover) { .btn-watched:hover { background: rgba(236, 72, 153, 0.3); border-color: rgba(236, 72, 153, 0.6); color: #fff; box-shadow: 0 0 15px rgba(236, 72, 153, 0.2); } }
+
+        /* 🔴 Botão Remover/Tirar */
+        .btn-delete { 
+            background: rgba(239, 68, 68, 0.15); 
+            border-color: rgba(239, 68, 68, 0.35); 
+            color: #fecaca;
+        }
+        @media (hover: hover) { .btn-delete:hover { background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.6); color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); } }
+
+        /* 🔵 Botão Sinopse */
+        .btn-info { 
+            background: rgba(59, 130, 246, 0.15); 
+            border-color: rgba(59, 130, 246, 0.35); 
+            color: #bfdbfe;
+        }
+        @media (hover: hover) { .btn-info:hover { background: rgba(59, 130, 246, 0.3); border-color: rgba(59, 130, 246, 0.6); color: #fff; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); } }
+
+        /* 🩵 Botão Playlist (Oculta estilos forçados do JS com !important) */
+        .btn-action[data-action="add-playlist"] {
+            background: rgba(14, 165, 233, 0.15) !important; 
+            border-color: rgba(14, 165, 233, 0.35) !important;
+            color: #bae6fd !important;
+        }
+        @media (hover: hover) {
+            .btn-action[data-action="add-playlist"]:hover {
+                background: rgba(14, 165, 233, 0.3) !important;
+                border-color: rgba(14, 165, 233, 0.6) !important;
+                color: #fff !important;
+                box-shadow: 0 0 15px rgba(14, 165, 233, 0.2) !important;
+            }
+        }
 
         /* ========================================= */
         /* === BLOCO: CSS PLAYLISTS === */

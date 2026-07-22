@@ -302,8 +302,15 @@
         .immersive-modal { width: 100%; max-width: 600px; height: 90vh; padding: 0; border-radius: 20px 20px 0 0; overflow-y: auto; background-color: var(--bg-color); position: relative; display: flex; flex-direction: column; scrollbar-width: none; margin: 0 auto; }
         .immersive-modal::-webkit-scrollbar { display: none; }
         .btn-close-floating { position: absolute; top: 15px; right: 15px; z-index: 3000; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; }
-        .detalhe-hero { width: 100%; height: 50vh; min-height: 380px; background-size: cover; background-position: center; position: relative; flex-shrink: 0; }
-        .detalhe-hero-gradient { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color) 0%, rgba(3, 7, 18, 0.4) 50%, rgba(3, 7, 18, 0.1) 100%); }
+        /* Adicione o overflow: hidden na classe existente */
+        .detalhe-hero { width: 100%; height: 50vh; min-height: 380px; background-size: cover; background-position: center; position: relative; flex-shrink: 0; overflow: hidden; }
+
+        /* A camada de gradiente continua igual, mas forçamos o z-index */
+        .detalhe-hero-gradient { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color) 0%, rgba(3, 7, 18, 0.4) 50%, rgba(3, 7, 18, 0.1) 100%); z-index: 1; }
+
+        /* NOVAS REGRAS PARA O VÍDEO DE FUNDO */
+        .video-background-wrapper { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; pointer-events: none; z-index: 0; }
+        .video-background-wrapper iframe { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; min-width: 100%; min-height: 100%; object-fit: cover; border: none; }
         .detalhe-body { padding: 0 20px 40px 20px; margin-top: -80px; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .hero-title { font-size: 2.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 0.5rem; text-shadow: 0 4px 15px rgba(0,0,0,0.9); color: white; }
         .hero-meta { display: flex; gap: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 1.5rem; align-items: center; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
@@ -780,6 +787,8 @@
 
             <!-- A imagem de capa gigante que vai no fundo -->
             <div id="detalhe-hero" class="detalhe-hero">
+                <!-- Contentor invisível para o Iframe do YouTube -->
+                <div id="video-background-container" class="video-background-wrapper"></div>
                 <div class="detalhe-hero-gradient"></div>
             </div>
 
@@ -1471,7 +1480,8 @@
                 const containerStreaming = document.getElementById('detalhe-streaming');
                 const btnTrailer = document.getElementById('detalhe-trailer-novo');
                 const btnShorts = document.getElementById('detalhe-shorts-novo');
-
+                const containerVideo = document.getElementById('video-background-container');
+                if (containerVideo) containerVideo.innerHTML = ''; 
                 if (detalheTitulo) detalheTitulo.innerText = filme.titulo || 'Titulo indisponivel';
                 if (detalheAno) detalheAno.innerText = filme.ano || '';
                 if (detalheNota) detalheNota.innerHTML = renderScoreBadge(filme);
@@ -1636,26 +1646,56 @@
                     }
                 };
             }
-            abrirModalSeguro('modal-detalhes');
-            try {
-                let resp = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`); let dadosProviders = await resp.json(); let provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
-                if (provedoresRegiao && provedoresRegiao.flatrate) {
-                    if (txtStreaming) txtStreaming.style.display = 'block';
-                    if (containerStreaming) { containerStreaming.style.display = 'flex'; containerStreaming.innerHTML = provedoresRegiao.flatrate.map(p => `<div style="display: flex; align-items: center; gap: 6px; background: #111827; padding: 4px 8px; border-radius: 20px; border: 1px solid #374151;"><img src="${IMG_BASE}${p.logo_path}" alt="${p.provider_name}" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover;"><span style="font-size: 0.75rem; font-weight: bold; color: white;">${p.provider_name}</span></div>`).join(''); }
+        abrirModalSeguro('modal-detalhes');
+
+                // 1. Busca os provedores de streaming (Netflix, etc)
+                try {
+                    let resp = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`); 
+                    let dadosProviders = await resp.json(); 
+                    let provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
+
+                    if (provedoresRegiao && provedoresRegiao.flatrate) {
+                        if (txtStreaming) txtStreaming.style.display = 'block';
+                        if (containerStreaming) { 
+                            containerStreaming.style.display = 'flex'; 
+                            containerStreaming.innerHTML = provedoresRegiao.flatrate.map(p => `<div style="display: flex; align-items: center; gap: 6px; background: #111827; padding: 4px 8px; border-radius: 20px; border: 1px solid #374151;"><img src="${IMG_BASE}${p.logo_path}" alt="${p.provider_name}" style="width: 22px; height: 22px; border-radius: 6px; object-fit: cover;"><span style="font-size: 0.75rem; font-weight: bold; color: white;">${p.provider_name}</span></div>`).join(''); 
+                        }
+                    }
+                } catch (err) {
+                    console.error("Erro provedores:", err);
                 }
-            } catch (err) {}
-            try {
-                let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`); let dados = await resp.json();
-                if (dados.results.length === 0) { resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); dados = await resp.json(); }
-                const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
-                if (trailer && btnTrailer) { btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; btnTrailer.style.display = 'inline-flex'; }
-            } catch (e) {}
+
+                // 2. Busca os vídeos e injeta o iframe de fundo
+                try {
+                    let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`); 
+                    let dados = await resp.json();
+                    if (dados.results.length === 0) { 
+                        resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); 
+                        dados = await resp.json(); 
+                    }
+                    const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
+
+                    if (trailer) { 
+                        // Configura o link do botão de trailer externo
+                        if (btnTrailer) {
+                            btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`; 
+                            btnTrailer.style.display = 'inline-flex'; 
+                        }
+                        // Injeta o Trailer no fundo em Auto-play silencioso
+                        if (containerVideo) {
+                            containerVideo.innerHTML = `<iframe src="https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${trailer.key}&disablekb=1&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Erro ao carregar vídeo de fundo:", e);
+                }
+
             } catch (erro) {
                 console.error('Nao foi possivel abrir os detalhes do filme:', erro);
             }
         }
-        document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
 
+        document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
         // =========================================
         // === MOTOR DE STREAMING WEB (IFRAMES) ===
         // =========================================

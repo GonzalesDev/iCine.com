@@ -1379,7 +1379,16 @@
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
-                if (!mostrarTodosQueroAssistir && listaQueroAssistir.length > 15) { htmlQuero += `<div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 1rem 0;"><button onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();" class="btn-carregar-mais" style="display:block; margin:0;">Mostrar mais (${listaQueroAssistir.length - 15})</button></div>`; }
+
+                // NOVO CARD DE "VER TODOS" PARA O QUERO ASSISTIR
+                if (!mostrarTodosQueroAssistir && listaQueroAssistir.length > 15) { 
+                    htmlQuero += `
+                    <div class="movie-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background: rgba(139, 92, 246, 0.05); border: 2px dashed rgba(139, 92, 246, 0.4); cursor: pointer; box-shadow: none; min-height: 200px;" onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();">
+                        <span style="font-size:2rem; margin-bottom:10px;">➡️</span>
+                        <span style="color: var(--purple); font-weight:bold; font-size: 0.9rem;">Ver Todos</span>
+                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">+${listaQueroAssistir.length - 15} filmes</span>
+                    </div>`; 
+                }
                 cWatch.innerHTML = htmlQuero;
             }
 
@@ -1403,7 +1412,16 @@
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
-                if (!mostrarTodosJaAssisti && filmesFiltrados.length > 15) { htmlJa += `<div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 1rem 0;"><button onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();" class="btn-carregar-mais" style="display:block; margin:0;">Mostrar mais (${filmesFiltrados.length - 15})</button></div>`; }
+
+                // NOVO CARD DE "VER TODOS" PARA OS ASSISTIDOS
+                if (!mostrarTodosJaAssisti && filmesFiltrados.length > 15) { 
+                    htmlJa += `
+                    <div class="movie-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background: rgba(236, 72, 153, 0.05); border: 2px dashed rgba(236, 72, 153, 0.4); cursor: pointer; box-shadow: none; min-height: 200px;" onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();">
+                        <span style="font-size:2rem; margin-bottom:10px;">➡️</span>
+                        <span style="color: var(--pink); font-weight:bold; font-size: 0.9rem;">Ver Todos</span>
+                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">+${filmesFiltrados.length - 15} filmes</span>
+                    </div>`; 
+                }
                 cJa.innerHTML = htmlJa;
             }
 

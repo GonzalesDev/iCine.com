@@ -302,8 +302,18 @@
         .immersive-modal { width: 100%; max-width: 600px; height: 90vh; padding: 0; border-radius: 20px 20px 0 0; overflow-y: auto; background-color: var(--bg-color); position: relative; display: flex; flex-direction: column; scrollbar-width: none; margin: 0 auto; }
         .immersive-modal::-webkit-scrollbar { display: none; }
         .btn-close-floating { position: absolute; top: 15px; right: 15px; z-index: 3000; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; }
-        /* Adicione o overflow: hidden na classe existente */
-        .detalhe-hero { width: 100%; height: 50vh; min-height: 380px; background-size: cover; background-position: center; position: relative; flex-shrink: 0; overflow: hidden; }
+        /* Transformado para o formato padrão horizontal (16:9) */
+        .detalhe-hero { 
+            width: 100%; 
+            aspect-ratio: 16 / 9; /* Força o formato de cinema */
+            height: auto; 
+            min-height: auto; /* Remove a altura gigante antiga */
+            background-size: cover; 
+            background-position: center; 
+            position: relative; 
+            flex-shrink: 0; 
+            overflow: hidden; 
+        }
 
         /* A camada de gradiente continua igual, mas forçamos o z-index */
         .detalhe-hero-gradient { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-color) 0%, rgba(3, 7, 18, 0.4) 50%, rgba(3, 7, 18, 0.1) 100%); z-index: 1; }
@@ -320,17 +330,29 @@
             z-index: 0; 
         }
 
+        /* Zoom leve para esconder os controlos e títulos do YouTube */
         .video-background-wrapper iframe { 
             position: absolute; 
             top: 50%; 
             left: 50%; 
-            transform: translate(-50%, -50%) scale(1.15); /* Zoom leve de 15% só para esconder bordas */
+            transform: translate(-50%, -50%) scale(1.35); /* Aumentado de 1.15 para 1.35 */
             width: 100%; 
             height: 100%; 
             object-fit: cover; 
             border: none; 
+            pointer-events: none;
         }
-        .detalhe-body { padding: 0 20px 40px 20px; margin-top: -80px; position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        /* Ajuste do margin-top para o título não invadir o vídeo */
+        .detalhe-body { 
+            padding: 0 20px 40px 20px; 
+            margin-top: -20px; /* Reduzido de -80px para dar uma margem perfeita ao título */
+            position: relative; 
+            z-index: 10; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+        }
         .hero-title { font-size: 2.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 0.5rem; text-shadow: 0 4px 15px rgba(0,0,0,0.9); color: white; }
         .hero-meta { display: flex; gap: 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 1.5rem; align-items: center; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         .detalhe-sinopse { font-size: 0.95rem; color: #d1d5db; line-height: 1.6; margin-top: 1.5rem; text-align: left; width: 100%; background: rgba(17, 24, 39, 0.6); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }

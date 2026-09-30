@@ -1,0 +1,53 @@
+Olá! Preciso da sua ajuda para dar continuidade ao desenvolvimento de um projeto Web App chamado "iCine". Abaixo está todo o contexto, stack tecnológico e estrutura atual do projeto para que você se alinhe perfeitamente antes de começarmos a programar.
+
+---
+
+### 1. Visão Geral do Projeto (iCine)
+O iCine é uma plataforma pessoal de filmes que funciona como um misto de Letterboxd (diário e comunidade) com Netflix/Stremio (agregador de streaming). Ele permite ao usuário organizar o que quer assistir, ver o que já assistiu, interagir com amigos (estilo rede social), assistir a edições de filmes (estilo TikTok/Reels) e dar play direto em filmes usando o Stremio ou Web Players embedados.
+
+### 2. Stack Tecnológico
+- **Frontend:** HTML5, CSS3 Vanilla (sem frameworks como Tailwind ou Bootstrap) e JavaScript Vanilla.
+- **Backend / BaaS:** Supabase (Autenticação, Banco de Dados PostgreSQL e Storage para imagens).
+- **APIs Consumidas:** 
+  - TMDB API (The Movie Database) para busca de filmes, capas, sinopses, trailers e provedores.
+  - Groq API (modelo Llama 3) para o Chatbot de IA integrado.
+- **Arquitetura:** Single Page Application (SPA) estruturada em Abas ocultas/ativas gerenciadas por JavaScript (`.aba.ativa`).
+
+### 3. Estrutura do Banco de Dados (Supabase)
+As principais tabelas que utilizamos são:
+- `meus_filmes`: Armazena os filmes do usuário (coluna `grupo` define se é 'quero' ou 'ja' assistiu).
+- `playlists`: Listas criadas pelos usuários, podendo ser públicas (aparecem no Feed global).
+- `cenas_shorts`: Feed de vídeos curtos verticais (contém arrays de `curtidas` e `comentarios`).
+- `perfis`: Guarda o `@username` atrelado ao `user_id` de autenticação.
+- `amizades`: Sistema de amigos com `solicitante_id`, `destinatario_id` e `status` ('pendente' ou 'aceite').
+- `recomendacoes_amigos`: Caixa de entrada (inbox) onde usuários enviam dicas de filmes uns aos outros.
+
+### 4. Design System & UI/UX
+- **Tema:** Dark UI imersiva (Fundo principal: `#030712`, com toques em neon roxo `--purple: #8b5cf6` e rosa `--pink: #ec4899`).
+- **Estética:** Uso intenso de *Glassmorphism* (Efeito Vidro) com `backdrop-filter: blur(10px)`, fundos semi-transparentes e bordas sutis.
+- **Modal de Detalhes:** É o coração do app. Quando se clica num filme, abre um modal imersivo ocupando 90% da tela. O topo (`.detalhe-hero`) tem proporção 16:9, cantos inferiores arredondados (25px) e roda o trailer oficial do YouTube em auto-play silencioso de fundo, coberto por um degradê escuro.
+
+### 5. Funcionalidades Principais Atuais
+- **Abas de Navegação:** Listas (Watchlist/Playlists), Explorar (Pesquisa TMDB e Top 10 Streaming), Cenas (Scroll vertical estilo TikTok), Feed (Playlists da comunidade) e Amigos (Rede social, adicionar amigos, recomendar filmes).
+- **Chat IA:** Um FAB (Floating Action Button) arrastável que abre um chatbot cinéfilo.
+- **Assistir:** 
+  1. *Stremio:* Deep links customizados para abrir o filme direto no Stremio com addons dublados (`stremio://detail/movie/{imdb_id}`).
+  2. *Online:* Iframe com Web Players piratas baseados no TMDB ID (ex: VidSrc e MultiEmbed).
+
+### 6. Onde Paramos / Próximo Desafio
+O frontend está muito bem polido. A última modificação foi refinar os botões *Glassmorphism* e arrumar a proporção do Trailer de Fundo no Modal de Detalhes para 16:9 (escondendo as bordas do YouTube com `scale(1.35)`).
+
+**O Nosso Próximo Passo (O que faremos agora):**
+Queremos expandir o iCine para suportar **SÉRIES DE TV** além de filmes. 
+Precisamos adaptar a estrutura para que:
+1. O usuário possa pesquisar séries usando o endpoint `/tv` do TMDB.
+2. O Supabase consiga distinguir se o item salvo é filme ou série (talvez uma coluna `tipo`).
+3. O modal de detalhes consiga lidar com as séries, mudando a lógica de "Assistir Online" para exigir a seleção de Temporada e Episódio antes de abrir o Web Player ou chamar o link do Stremio.
+
+### Regras de Código para você (IA):
+- Ao me enviar códigos, mande apenas os blocos que eu preciso substituir ou adicionar. Não mande o código inteiro da página a menos que eu peça, pois o arquivo já está grande.
+- Mantenha estritamente o CSS em Vanilla JS.
+- Mantenha a estética *Glassmorphism* em novos componentes.
+- Explique onde devo colar o código com clareza.
+
+Vou enviar o código fonte atual na próxima mensagem para você analisar. Aguarde.

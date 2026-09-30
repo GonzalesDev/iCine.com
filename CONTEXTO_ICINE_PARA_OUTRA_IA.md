@@ -1,4 +1,4 @@
-# Contexto completo do projeto iCine para continuidade por outra IA
+# Contexto consolidado do projeto iCine para continuidade por outra IA
 
 > Este documento é um briefing técnico e operacional para uma IA que vai continuar o desenvolvimento do iCine.  
 > Antes de editar qualquer coisa, confira o estado real dos arquivos, porque este documento pode ficar desatualizado.
@@ -49,6 +49,11 @@ O **iCine** é um diário de filmes social, com foco em:
 - enviar recomendações de filmes para amigos;
 - conversar com uma IA cinéfila;
 - funcionar como PWA instalável no celular.
+
+Posicionamento do produto: o iCine combina a experiência de diário e comunidade do
+Letterboxd com recursos de descoberta e acesso a serviços de streaming, Stremio e
+players web externos. A identidade principal continua sendo a organização pessoal
+de filmes e a interação entre cinéfilos.
 
 O estilo visual atual é dark, com fundo azul quase preto, cartões escuros, gradientes roxo/rosa e uso frequente de emojis.
 
@@ -753,6 +758,154 @@ Não transforme essas observações em uma refatoração ampla sem uma tarefa es
 - ordenação e filtros nas listas de amigos.
 
 Não implemente essas evoluções sem conferir o modelo atual de permissões.
+
+---
+
+## 10A. Contexto adicional fornecido pelo Gemini
+
+O contexto original usado no desenvolvimento descreve o iCine como uma plataforma
+pessoal de filmes que combina:
+
+- diário de filmes;
+- comunidade de cinéfilos;
+- agregação de informações de streaming;
+- feed de edições de filmes no estilo TikTok/Reels;
+- integração com Stremio;
+- players web incorporados.
+
+Esse contexto confirma que o modal de detalhes é o centro da experiência. A versão
+atual já refinou:
+
+- botões com estética Glassmorphism;
+- proporção 16:9 para o trailer de fundo;
+- cantos inferiores arredondados no hero;
+- trailer do YouTube em autoplay silencioso;
+- escala do iframe para esconder elementos visuais indesejados do YouTube.
+
+### Próximo desafio principal: suporte a séries de TV
+
+A próxima grande evolução planejada é permitir filmes **e séries de TV** no mesmo
+produto. Essa mudança deve ser planejada antes de ser implementada, porque afeta o
+modelo de dados, a busca, os cards, os detalhes, as listas, as playlists e o
+player.
+
+Requisitos funcionais planejados:
+
+1. O usuário deve conseguir pesquisar séries usando o endpoint de TV do TMDB:
+
+   ```text
+   /search/tv
+   /discover/tv
+   /tv/{id}
+   ```
+
+2. O app deve distinguir filme de série no Supabase. A solução provável é uma
+   coluna como:
+
+   ```text
+   tipo = 'filme' | 'serie'
+   ```
+
+   Não altere a tabela antes de conferir o schema atual de `meus_filmes`,
+   `playlists` e os dados já salvos.
+
+3. O modal de detalhes deve identificar o tipo de conteúdo e adaptar:
+
+   - título original e título exibido;
+   - ano/data de lançamento;
+   - sinopse;
+   - nota;
+   - trailer;
+   - provedores oficiais;
+   - botões de organização;
+   - botão Stremio;
+   - player web.
+
+4. Para séries, o fluxo de reprodução precisa pedir:
+
+   - temporada;
+   - episódio;
+   - confirmação para abrir o conteúdo.
+
+5. O player web e o deep link do Stremio precisam receber os parâmetros
+   apropriados para conteúdo episódico, sem quebrar o fluxo de filmes.
+
+6. Playlists podem conter filmes e séries. O objeto armazenado no campo `filmes`
+   deve carregar o tipo do conteúdo e os identificadores necessários para abrir
+   novamente os detalhes.
+
+7. As listas “Quero Assistir” e “Assistidos Recentemente” devem continuar
+   funcionando para os dois tipos sem misturar IDs incompatíveis.
+
+### Recomendação de implementação para séries
+
+Antes de adicionar telas, faça uma análise de impacto:
+
+1. Padronize um modelo interno de conteúdo, por exemplo:
+
+   ```javascript
+   {
+     id: Number,
+     tipo: 'filme' ou 'serie',
+     titulo: String,
+     tituloOriginal: String,
+     ano: String,
+     notaTmdb: String,
+     notaImdb: String,
+     notaRt: String,
+     capa: String,
+     sinopse: String,
+     temporadas: Number opcional
+   }
+   ```
+
+2. Separe claramente:
+
+   - `tmdb_id` do filme;
+   - `tmdb_id` da série;
+   - `tipo` do conteúdo;
+   - `temporada` e `episodio` quando necessário.
+
+3. Evite assumir que todo ID TMDB é filme.
+4. Não duplique todo o código de cards e detalhes; crie normalizadores ou
+   adaptadores pequenos quando isso reduzir risco.
+5. Preserve a compatibilidade com registros antigos, que provavelmente ainda não
+   têm a coluna `tipo`.
+6. Faça uma migração reversível e explique o impacto antes de executá-la.
+7. Teste separadamente:
+
+   - busca de filme;
+   - busca de série;
+   - salvar filme;
+   - salvar série;
+   - abrir detalhes de filme;
+   - abrir detalhes de série;
+   - adicionar ambos à mesma playlist;
+   - remover cada tipo;
+   - ver conteúdo de um amigo;
+   - recarregar a página.
+
+### Regra de comunicação para mudanças futuras
+
+O arquivo `index.html` é muito grande. Ao apresentar alterações para o usuário:
+
+- envie apenas os blocos que precisam ser substituídos ou adicionados;
+- indique com clareza onde cada bloco deve ser colocado;
+- não envie a página inteira, salvo se o usuário solicitar;
+- explique se uma alteração exige SQL, mudança de tabela, configuração no
+  Supabase, nova secret ou novo endpoint;
+- não diga que uma mudança está pronta sem verificar o comportamento real.
+
+### Regras de estilo para novas telas
+
+- manter HTML, CSS e JavaScript Vanilla;
+- não introduzir Tailwind, Bootstrap ou outro framework sem pedido explícito;
+- preservar a estética Glassmorphism;
+- usar fundo escuro, bordas sutis, blur, gradientes roxo/rosa e componentes
+  adequados para toque;
+- manter o layout responsivo e prioritariamente mobile;
+- não sacrificar acessibilidade, estados de carregamento ou mensagens de erro por
+  causa do visual.
 
 ---
 

@@ -11,3 +11,18 @@ id = "u6rzLhFf1p-45W_-XdJbp"
 uri = "file://icon-512.png"
 type = "image"
 title = "Ícone iCine (512×512)"
+logical_id = "7378cb43-3dee-49eb-9717-fc8124e2779f"
+
+[[outputs]]
+id = "zfp64MKEf7Aq7byieA21m"
+uri = "file://CONTEXTO_ICINE_PARA_OUTRA_IA.md"
+type = "text"
+title = "Contexto completo do iCine para outra IA"
+description = "Prompt técnico em português com arquitetura, funcionalidades, Supabase, sistema social, PWA, bugs conhecidos, riscos de segurança e regras para continuidade do desenvolvimento."
+logical_id = "45935a3d-0cd7-46df-adc6-9e8ffd798895"
+content_hash = "sha256:767bc560d5bd237cc516aad4d39747f108d04d38ff1e56d2ebc1ada41f18d16b"
+size = 21628
+mtime_ms = 1790735227629
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:e381501b-c348-43ab-adab-58024ddc0356/45935a3d-0cd7-46df-adc6-9e8ffd798895/1bc2dfc1-a154-4e36-a036-60a04c591d9b"
+storage_version_token = "1790735248169273"
+content_type = "text/markdown"

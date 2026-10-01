@@ -1229,7 +1229,24 @@
             return `<span class="imdb-score">⭐ ${notaReal}</span>`;
         }
 
-        // Toggle Filmes / Séries (por enquanto só muda o estado; aplicarFiltros ainda não usa)
+        // Gêneros de filme -> gêneros de série no TMDB (null = não existe para séries)
+        const GENEROS_FILME_PARA_SERIE = { '28': '10759', '12': '10759', '16': '16', '35': '35', '80': '80', '99': '99', '18': '18', '10751': '10751', '14': '10765', '878': '10765', '9648': '9648', '10749': null, '27': null, '53': null };
+
+        // Desativa opções de filtro que não existem para séries
+        function ajustarFiltrosPorTipo() {
+            const ehSerie = tipoConteudoAtual === 'tv';
+            const selectGenero = document.getElementById('select-genero');
+            selectGenero.querySelectorAll('option').forEach(op => {
+                op.disabled = ehSerie && op.value !== 'todos' && !GENEROS_FILME_PARA_SERIE[op.value];
+            });
+            if (selectGenero.selectedOptions[0] && selectGenero.selectedOptions[0].disabled) selectGenero.value = 'todos';
+            const selectOrdem = document.getElementById('select-ordem');
+            const opRadar = selectOrdem.querySelector('option[value="radar_curado"]');
+            if (opRadar) opRadar.disabled = ehSerie;
+            if (ehSerie && selectOrdem.value === 'radar_curado') selectOrdem.value = 'populares';
+        }
+
+        // Toggle Filmes / Séries
         document.getElementById('toggle-tipo-conteudo').addEventListener('click', (e) => {
             const btn = e.target.closest('.tipo-conteudo-btn');
             if (!btn || btn.dataset.tipo === tipoConteudoAtual) return;
@@ -1239,14 +1256,22 @@
                 b.classList.toggle('ativo', ativo);
                 b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
             });
+            ajustarFiltrosPorTipo();
+            aplicarFiltros(true);
+            carregarTop10(provedorTop10Atual.id, provedorTop10Atual.nome);
         });
+
+        let contadorPedidoExplorar = 0; // descarta respostas antigas quando o usuário troca filtro/tipo rápido
 
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }
+            const pedidoAtual = ++contadorPedidoExplorar;
             const termoBusca = document.getElementById('input-pesquisa').value.trim();
             const generoId = document.getElementById('select-genero').value;
             const ordem = document.getElementById('select-ordem').value;
             const dataHojeStr = new Date().toISOString().split('T')[0];
+
+            if (tipoConteudoAtual === 'tv') return aplicarFiltrosSeries(pedidoAtual, termoBusca, generoId, ordem, dataHojeStr);
 
             let url = '';
             if (termoBusca !== '') {
@@ -1267,6 +1292,7 @@
                         }));
                         novasCapas = novasCapas.filter(f => f !== null);
                     }
+                    if (pedidoAtual !== contadorPedidoExplorar) return;
                     filmesExplorarAcumulados = novasCapas;
                     filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
                     renderizarGridExplorar(filmesExplorarAcumulados);
@@ -1283,6 +1309,7 @@
             try {
                 const resposta = await fetch(url);
                 const dados = await resposta.json();
+                if (pedidoAtual !== contadorPedidoExplorar) return;
                 let resultadosBrutos = dados.results || [];
                 if (termoBusca !== '' && generoId !== 'todos') { resultadosBrutos = resultadosBrutos.filter(f => f.genre_ids && f.genre_ids.includes(parseInt(generoId))); }
 
@@ -1297,30 +1324,76 @@
             } catch (erro) { console.error(erro); }
         }
 
+        // Catálogo de séries (TMDB /tv). Chave no cache: 'tv:<id>' para não colidir com IDs de filmes.
+        async function aplicarFiltrosSeries(pedidoAtual, termoBusca, generoId, ordem, dataHojeStr) {
+            const generoSerie = generoId !== 'todos' ? GENEROS_FILME_PARA_SERIE[generoId] : null;
+            let url = '';
+            if (termoBusca !== '') {
+                url = `${URL_BASE}/search/tv?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(termoBusca)}&page=${paginaAtual}`;
+            } else {
+                if (ordem === 'nota_desc') url = `${URL_BASE}/discover/tv?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=500&sort_by=vote_average.desc&page=${paginaAtual}`;
+                else if (ordem === 'lancamentos') url = `${URL_BASE}/discover/tv?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=20&sort_by=first_air_date.desc&first_air_date.lte=${dataHojeStr}&page=${paginaAtual}`;
+                else url = `${URL_BASE}/discover/tv?api_key=${TMDB_KEY}&language=pt-BR&vote_count.gte=50&sort_by=popularity.desc&page=${paginaAtual}`;
+                if (generoSerie) url += `&with_genres=${generoSerie}`;
+                url += '&without_genres=10767,10763'; // tira talk shows e telejornais
+            }
+
+            try {
+                const resposta = await fetch(url);
+                const dados = await resposta.json();
+                if (pedidoAtual !== contadorPedidoExplorar) return;
+                let resultadosBrutos = dados.results || [];
+                if (termoBusca !== '' && generoSerie) { resultadosBrutos = resultadosBrutos.filter(s => s.genre_ids && s.genre_ids.includes(parseInt(generoSerie))); }
+
+                const novasCapas = resultadosBrutos.filter(s => s.poster_path).map(serie => ({
+                    id: `tv:${serie.id}`, tmdbId: serie.id, tipo: 'serie',
+                    titulo: serie.name, tituloOriginal: serie.original_name,
+                    ano: serie.first_air_date ? serie.first_air_date.split('-')[0] : 'N/A',
+                    notaTmdb: (serie.vote_average || 0).toFixed(1), notaImdb: 'N/A', notaRt: 'N/A',
+                    capa: `${IMG_BASE}${serie.poster_path}`, sinopse: serie.overview || 'Sinopse não disponibilizada.'
+                }));
+
+                filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
+                filmesExplorarAcumulados.forEach(s => bancoDeFilmesLocal.set(s.id, s));
+                renderizarGridExplorar(filmesExplorarAcumulados);
+                document.getElementById('btn-carregar-mais').style.display = (dados && dados.total_pages > paginaAtual && termoBusca === '') ? 'block' : 'none';
+            } catch (erro) { console.error(erro); }
+        }
+
         // =========================================
         // === BLOCO: JS TOP 10 STREAMINGS ===
         // =========================================
+        let provedorTop10Atual = { id: 8, nome: 'Netflix' }; // lembrado para recarregar ao trocar Filmes/Séries
+        let contadorPedidoTop10 = 0;
+
         async function carregarTop10(providerId, providerNome) {
+            provedorTop10Atual = { id: providerId, nome: providerNome };
+            const pedidoAtual = ++contadorPedidoTop10;
+            const ehSerie = tipoConteudoAtual === 'tv';
             const grid = document.getElementById('top10-grid');
-            document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 Hoje - ${providerNome}`;
+            document.getElementById('titulo-top10').innerHTML = `<div class="h2-detail" style="background-color: var(--pink);"></div> 🔥 Top 10 ${ehSerie ? 'Séries ' : ''}Hoje - ${providerNome}`;
             grid.innerHTML = '<p class="empty-msg" style="padding-left:0;">A sintonizar o feed diário... ⏳</p>';
 
             try {
-                const url = `${URL_BASE}/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&page=1`;
+                let url = `${URL_BASE}/discover/${ehSerie ? 'tv' : 'movie'}?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc&watch_region=BR&with_watch_providers=${providerId}&page=1`;
+                if (ehSerie) url += '&without_genres=10767,10763'; // tira talk shows e telejornais
                 const resp = await fetch(url);
                 const dados = await resp.json();
+                if (pedidoAtual !== contadorPedidoTop10) return;
 
                 const idiomasBloqueados = ['hi', 'te', 'ta', 'ml', 'kn', 'bn'];
                 const filmesOcidentais = dados.results.filter(f => !idiomasBloqueados.includes(f.original_language));
                 const top10TMDB = filmesOcidentais.slice(0, 10);
 
                 grid.innerHTML = top10TMDB.map((f, index) => {
-                    const filmeLimpo = { id: f.id, titulo: f.title, ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0', capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa', sinopse: f.overview || 'Sem sinopse.' };
-                    bancoDeFilmesLocal.set(f.id, filmeLimpo);
+                    const filmeLimpo = ehSerie
+                        ? { id: `tv:${f.id}`, tmdbId: f.id, tipo: 'serie', titulo: f.name, ano: f.first_air_date ? f.first_air_date.split('-')[0] : 'N/A', notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0', capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa', sinopse: f.overview || 'Sem sinopse.' }
+                        : { id: f.id, titulo: f.title, ano: f.release_date ? f.release_date.split('-')[0] : 'N/A', notaTmdb: f.vote_average ? f.vote_average.toFixed(1) : '0.0', capa: f.poster_path ? `${IMG_BASE}${f.poster_path}` : 'https://via.placeholder.com/110x165?text=Sem+Capa', sinopse: f.overview || 'Sem sinopse.' };
+                    bancoDeFilmesLocal.set(filmeLimpo.id, filmeLimpo);
                     return gerarCardTop10HTML(filmeLimpo, index + 1);
                 }).join('');
                 mapearBotoesGrid();
-            } catch (err) { grid.innerHTML = '<p class="empty-msg">Erro ao carregar o ranking. Tente novamente.</p>'; }
+            } catch (err) { if (pedidoAtual === contadorPedidoTop10) grid.innerHTML = '<p class="empty-msg">Erro ao carregar o ranking. Tente novamente.</p>'; }
         }
 
         function gerarCardTop10HTML(filme, numeroPosicao) {
@@ -1331,7 +1404,7 @@
                         <img src="${filme.capa}" alt="${filme.titulo}">
                         <div class="movie-card-overlay">
                             <button class="btn-action btn-info" data-id="${filme.id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">➕ Lista</button>
+                            ${filme.tipo !== 'serie' ? `<button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">➕ Lista</button>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -1355,7 +1428,8 @@
             let acoesHtml = '';
             if (context === 'explorar' || context === 'comunidade' || context === 'playlist-amigo') {
                 acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
-                acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">➕ Lista</button>`;
+                // Séries ainda não podem ser salvas (o banco só guarda filmes por enquanto)
+                if (f.tipo !== 'serie') acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">➕ Lista</button>`;
             } else if (context === 'minha-playlist') {
                 acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
                 acoesHtml += `<button class="btn-action btn-delete" data-id="${f.id || f.tmdb_id}" data-action="remover-playlist">🗑️ Remover</button>`;
@@ -1380,7 +1454,8 @@
                 novoCard.querySelectorAll('[data-action]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        const id = parseInt(btn.getAttribute('data-id'));
+                        const idBruto = btn.getAttribute('data-id');
+                        const id = idBruto.startsWith('tv:') ? idBruto : parseInt(idBruto); // séries usam chave 'tv:<id>'
                         const acao = btn.getAttribute('data-action');
                         if (acao === 'sinopse') abrirDetalhes(id);
                         else if (acao === 'organizar') abrirModal(id, 'explorar');
@@ -1623,6 +1698,16 @@
                     console.warn('Filme nao encontrado no cache local:', id);
                     return;
                 }
+                // Séries: endpoints /tv do TMDB; por enquanto só leitura (sem salvar/assistir)
+                const ehSerie = filme.tipo === 'serie';
+                const tipoTmdb = ehSerie ? 'tv' : 'movie';
+                const idTmdb = ehSerie ? filme.tmdbId : id;
+                // Os botões de assistir têm display !important no CSS, por isso escondo o container deles
+                const blocoAssistir = document.querySelector('#modal-detalhes .hero-buttons');
+                if (blocoAssistir) blocoAssistir.style.display = ehSerie ? 'none' : '';
+                ['btn-modal-organizar-novo', 'btn-recomendar-amigo-novo'].forEach(idBtn => {
+                    const b = document.getElementById(idBtn); if (b) b.style.display = ehSerie ? 'none' : '';
+                });
 
                 const detalheTitulo = document.getElementById('detalhe-titulo');
                 const detalheAno = document.getElementById('detalhe-ano');
@@ -1650,7 +1735,7 @@
                     btnTrailer.style.display = 'none';
                 }
                 if (btnShorts) {
-                    const buscaShorts = `${filme.titulo || ''} ${filme.ano || ''} filme edit shorts`.trim();
+                    const buscaShorts = `${filme.titulo || ''} ${filme.ano || ''} ${ehSerie ? 'série' : 'filme'} edit shorts`.trim();
                     btnShorts.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(buscaShorts)}`;
                     btnShorts.style.display = 'inline-flex';
                 }
@@ -1787,7 +1872,7 @@
             const btnRadar = document.getElementById('btn-fixar-radar-novo');
             if (btnRadar) {
                 const SEU_ID_DE_ADMIN = "34bc00a4-00b1-4470-9439-1f793ac3b9f0"; 
-                if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN) { btnRadar.style.display = 'block'; } else { btnRadar.style.display = 'none'; }
+                if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN && !ehSerie) { btnRadar.style.display = 'block'; } else { btnRadar.style.display = 'none'; }
                 btnRadar.onclick = async () => {
                     const dataInput = prompt("Digite a data de estreia oficial no Brasil (AAAA-MM-DD):", "2026-12-25"); if (!dataInput) return;
                     const { error } = await supabaseClient.from('radar_curado').insert([{ tmdb_id: id, data_estreia: dataInput }]);
@@ -1803,7 +1888,7 @@
 
                 // 1. Busca os provedores de streaming (Netflix, etc)
                 try {
-                    let resp = await fetch(`${URL_BASE}/movie/${id}/watch/providers?api_key=${TMDB_KEY}`); 
+                    let resp = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/watch/providers?api_key=${TMDB_KEY}`);
                     let dadosProviders = await resp.json(); 
                     let provedoresRegiao = dadosProviders.results?.BR || dadosProviders.results?.PT;
 
@@ -1820,10 +1905,10 @@
 
                 // 2. Busca os vídeos e injeta o iframe de fundo
                 try {
-                    let resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=pt-BR`); 
+                    let resp = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
                     let dados = await resp.json();
-                    if (dados.results.length === 0) { 
-                        resp = await fetch(`${URL_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=en-US`); 
+                    if (dados.results.length === 0) {
+                        resp = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=en-US`);
                         dados = await resp.json(); 
                     }
                     const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');

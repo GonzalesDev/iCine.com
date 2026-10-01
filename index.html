@@ -1593,6 +1593,25 @@
 
         function pausarTrailerDetalhes() { if (trailerDetalhes.iframe) comandoTrailer('pauseVideo'); }
 
+        // Escolhe o vídeo do TMDB priorizando trailer DUBLADO. Em pt-BR o TMDB costuma trazer
+        // "Trailer Oficial Legendado" e "Trailer Oficial Dublado"; a ordem da API não é confiável.
+        function escolherMelhorTrailer(videos) {
+            const doYoutube = (videos || []).filter(v => v.site === 'YouTube' && v.key);
+            if (doYoutube.length === 0) return null;
+            const pontuar = (v) => {
+                const nome = (v.name || '').toLowerCase();
+                let pontos = 0;
+                if (/dublad|\bdub\b/.test(nome)) pontos += 100;
+                if (/legendad|\bleg\b/.test(nome)) pontos -= 50;
+                if (/acessibilidade|audiodescri|libras/.test(nome)) pontos -= 30;
+                if (v.type === 'Trailer') pontos += 20; else if (v.type === 'Teaser') pontos += 10; else pontos -= 40;
+                if (v.official) pontos += 5;
+                return pontos;
+            };
+            // Empate: o mais recente (geralmente o trailer final)
+            return doYoutube.slice().sort((a, b) => (pontuar(b) - pontuar(a)) || String(b.published_at || '').localeCompare(String(a.published_at || '')))[0];
+        }
+
         window.addEventListener('message', (e) => {
             const t = trailerDetalhes;
             if (!t.iframe || e.source !== t.iframe.contentWindow || !/youtube(-nocookie)?\.com$/.test(new URL(e.origin).hostname)) return;
@@ -1903,14 +1922,14 @@
 
                 // 2. Busca os vídeos e injeta o iframe de fundo
                 try {
-                    let resp = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=pt-BR`);
-                    let dados = await resp.json();
-                    if (dados.results.length === 0) {
-                        resp = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=en-US`);
-                        dados = await resp.json(); 
+                    // 1º: vídeos do Brasil (onde ficam os dublados). Só cai para inglês se não houver trailer/teaser em pt-BR.
+                    const dadosBR = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.json());
+                    let trailer = escolherMelhorTrailer(dadosBR.results);
+                    if (!trailer || !['Trailer', 'Teaser'].includes(trailer.type)) {
+                        const dadosEN = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=en-US`).then(r => r.json());
+                        trailer = escolherMelhorTrailer([...(dadosEN.results || []), ...(trailer ? [trailer] : [])]);
                     }
                     if (tokenDetalhe !== contadorAberturaDetalhes) return;
-                    const trailer = dados.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || dados.results.find(v => v.site === 'YouTube');
 
                     if (trailer) {
                         // Configura o link do botão de trailer externo

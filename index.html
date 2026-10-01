@@ -965,6 +965,23 @@
         </div>
     </div>
 
+    <!-- Modal: escolher temporada e episódio (séries) -->
+    <div id="modal-episodio" class="modal" style="z-index: 3400; display:none;">
+        <div class="modal-content">
+            <h3>📺 Escolher Episódio</h3>
+            <p id="episodio-serie-titulo" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;"></p>
+            <label for="select-temporada" style="display:block; margin-bottom: 0.4rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">Temporada</label>
+            <select id="select-temporada" class="filter-input" style="margin-bottom: 1rem;"></select>
+            <label for="select-episodio" style="display:block; margin-bottom: 0.4rem; color: var(--text-muted); font-size: 0.85rem; text-align: left; font-weight: bold;">Episódio</label>
+            <select id="select-episodio" class="filter-input" style="margin-bottom: 1rem;"></select>
+            <p id="episodio-status" style="color: var(--pink); font-size: 0.85rem; min-height: 1rem; margin-bottom: 0.5rem;"></p>
+            <div class="modal-buttons">
+                <button id="btn-confirmar-episodio" class="btn-modal btn-modal-quero">▶️ Continuar</button>
+                <button id="btn-cancelar-episodio" class="btn-modal btn-modal-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-buscar-amigo" class="modal" style="z-index: 2600; display:none;">
         <div class="modal-content">
             <h3>🔍 Encontrar Amigo</h3>
@@ -1730,11 +1747,6 @@
                 const ehSerie = filme.tipo === 'serie';
                 const tipoTmdb = ehSerie ? 'tv' : 'movie';
                 const idTmdb = ehSerie ? filme.tmdbId : id;
-                // Os botões de assistir têm display !important no CSS, por isso escondo o container deles
-                const blocoAssistir = document.querySelector('#modal-detalhes .hero-buttons');
-                if (blocoAssistir) blocoAssistir.style.display = ehSerie ? 'none' : '';
-                const btnRecomendarSerie = document.getElementById('btn-recomendar-amigo-novo');
-                if (btnRecomendarSerie) btnRecomendarSerie.style.display = ehSerie ? 'none' : '';
 
                 const detalheTitulo = document.getElementById('detalhe-titulo');
                 const detalheAno = document.getElementById('detalhe-ano');
@@ -1826,12 +1838,15 @@
                 btnAssistir.disabled = false;
                 btnAssistir.style.opacity = '1';
 
-                btnAssistir.onclick = async () => {
+                // Séries: temporada/episódio vêm do seletor de episódio
+                const abrirStremio = async (temporada = null, episodio = null) => {
                     btnAssistir.innerText = "A carregar... ⏳";
                     let imdbId = null;
 
                     try {
-                        const respImdb = await fetch(`${URL_BASE}/movie/${id}?api_key=${TMDB_KEY}`);
+                        // Filmes trazem imdb_id no /movie/{id}; séries só no /tv/{id}/external_ids
+                        const urlImdb = ehSerie ? `${URL_BASE}/tv/${idTmdb}/external_ids?api_key=${TMDB_KEY}` : `${URL_BASE}/movie/${id}?api_key=${TMDB_KEY}`;
+                        const respImdb = await fetch(urlImdb);
                         const dadosImdb = await respImdb.json();
                         imdbId = dadosImdb.imdb_id;
                     } catch(e) { console.error("Erro ao buscar IMDb:", e); }
@@ -1857,13 +1872,17 @@
                         // 2. CONFIGURA O BOTÃO FINAL DENTRO DO MODAL COM O ROTEAMENTO CORRETO
                         const btnFinal = document.getElementById('btn-abrir-stremio-final');
                         if (btnFinal) {
+                            // Stremio: filme = detail/movie/<imdb>/<imdb>; episódio = detail/series/<imdb>/<imdb>:<temp>:<ep>
+                            const tipoStremio = ehSerie ? 'series' : 'movie';
+                            const videoId = ehSerie ? `${imdbId}:${temporada}:${episodio}` : imdbId;
+                            btnFinal.innerText = ehSerie ? `▶️ Abrir T${temporada} E${episodio} no Stremio` : '▶️ Abrir Filme no Stremio';
                             btnFinal.onclick = () => {
                                 if (isAndroid) {
                                     // Android abre o App nativo direto
-                                    window.location.href = `stremio://detail/movie/${imdbId}/${imdbId}`;
+                                    window.location.href = `stremio://detail/${tipoStremio}/${imdbId}/${videoId}`;
                                 } else {
                                     // PC (Windows/Mac) e iOS abrem a versão Web para evitar o erro "Failed to fetch"
-                                    window.open(`https://web.stremio.com/#/detail/movie/${imdbId}/${imdbId}`, '_blank');
+                                    window.open(`https://web.stremio.com/#/detail/${tipoStremio}/${imdbId}/${encodeURIComponent(videoId)}`, '_blank');
                                 }
                             };
                         }
@@ -1873,6 +1892,11 @@
                         btnAssistir.style.opacity = '0.5';
                     }
                 };
+
+                btnAssistir.onclick = () => {
+                    if (ehSerie) escolherEpisodio(filme, (t, e) => abrirStremio(t, e));
+                    else abrirStremio();
+                };
             }
 
             // ==========================================
@@ -1880,19 +1904,30 @@
             // ==========================================
             const btnAssistirWeb = document.getElementById('btn-assistir-web');
             if (btnAssistirWeb) {
-                btnAssistirWeb.onclick = () => {
+                const abrirCinema = (temporada = null, episodio = null) => {
                     const modalCinema = document.getElementById('modal-cinema');
                     const cinemaTitulo = document.getElementById('cinema-titulo');
                     const cinemaIframe = document.getElementById('cinema-iframe');
                     if (modalCinema) modalCinema.style.display = 'flex';
-                    if (cinemaTitulo) cinemaTitulo.innerText = filme.titulo || 'Filme';
-                    if (cinemaIframe) cinemaIframe.setAttribute('data-tmdb-id', idNumerico || id);
+                    if (cinemaTitulo) cinemaTitulo.innerText = ehSerie ? `${filme.titulo || 'Série'} · T${temporada} E${episodio}` : (filme.titulo || 'Filme');
+                    if (cinemaIframe) {
+                        cinemaIframe.setAttribute('data-tmdb-id', ehSerie ? idTmdb : (idNumerico || id));
+                        // trocarServidorCinema usa estes atributos para montar a URL de episódio
+                        cinemaIframe.setAttribute('data-tipo', ehSerie ? 'tv' : 'movie');
+                        cinemaIframe.setAttribute('data-temporada', temporada || '');
+                        cinemaIframe.setAttribute('data-episodio', episodio || '');
+                    }
 
                     // Carrega o Legendado 1 (Número 2) por padrão ao abrir o player
                     const primeiroBotaoServidor = document.querySelector('.btn-server');
                     if (cinemaIframe && typeof trocarServidorCinema === 'function') {
                         trocarServidorCinema(2, primeiroBotaoServidor);
                     }
+                };
+
+                btnAssistirWeb.onclick = () => {
+                    if (ehSerie) escolherEpisodio(filme, (t, e) => abrirCinema(t, e));
+                    else abrirCinema();
                 };
             }
 
@@ -1962,6 +1997,68 @@
 
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
         // =========================================
+        // === SELETOR DE EPISÓDIO (SÉRIES) ===
+        // =========================================
+        let callbackEpisodio = null;
+        let serieEpisodioAtual = null;
+
+        async function escolherEpisodio(serie, aoConfirmar) {
+            callbackEpisodio = aoConfirmar; serieEpisodioAtual = serie;
+            const selT = document.getElementById('select-temporada'); const selE = document.getElementById('select-episodio');
+            const status = document.getElementById('episodio-status'); const btnOk = document.getElementById('btn-confirmar-episodio');
+            document.getElementById('episodio-serie-titulo').innerText = serie.titulo || '';
+            selT.innerHTML = '<option>A carregar...</option>'; selE.innerHTML = ''; status.innerText = ''; btnOk.disabled = true;
+            abrirModalSeguro('modal-episodio');
+            try {
+                const resp = await fetch(`${URL_BASE}/tv/${serie.tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`);
+                const dados = await resp.json();
+                if (serieEpisodioAtual !== serie) return;
+                const temporadas = (dados.seasons || []).filter(s => s.season_number > 0 && s.episode_count > 0); // sem "Especiais" (temporada 0)
+                if (temporadas.length === 0) { selT.innerHTML = ''; status.innerText = 'Nenhum episódio disponível para esta série.'; return; }
+                selT.innerHTML = '';
+                temporadas.forEach(s => { const op = document.createElement('option'); op.value = s.season_number; op.dataset.eps = s.episode_count; op.textContent = `Temporada ${s.season_number}`; selT.appendChild(op); });
+                await preencherEpisodios();
+                btnOk.disabled = false;
+            } catch (e) { console.error('Erro ao carregar temporadas:', e); status.innerText = 'Erro ao carregar as temporadas. Tente novamente.'; }
+        }
+
+        async function preencherEpisodios() {
+            const selT = document.getElementById('select-temporada'); const selE = document.getElementById('select-episodio');
+            const opT = selT.selectedOptions[0]; if (!opT || !serieEpisodioAtual) return;
+            const temporada = selT.value; const total = parseInt(opT.dataset.eps) || 0;
+            selE.innerHTML = '';
+            for (let i = 1; i <= total; i++) { const op = document.createElement('option'); op.value = i; op.textContent = `Episódio ${i}`; selE.appendChild(op); }
+            // Tenta trazer os nomes dos episódios; se falhar, fica a numeração
+            try {
+                const resp = await fetch(`${URL_BASE}/tv/${serieEpisodioAtual.tmdbId}/season/${temporada}?api_key=${TMDB_KEY}&language=pt-BR`);
+                const dados = await resp.json();
+                if (selT.value !== temporada || !Array.isArray(dados.episodes) || dados.episodes.length === 0) return;
+                const hoje = new Date().toISOString().split('T')[0];
+                selE.innerHTML = '';
+                dados.episodes.forEach(ep => {
+                    const op = document.createElement('option'); op.value = ep.episode_number;
+                    const inedito = ep.air_date && ep.air_date > hoje;
+                    op.textContent = `${ep.episode_number}. ${ep.name || 'Episódio ' + ep.episode_number}${inedito ? ' (em breve)' : ''}`;
+                    op.disabled = !!inedito;
+                    selE.appendChild(op);
+                });
+            } catch (e) { /* mantém a lista numerada */ }
+        }
+
+        document.getElementById('select-temporada').addEventListener('change', preencherEpisodios);
+        document.getElementById('btn-cancelar-episodio').addEventListener('click', () => { fecharModalSeguro('modal-episodio'); });
+        document.getElementById('btn-confirmar-episodio').addEventListener('click', () => {
+            const temporada = parseInt(document.getElementById('select-temporada').value);
+            const episodio = parseInt(document.getElementById('select-episodio').value);
+            const opEp = document.getElementById('select-episodio').selectedOptions[0];
+            if (opEp && opEp.disabled) { document.getElementById('episodio-status').innerText = 'Este episódio ainda não foi lançado.'; return; }
+            if (!temporada || !episodio || !callbackEpisodio) return;
+            const cb = callbackEpisodio; callbackEpisodio = null;
+            fecharModalSeguro('modal-episodio');
+            setTimeout(() => cb(temporada, episodio), 150);
+        });
+
+        // =========================================
         // === MOTOR DE STREAMING WEB (IFRAMES) ===
         // =========================================
         function trocarServidorCinema(servidorNum, clickedBtn = null) {
@@ -1982,11 +2079,18 @@
             }
 
             // Escolhe a API de streaming gratuita (Apenas as duas opções legendadas estáveis)
+            const ehEpisodio = iframe.getAttribute('data-tipo') === 'tv';
+            const temporada = iframe.getAttribute('data-temporada');
+            const episodio = iframe.getAttribute('data-episodio');
             let urlVideo = '';
             if (servidorNum === 2) {
-                urlVideo = `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
+                urlVideo = ehEpisodio
+                    ? `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${temporada}&episode=${episodio}`
+                    : `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
             } else if (servidorNum === 3) {
-                urlVideo = `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+                urlVideo = ehEpisodio
+                    ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${temporada}&e=${episodio}`
+                    : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
             }
 
             // Carrega o filme no Iframe
@@ -2603,14 +2707,17 @@
 
             msgStatus.innerText = "A enviar... ✈️";
 
+            const { tipo, tmdbId } = partesDaChave(filmeParaRecomendar.id);
             const novaRec = {
                 remetente_id: usuarioAtual.id,
                 destinatario_id: destinatarioId,
-                tmdb_id: filmeParaRecomendar.id,
+                tmdb_id: tmdbId,
                 titulo_filme: filmeParaRecomendar.titulo,
                 capa_filme: filmeParaRecomendar.capa,
                 mensagem: mensagem
             };
+            // Só envia "tipo" para séries: filmes usam o DEFAULT 'filme' da coluna
+            if (tipo === 'serie') novaRec.tipo = 'serie';
 
             const { error } = await supabaseClient.from('recomendacoes_amigos').insert([novaRec]);
 
@@ -2654,10 +2761,13 @@
             contadorInbox.innerText = `${recomendacoesRecebidas.length} Novas`;
 
             listaInbox.innerHTML = recomendacoesRecebidas.map(rec => {
-                const idNum = parseInt(rec.tmdb_id);
-                if (!bancoDeFilmesLocal.has(idNum)) {
-                    bancoDeFilmesLocal.set(idNum, {
-                        id: idNum,
+                const ehSerie = rec.tipo === 'serie';
+                const chave = chaveDaLinha(rec);
+                if (!bancoDeFilmesLocal.has(chave)) {
+                    bancoDeFilmesLocal.set(chave, {
+                        id: chave,
+                        tmdbId: Number(rec.tmdb_id),
+                        tipo: ehSerie ? 'serie' : 'filme',
                         titulo: rec.titulo_filme,
                         capa: rec.capa_filme,
                         ano: 'N/A',
@@ -2665,16 +2775,17 @@
                         sinopse: rec.mensagem || 'Recomendação de um amigo.'
                     });
                 }
+                const chaveJs = typeof chave === 'string' ? `'${chave}'` : chave; // 'tv:123' precisa de aspas no onclick
 
                 return `
                 <div style="background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 12px; display: flex; gap: 12px; position: relative;">
                     <button onclick="apagarRecomendacao('${rec.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">&times;</button>
-                    <img src="${rec.capa_filme}" style="width: 50px; height: 75px; border-radius: 6px; object-fit: cover; cursor: pointer;" onclick="abrirDetalhes(${rec.tmdb_id})">
+                    <img src="${rec.capa_filme}" style="width: 50px; height: 75px; border-radius: 6px; object-fit: cover; cursor: pointer;" onclick="abrirDetalhes(${chaveJs})">
                     <div style="flex: 1; padding-right: 15px;">
                         <div style="font-size: 0.8rem; color: var(--purple); font-weight: bold; margin-bottom: 4px;">@${rec.username_remetente} recomendou:</div>
                         <div style="font-weight: bold; font-size: 0.95rem; line-height: 1.1; margin-bottom: 6px;">${rec.titulo_filme}</div>
                         ${rec.mensagem ? `<div style="font-size: 0.85rem; color: #d1d5db; font-style: italic; background: #111827; padding: 6px 10px; border-radius: 8px; border-left: 2px solid var(--pink);">"${rec.mensagem}"</div>` : ''}
-                        <button onclick="abrirModal(${rec.tmdb_id}, 'explorar')" class="btn-modal btn-modal-quero" style="padding: 6px 12px; font-size: 0.8rem; width: auto; margin-top: 8px; box-shadow: none;">➕ Organizar Filme</button>
+                        <button onclick="abrirModal(${chaveJs}, 'explorar')" class="btn-modal btn-modal-quero" style="padding: 6px 12px; font-size: 0.8rem; width: auto; margin-top: 8px; box-shadow: none;">➕ Organizar ${ehSerie ? 'Série' : 'Filme'}</button>
                     </div>
                 </div>
                 `;

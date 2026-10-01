@@ -177,14 +177,110 @@
         .btn-header-amigos.active { color: #fff; background: var(--purple); border-color: var(--purple); box-shadow: 0 0 12px rgba(139, 92, 246, 0.55); }
         .btn-header-amigos .badge-notif { top: -3px; right: -3px; }
 
-        /* Aba Roleta (provisória) */
-        .roleta-em-breve { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.6rem; margin: 3rem auto 0; max-width: 360px; padding: 2rem 1.5rem; border-radius: 22px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(139, 92, 246, 0.3); }
-        .roleta-em-breve-icone { font-size: 3.5rem; animation: girarRoletaEmBreve 6s linear infinite; }
-        .roleta-em-breve-titulo { font-size: 1.4rem; font-weight: 900; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent; }
-        .roleta-em-breve-texto { color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; }
-        .roleta-em-breve-selo { margin-top: 0.4rem; padding: 4px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, var(--purple), var(--pink)); }
-        @keyframes girarRoletaEmBreve { to { transform: rotate(360deg); } }
-        @media (prefers-reduced-motion: reduce) { .roleta-em-breve-icone { animation: none; } }
+        /* ========================================= */
+        /* === BLOCO: CSS ROLETA (aba Roleta) === */
+        /* ========================================= */
+        /* A aba ocupa a área entre o cabeçalho e a barra inferior (como Cenas) */
+        #aba-roleta.ativa { position: fixed; top: 60px; bottom: 65px; left: 0; right: 0; z-index: 100; background: var(--bg-color); }
+        /* overflow: clip (e não hidden): o resto da roda fica fora da tela e não pode virar área rolável */
+        #aba-roleta .rol-tela { position: absolute; inset: 0; max-width: 600px; margin: 0 auto; overflow: hidden; overflow: clip; touch-action: none; user-select: none; -webkit-user-select: none; color: var(--text-main); }
+        #aba-roleta .rol-tela::before { content: ''; position: absolute; right: -30%; bottom: -10%; width: 110%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(139, 92, 246, 0.22), transparent 65%); pointer-events: none; }
+        #aba-roleta .rol-tela.modo-filtros .so-roleta { display: none !important; }
+        #aba-roleta .rol-tela.modo-roleta .so-filtros { display: none !important; }
+        #aba-roleta .chip { padding: 5px 11px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); }
+        #aba-roleta .chip.forte { background: linear-gradient(135deg, var(--purple), var(--pink)); border: none; }
+        #aba-roleta .chip.editar { background: none; border: 1px dashed rgba(139, 92, 246, 0.6); color: #c4b5fd; cursor: pointer; }
+
+        /* --- Etapas de filtro (funil) --- */
+        #aba-roleta .filtros-tela { position: absolute; z-index: 5; inset: 0; display: flex; flex-direction: column; padding: 14px 18px 0; touch-action: pan-y; }
+        #aba-roleta .f-cabecalho { display: flex; align-items: center; gap: 10px; }
+        #aba-roleta .f-voltar { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.06); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; transition: opacity 0.2s; }
+        #aba-roleta .f-voltar:disabled { opacity: 0; pointer-events: none; }
+        #aba-roleta .f-progresso { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        #aba-roleta .f-progresso span { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); transition: background 0.3s; }
+        #aba-roleta .f-progresso span.feito { background: linear-gradient(90deg, var(--purple), var(--pink)); }
+        #aba-roleta .f-passo-txt { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+        #aba-roleta .f-contador { margin-top: 16px; padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(139, 92, 246, 0.3); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        #aba-roleta .f-contador strong { font-size: 2rem; font-weight: 900; font-variant-numeric: tabular-nums; background: linear-gradient(90deg, #fff, #e9d5ff); -webkit-background-clip: text; color: transparent; transition: opacity 0.2s; }
+        #aba-roleta .f-contador.carregando strong { opacity: 0.45; }
+        #aba-roleta .f-contador span { font-size: 0.88rem; color: var(--text-muted); }
+        #aba-roleta .f-contador.vazio { border-color: rgba(239, 68, 68, 0.6); }
+        #aba-roleta .f-resumo { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        #aba-roleta .f-resumo:empty { display: none; }
+        #aba-roleta .f-conteudo { flex: 1; overflow-y: auto; margin: 0 -18px; padding: 18px 18px 14px; scrollbar-width: none; }
+        #aba-roleta .f-conteudo::-webkit-scrollbar { display: none; }
+        #aba-roleta .f-etapa { display: none; animation: rolEntrarEtapa 0.3s ease; }
+        #aba-roleta .f-etapa.ativa { display: block; }
+        @keyframes rolEntrarEtapa { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+        #aba-roleta .f-etapa h2 { font-size: 1.35rem; font-weight: 900; margin: 0; }
+        #aba-roleta .f-etapa .sub { margin-top: 4px; font-size: 0.85rem; color: var(--text-muted); }
+        #aba-roleta .f-etapa .sub b { color: #c4b5fd; }
+        #aba-roleta .f-tipos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        #aba-roleta .f-tipo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 26px 10px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); color: #fff; cursor: pointer; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+        #aba-roleta .f-tipo .emoji { font-size: 2.6rem; }
+        #aba-roleta .f-tipo .nome { font-size: 1.05rem; font-weight: 900; }
+        #aba-roleta .f-tipo .qtd { font-size: 0.75rem; color: var(--text-muted); }
+        #aba-roleta .f-generos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
+        #aba-roleta .f-genero { display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); color: #fff; font-size: 0.88rem; font-weight: 700; text-align: left; cursor: pointer; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+        #aba-roleta .f-genero .emoji { font-size: 1.2rem; }
+        #aba-roleta .f-streamings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+        #aba-roleta .f-streaming { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); color: #e2e8f0; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+        #aba-roleta .f-streaming img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
+        #aba-roleta .f-streaming .check { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--pink); color: #fff; font-size: 0.7rem; display: none; align-items: center; justify-content: center; }
+        #aba-roleta .f-streaming.sel .check { display: flex; }
+        #aba-roleta .f-notas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+        #aba-roleta .f-nota { padding: 16px 4px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); color: #fff; font-size: 0.95rem; font-weight: 900; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+        #aba-roleta .f-nota small { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+        #aba-roleta .f-tipo:active, #aba-roleta .f-genero:active, #aba-roleta .f-streaming:active, #aba-roleta .f-nota:active { transform: scale(0.96); }
+        #aba-roleta .f-tipo.sel, #aba-roleta .f-genero.sel, #aba-roleta .f-streaming.sel, #aba-roleta .f-nota.sel { border-color: var(--purple); background: rgba(139, 92, 246, 0.2); box-shadow: 0 0 16px rgba(139, 92, 246, 0.45); }
+        #aba-roleta button:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+        #aba-roleta .f-rodape { display: flex; gap: 8px; padding: 12px 0 14px; }
+        #aba-roleta .f-rodape:empty { display: none; }
+        #aba-roleta .f-btn { flex: 1; padding: 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.06); color: #fff; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+        #aba-roleta .f-btn.primario { flex: 2; border: none; background: linear-gradient(135deg, var(--purple), var(--pink)); box-shadow: 0 8px 22px rgba(236, 72, 153, 0.35); }
+        #aba-roleta .f-btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+        #aba-roleta .f-erro { margin-top: 10px; font-size: 0.82rem; color: #fca5a5; }
+
+        /* --- Roda: o círculo inteiro existe, mas só 1/4 aparece (centro no canto inferior direito) --- */
+        #aba-roleta .topo { position: relative; z-index: 4; padding: 16px 18px 0; }
+        #aba-roleta .titulo { font-size: 1.35rem; font-weight: 900; margin: 0; }
+        #aba-roleta .titulo span { background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent; }
+        #aba-roleta .filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        #aba-roleta .contador { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 0.85rem; color: var(--text-muted); }
+        #aba-roleta .contador strong { font-size: 1.6rem; font-weight: 900; color: var(--text-main); }
+        #aba-roleta .btn-trocar { margin-left: auto; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.5); background: rgba(139, 92, 246, 0.12); color: #e9d5ff; font-weight: 700; font-size: 0.78rem; cursor: pointer; }
+        #aba-roleta .roda { position: absolute; z-index: 2; border-radius: 50%; overflow: hidden; background: #0b1120; will-change: transform; cursor: grab; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.85), 0 0 0 9px rgba(236, 72, 153, 0.5), 0 0 40px rgba(139, 92, 246, 0.6); }
+        #aba-roleta .roda.arrastando { cursor: grabbing; }
+        #aba-roleta .fatia { position: absolute; inset: 0; pointer-events: none; }
+        #aba-roleta .fatia-conteudo { position: absolute; inset: 0; background: linear-gradient(180deg, #1e1b4b, #0b1120 45%); transition: filter 0.4s; }
+        #aba-roleta .fatia img { position: absolute; left: 39%; top: 1.2%; width: 22%; height: 33%; object-fit: cover; transition: opacity 0.25s; }
+        #aba-roleta .fatia-titulo { position: absolute; left: 41%; top: 6%; width: 18%; font-size: 0.8rem; font-weight: 800; text-align: center; color: #c4b5fd; line-height: 1.2; }
+        #aba-roleta .roda.resultado .fatia:not(.vencedora) .fatia-conteudo { filter: brightness(0.35) saturate(0.6); }
+        #aba-roleta .divisorias { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: repeating-conic-gradient(from -15deg, rgba(3, 7, 18, 0.95) 0deg 1.2deg, transparent 1.2deg 30deg); }
+        #aba-roleta .miolo-sombra { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(3, 7, 18, 0.95) 0 28%, rgba(3, 7, 18, 0) 55%); }
+        #aba-roleta .centro { position: absolute; z-index: 3; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #c084fc, var(--purple) 45%, #6d28d9); box-shadow: 0 0 25px rgba(139, 92, 246, 0.8); pointer-events: none; }
+        #aba-roleta .centro span { position: absolute; font-size: 1.5rem; }
+        #aba-roleta .ponteiro { position: absolute; z-index: 4; width: 34px; height: 40px; pointer-events: none; filter: drop-shadow(0 4px 10px rgba(236, 72, 153, 0.8)); }
+        #aba-roleta .ponteiro svg { width: 100%; height: 100%; }
+        #aba-roleta .ponteiro.tique { animation: rolTique 0.12s ease-out; }
+        @keyframes rolTique { 50% { transform: var(--rot) rotate(-14deg); } }
+        #aba-roleta .dica { position: absolute; z-index: 3; font-size: 0.8rem; font-weight: 700; color: #c4b5fd; transition: opacity 0.3s; pointer-events: none; }
+        #aba-roleta .dica.oculta { opacity: 0; }
+        #aba-roleta .btn-girar { position: absolute; z-index: 4; left: 18px; bottom: 18px; padding: 14px 26px; border: none; border-radius: 999px; font-size: 1rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, var(--purple), var(--pink)); box-shadow: 0 8px 25px rgba(236, 72, 153, 0.45); cursor: pointer; transition: transform 0.15s, opacity 0.2s; }
+        #aba-roleta .btn-girar:active { transform: scale(0.95); }
+        #aba-roleta .btn-girar:disabled { opacity: 0.5; cursor: default; }
+        #aba-roleta .vencedor { position: absolute; z-index: 6; left: 18px; width: min(72%, 290px); padding: 12px; border-radius: 18px; background: rgba(17, 24, 39, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.35); opacity: 0; transform: translateY(12px) scale(0.96); transition: opacity 0.35s, transform 0.35s; pointer-events: none; }
+        #aba-roleta .vencedor.visivel { opacity: 1; transform: none; pointer-events: auto; }
+        #aba-roleta .vencedor-rotulo { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #f9a8d4; }
+        #aba-roleta .vencedor-linha { display: flex; gap: 10px; margin-top: 8px; }
+        #aba-roleta .vencedor img { width: 62px; aspect-ratio: 2 / 3; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        #aba-roleta .vencedor h3 { font-size: 0.98rem; font-weight: 900; line-height: 1.15; margin: 0; }
+        #aba-roleta .vencedor .meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+        #aba-roleta .vencedor .meta b { color: #fbbf24; }
+        #aba-roleta .vencedor-acoes { display: flex; gap: 6px; margin-top: 10px; }
+        #aba-roleta .vencedor-acoes button { flex: 1; padding: 8px 6px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.07); color: #fff; }
+        #aba-roleta .vencedor-acoes button.primario { border: none; background: linear-gradient(135deg, var(--purple), var(--pink)); }
+        @media (prefers-reduced-motion: reduce) { #aba-roleta .f-etapa { animation: none; } }
 
         /* ========================================= */
         /* === BLOCO: CSS LAYOUT PRINCIPAL & ABAS === */
@@ -589,13 +685,79 @@
             <div id="comunidade-grid" class="comunidade-grid"></div>
         </div>
 
-        <!-- Roleta: projeto novo, ainda em planejamento. Por enquanto só o espaço reservado. -->
+        <!-- Roleta: escolha em etapas (tipo → gênero → streaming → nota) e roda de pôsteres "quase infinita" -->
         <div id="aba-roleta" class="aba">
-            <div class="roleta-em-breve">
-                <div class="roleta-em-breve-icone" aria-hidden="true">🎡</div>
-                <h2 class="roleta-em-breve-titulo">Roleta de Filmes</h2>
-                <p class="roleta-em-breve-texto">Em breve: escolha um gênero, gire a roleta e deixe a sorte decidir o filme da noite.</p>
-                <span class="roleta-em-breve-selo">Em breve</span>
+            <div class="rol-tela modo-filtros" id="rol-tela">
+                <!-- ===== Etapas de filtro ===== -->
+                <section class="filtros-tela so-filtros" aria-label="Montar a roleta">
+                    <div class="f-cabecalho">
+                        <button class="f-voltar" id="rol-voltar" type="button" aria-label="Voltar etapa" disabled>‹</button>
+                        <div class="f-progresso" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                        <span class="f-passo-txt" id="rol-passo-txt">Etapa 1 de 4</span>
+                    </div>
+                    <div class="f-contador" id="rol-contador" aria-live="polite">
+                        <strong id="rol-f-total">—</strong><span id="rol-f-total-txt">escolha o tipo para começar</span>
+                    </div>
+                    <div class="f-resumo" id="rol-resumo"></div>
+                    <div class="f-conteudo" id="rol-conteudo">
+                        <div class="f-etapa ativa" data-etapa="1">
+                            <h2>O que vamos ver hoje?</h2>
+                            <p class="sub">Obrigatório</p>
+                            <div class="f-tipos">
+                                <button class="f-tipo" type="button" data-tipo="movie"><span class="emoji">🎬</span><span class="nome">Filme</span><span class="qtd" id="rol-qtd-movie"></span></button>
+                                <button class="f-tipo" type="button" data-tipo="tv"><span class="emoji">📺</span><span class="nome">Série</span><span class="qtd" id="rol-qtd-tv"></span></button>
+                            </div>
+                        </div>
+                        <div class="f-etapa" data-etapa="2">
+                            <h2>Qual gênero?</h2>
+                            <p class="sub">Obrigatório · escolha <b>um</b></p>
+                            <div class="f-generos" id="rol-generos"></div>
+                        </div>
+                        <div class="f-etapa" data-etapa="3">
+                            <h2>Quais streamings você assina?</h2>
+                            <p class="sub">Opcional · pode marcar <b>vários</b>. Sem marcar = catálogo inteiro.</p>
+                            <div class="f-streamings" id="rol-streamings"></div>
+                        </div>
+                        <div class="f-etapa" data-etapa="4">
+                            <h2>Nota mínima</h2>
+                            <p class="sub">Opcional · nota média do público no TMDB</p>
+                            <div class="f-notas">
+                                <button class="f-nota sel" type="button" data-nota="0">Todas<small>sem filtro</small></button>
+                                <button class="f-nota" type="button" data-nota="6">⭐ 6+<small>boas</small></button>
+                                <button class="f-nota" type="button" data-nota="7">⭐ 7+<small>ótimas</small></button>
+                                <button class="f-nota" type="button" data-nota="8">⭐ 8+<small>aclamadas</small></button>
+                            </div>
+                        </div>
+                        <p class="f-erro" id="rol-erro" hidden></p>
+                    </div>
+                    <div class="f-rodape" id="rol-rodape"></div>
+                </section>
+
+                <!-- ===== Roda ===== -->
+                <div class="topo so-roleta" id="rol-topo">
+                    <h2 class="titulo" id="rol-titulo">🎡 Roleta <span>de Filmes</span></h2>
+                    <div class="filtros" id="rol-filtros" aria-label="Filtros escolhidos"></div>
+                    <div class="contador">
+                        <div><strong id="rol-total">0</strong> <span id="rol-total-txt">filmes na roleta</span></div>
+                        <button class="btn-trocar" id="rol-embaralhar" type="button">🔀 Embaralhar</button>
+                    </div>
+                </div>
+                <div class="roda so-roleta" id="rol-roda" aria-label="Roleta com pôsteres. Arraste para girar."></div>
+                <div class="centro so-roleta" id="rol-centro"><span>🍿</span></div>
+                <div class="ponteiro so-roleta" id="rol-ponteiro"><svg viewBox="0 0 34 40" aria-hidden="true"><defs><linearGradient id="rol-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><path d="M17 40 L2 8 A15 15 0 0 1 32 8 Z" fill="url(#rol-grad)" stroke="#fff" stroke-width="2"/><circle cx="17" cy="11" r="4" fill="#fff"/></svg></div>
+                <div class="dica so-roleta" id="rol-dica">↻ Arraste a roleta</div>
+                <button class="btn-girar so-roleta" id="rol-girar" type="button">🎡 GIRAR</button>
+                <div class="vencedor so-roleta" id="rol-vencedor" aria-live="polite">
+                    <div class="vencedor-rotulo">🎉 A sorte escolheu</div>
+                    <div class="vencedor-linha">
+                        <img id="rol-v-poster" alt="">
+                        <div><h3 id="rol-v-titulo"></h3><div class="meta" id="rol-v-meta"></div><div class="meta" id="rol-v-passaram"></div></div>
+                    </div>
+                    <div class="vencedor-acoes">
+                        <button class="primario" type="button" id="rol-v-detalhes">▶ Detalhes</button>
+                        <button type="button" id="rol-v-salvar">➕ Salvar</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1058,6 +1220,7 @@
             if (abaId === 'inicio') renderizarMinhasListas();
             if (abaId === 'comunidade') carregarComunidade();
             if (abaId === 'amigos') renderizarAbaAmigos();
+            if (abaId === 'roleta') { chatFab.style.display = 'none'; roleta.aoAbrir(); }
         }
 
         // =========================================
@@ -2633,6 +2796,413 @@
             else { document.getElementById('msg-playlist-vazia').style.display = 'none'; grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, 'comunidade')).join(''); }
             abrirModalSeguro('modal-ver-playlist'); mapearBotoesGrid();
         }
+
+        // =========================================
+        // === BLOCO: JS ROLETA ===
+        // =========================================
+        // Funil (Filme/Série → Gênero → Streaming → Nota) com contador ao vivo do TMDB e uma roda de pôsteres
+        // em que só 1/4 aparece. A roda é "quase infinita": 12 molduras são recicladas no lado escondido,
+        // então até LIMITE_ROLETA títulos passam em sequência antes de repetir.
+        const roleta = (() => {
+            const IMG_ROLETA = 'https://image.tmdb.org/t/p/w342';
+            const LIMITE_ROLETA = 300;               // máximo de títulos na roda (os mais populares do filtro)
+            const MIN_VOTOS = { movie: 50, tv: 30 }; // evita títulos obscuros sem avaliação
+            const EMOJI_GENERO = { 28: '💥', 12: '🧭', 16: '🎨', 35: '😂', 80: '🕵️', 99: '🎥', 18: '🎭', 10751: '👨‍👩‍👧', 14: '🐉', 36: '🏛️', 27: '👻', 10402: '🎵', 9648: '🔍', 10749: '💘', 878: '🚀', 53: '🔪', 10752: '⚔️', 37: '🤠', 10759: '💥', 10762: '🧸', 10764: '🎤', 10765: '🚀', 10766: '💔', 10768: '⚔️' };
+            const GENEROS_IGNORADOS = [10770, 10763, 10767];   // Cinema TV, Notícias, Talk show
+            const STREAMINGS = [8, 119, 337, 1899, 350, 307, 531, 283];  // Netflix, Prime, Disney+, Max, Apple TV+, Globoplay, Paramount+, Crunchyroll
+            const $ = (id) => document.getElementById(`rol-${id}`);
+            const fmt = (n) => n.toLocaleString('pt-BR');
+            const mod = (a, n) => ((a % n) + n) % n;
+            const tela = $('tela');
+
+            // ---------------- Funil ----------------
+            const escolha = { tipo: null, genero: null, generoNome: '', streamings: [], nota: 0 };
+            let etapa = 1, totalAtual = null, pedidoContagem = 0, contagensIniciais = false;
+            const cacheGeneros = {}, cacheStreamings = {};
+            const palavra = () => escolha.tipo === 'tv' ? 'séries' : 'filmes';
+
+            function urlDiscover(extra = {}) {
+                const p = new URLSearchParams({ api_key: TMDB_KEY, language: 'pt-BR', sort_by: 'popularity.desc', 'vote_count.gte': MIN_VOTOS[escolha.tipo], watch_region: 'BR' });
+                if (escolha.genero) p.set('with_genres', escolha.genero);
+                if (escolha.streamings.length) p.set('with_watch_providers', escolha.streamings.join('|')); // | = qualquer um deles
+                if (escolha.nota) p.set('vote_average.gte', escolha.nota);
+                Object.entries(extra).forEach(([k, v]) => p.set(k, v));
+                return `${URL_BASE}/discover/${escolha.tipo}?${p}`;
+            }
+
+            function animarNumero(el, de, para) {
+                const t0 = performance.now(), dur = 500;
+                const passo = (agora) => { const p = Math.min(1, (agora - t0) / dur), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(Math.round(de + (para - de) * e)); if (p < 1) requestAnimationFrame(passo); };
+                requestAnimationFrame(passo);
+            }
+
+            async function atualizarContador() {
+                if (!escolha.tipo) return;
+                const box = $('contador'), meu = ++pedidoContagem;
+                box.classList.add('carregando');
+                try {
+                    const d = await fetch(urlDiscover()).then(r => r.json());
+                    if (meu !== pedidoContagem) return;
+                    const novo = d.total_results || 0;
+                    animarNumero($('f-total'), totalAtual ?? novo, novo); totalAtual = novo;
+                    $('f-total-txt').textContent = novo === 0 ? 'nenhum título com esses filtros'
+                        : novo > LIMITE_ROLETA ? `${palavra()} encontrados · os ${LIMITE_ROLETA} mais populares vão para a roleta`
+                        : `${palavra()} encontrados · ${novo === 1 ? 'vai' : 'todos vão'} para a roleta`;
+                    box.classList.toggle('vazio', novo === 0);
+                } catch (e) { if (meu === pedidoContagem) $('f-total-txt').textContent = 'erro ao consultar o catálogo'; }
+                finally { if (meu === pedidoContagem) { box.classList.remove('carregando'); montarRodape(); } }
+            }
+
+            function irParaEtapa(n) {
+                etapa = n;
+                tela.querySelectorAll('.f-etapa').forEach(e => e.classList.toggle('ativa', Number(e.dataset.etapa) === n));
+                tela.querySelectorAll('.f-progresso span').forEach((s, i) => s.classList.toggle('feito', i < n));
+                $('passo-txt').textContent = `Etapa ${n} de 4`;
+                $('voltar').disabled = n === 1;
+                $('conteudo').scrollTop = 0;
+                $('erro').hidden = true;
+                if (n === 2) carregarGeneros();
+                if (n === 3) carregarStreamings();
+                montarRodape(); montarResumo();
+            }
+
+            // Chips das escolhas (montados com textContent: nomes vêm da API)
+            function chipsEscolha() {
+                const chips = [];
+                const chip = (texto, forte) => { const s = document.createElement('span'); s.className = 'chip' + (forte ? ' forte' : ''); s.textContent = texto; chips.push(s); };
+                if (escolha.tipo) chip(escolha.tipo === 'tv' ? '📺 Série' : '🎬 Filme', true);
+                if (escolha.genero) chip(`${EMOJI_GENERO[escolha.genero] || '🎞️'} ${escolha.generoNome}`, true);
+                escolha.streamings.forEach(id => chip(((cacheStreamings[escolha.tipo] || []).find(s => s.provider_id === id)?.provider_name || 'Streaming').replace(' Amazon Channel', '')));
+                if (escolha.nota) chip(`⭐ ${escolha.nota}+`);
+                return chips;
+            }
+            function montarResumo() { $('resumo').replaceChildren(...chipsEscolha()); }
+
+            function montarRodape() {
+                const r = $('rodape'); r.innerHTML = '';
+                const semResultado = totalAtual === 0;
+                if (etapa === 3) {
+                    r.innerHTML = escolha.streamings.length
+                        ? `<button class="f-btn primario" type="button" ${semResultado ? 'disabled' : ''}>Continuar</button>`
+                        : `<button class="f-btn primario" type="button">Pular · usar todo o catálogo</button>`;
+                    r.firstChild.addEventListener('click', () => irParaEtapa(4));
+                } else if (etapa === 4) {
+                    r.innerHTML = `<button class="f-btn primario" type="button" ${semResultado || totalAtual === null ? 'disabled' : ''}>🎡 Montar roleta${totalAtual ? ` · ${fmt(Math.min(totalAtual, LIMITE_ROLETA))}` : ''}</button>`;
+                    r.firstChild.addEventListener('click', montarRoleta);
+                }
+            }
+
+            function marcarNota(n) { tela.querySelectorAll('.f-nota').forEach(x => x.classList.toggle('sel', Number(x.dataset.nota) === n)); }
+
+            // Etapa 1: tipo
+            tela.querySelectorAll('.f-tipo').forEach(b => b.addEventListener('click', () => {
+                if (escolha.tipo !== b.dataset.tipo) { escolha.genero = null; escolha.generoNome = ''; escolha.streamings = []; escolha.nota = 0; marcarNota(0); }
+                escolha.tipo = b.dataset.tipo;
+                tela.querySelectorAll('.f-tipo').forEach(x => x.classList.toggle('sel', x === b));
+                atualizarContador();
+                setTimeout(() => irParaEtapa(2), 220);
+            }));
+
+            // Etapa 2: gêneros (lista oficial do TMDB, diferente para filme e série)
+            async function carregarGeneros() {
+                const box = $('generos');
+                try {
+                    if (!cacheGeneros[escolha.tipo]) {
+                        box.innerHTML = '<p class="sub">Carregando gêneros…</p>';
+                        const d = await fetch(`${URL_BASE}/genre/${escolha.tipo}/list?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.json());
+                        cacheGeneros[escolha.tipo] = (d.genres || []).filter(g => !GENEROS_IGNORADOS.includes(g.id));
+                    }
+                } catch (e) { box.innerHTML = '<p class="f-erro">Erro ao carregar os gêneros. Volte e tente de novo.</p>'; return; }
+                box.innerHTML = '';
+                cacheGeneros[escolha.tipo].forEach(g => {
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.className = 'f-genero' + (escolha.genero === g.id ? ' sel' : '');
+                    b.innerHTML = `<span class="emoji">${EMOJI_GENERO[g.id] || '🎞️'}</span><span></span>`;
+                    b.lastChild.textContent = g.name;
+                    b.addEventListener('click', () => {
+                        escolha.genero = g.id; escolha.generoNome = g.name;
+                        box.querySelectorAll('.f-genero').forEach(x => x.classList.toggle('sel', x === b));
+                        atualizarContador(); montarResumo();
+                        setTimeout(() => irParaEtapa(3), 220);
+                    });
+                    box.appendChild(b);
+                });
+            }
+
+            // Etapa 3: streamings (logos oficiais do TMDB para o Brasil)
+            async function carregarStreamings() {
+                const box = $('streamings');
+                try {
+                    if (!cacheStreamings[escolha.tipo]) {
+                        box.innerHTML = '<p class="sub">Carregando streamings…</p>';
+                        const d = await fetch(`${URL_BASE}/watch/providers/${escolha.tipo}?api_key=${TMDB_KEY}&language=pt-BR&watch_region=BR`).then(r => r.json());
+                        cacheStreamings[escolha.tipo] = STREAMINGS.map(id => (d.results || []).find(p => p.provider_id === id)).filter(Boolean);
+                    }
+                } catch (e) { box.innerHTML = '<p class="f-erro">Erro ao carregar os streamings. Você pode pular esta etapa.</p>'; return; }
+                box.innerHTML = '';
+                cacheStreamings[escolha.tipo].forEach(s => {
+                    const marcado = escolha.streamings.includes(s.provider_id);
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.className = 'f-streaming' + (marcado ? ' sel' : '');
+                    b.setAttribute('aria-pressed', marcado);
+                    b.innerHTML = `<span class="check">✓</span><img src="https://image.tmdb.org/t/p/w92${s.logo_path}" alt=""><span></span>`;
+                    b.lastChild.textContent = s.provider_name.replace(' Amazon Channel', '');
+                    b.addEventListener('click', () => {
+                        const i = escolha.streamings.indexOf(s.provider_id);
+                        if (i >= 0) escolha.streamings.splice(i, 1); else escolha.streamings.push(s.provider_id);
+                        b.classList.toggle('sel', i < 0); b.setAttribute('aria-pressed', i < 0);
+                        atualizarContador(); montarResumo();
+                    });
+                    box.appendChild(b);
+                });
+            }
+
+            // Etapa 4: nota mínima
+            tela.querySelectorAll('.f-nota').forEach(b => b.addEventListener('click', () => {
+                escolha.nota = Number(b.dataset.nota); marcarNota(escolha.nota); atualizarContador(); montarResumo();
+            }));
+            $('voltar').addEventListener('click', () => { if (etapa > 1) irParaEtapa(etapa - 1); });
+
+            // Busca até 300 títulos (páginas de 20 em paralelo), tira os já assistidos e abre a roda
+            async function montarRoleta() {
+                const btn = $('rodape').firstChild; btn.disabled = true; btn.textContent = 'Montando a roleta… 🎡';
+                try {
+                    const paginas = Math.ceil(Math.min(totalAtual, LIMITE_ROLETA) / 20);
+                    const respostas = await Promise.all(Array.from({ length: paginas }, (_, i) => fetch(urlDiscover({ page: i + 1 })).then(r => r.json())));
+                    const tipoLista = escolha.tipo === 'tv' ? 'serie' : 'filme';
+                    // Títulos já marcados como Assistidos (meus_filmes, grupo 'ja') não entram
+                    const assistidos = new Set(listaJaAssisti.map(f => `${f.tipo === 'serie' ? 'serie' : 'filme'}:${f.tmdb_id}`));
+                    const vistos = new Set(), lista = [];
+                    let removidos = 0;
+                    respostas.flatMap(d => d.results || []).forEach(t => {
+                        if (!t.poster_path || vistos.has(t.id)) return; vistos.add(t.id);
+                        if (assistidos.has(`${tipoLista}:${t.id}`)) { removidos++; return; }
+                        lista.push({ tmdbId: t.id, tipo: tipoLista, titulo: t.title || t.name, ano: (t.release_date || t.first_air_date || '').slice(0, 4), nota: (t.vote_average || 0).toFixed(1), poster: t.poster_path, sinopse: t.overview || 'Sinopse não disponibilizada.' });
+                    });
+                    if (!lista.length) throw new Error(removidos ? 'todos assistidos' : 'lista vazia');
+                    filmes = embaralhar(lista.slice(0, LIMITE_ROLETA));
+                    abrirRoda(removidos);
+                } catch (e) {
+                    $('erro').hidden = false;
+                    $('erro').textContent = e.message === 'todos assistidos' ? `Você já assistiu a todos esses ${palavra()}! Mude algum filtro.` : 'Não foi possível montar a roleta. Tente de novo.';
+                    montarRodape();
+                }
+            }
+
+            function abrirRoda(removidos) {
+                tela.classList.replace('modo-filtros', 'modo-roleta');
+                $('titulo').innerHTML = `🎡 Roleta <span>de ${escolha.tipo === 'tv' ? 'Séries' : 'Filmes'}</span>`;
+                const editar = document.createElement('span');
+                editar.className = 'chip editar'; editar.textContent = '✎ Filtros'; editar.setAttribute('role', 'button'); editar.tabIndex = 0;
+                editar.addEventListener('click', voltarAosFiltros);
+                editar.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); voltarAosFiltros(); } });
+                $('filtros').replaceChildren(...chipsEscolha(), editar);
+                $('total').textContent = fmt(filmes.length);
+                $('total-txt').textContent = `${filmes.length === 1 ? (escolha.tipo === 'tv' ? 'série' : 'filme') : palavra()} na roleta` + (removidos ? ` · ${removidos} já assistido${removidos > 1 ? 's' : ''} fora` : '');
+                angulo = 0; ultimaPosicao = null;
+                roda.classList.remove('resultado'); cardVencedor.classList.remove('visivel'); dica.classList.remove('oculta');
+                montarFatias(); posicionar();
+            }
+
+            function voltarAosFiltros() {
+                if (animando) return;
+                tela.classList.replace('modo-roleta', 'modo-filtros');
+                irParaEtapa(4);
+            }
+
+            // ---------------- Roda ----------------
+            let filmes = [];
+            function embaralhar(lista) { const l = lista.slice(); for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; } return l; }
+
+            const SLOTS = 12, PASSO = 360 / SLOTS;
+            const ANGULO_PONTEIRO = 315; // diagonal superior-esquerda (graus, sentido horário a partir do topo)
+            const roda = $('roda'), centro = $('centro'), ponteiro = $('ponteiro'), dica = $('dica'), btnGirar = $('girar'), cardVencedor = $('vencedor');
+            let angulo = 0, animando = false, ultimaPosicao = null, cx = 0, cy = 0, R = 0, vencedorAtual = null;
+            const posicaoNoPonteiro = () => (ANGULO_PONTEIRO - angulo) / PASSO;
+
+            function montarFatias() {
+                roda.innerHTML = '';
+                const a = (PASSO / 2) * Math.PI / 180, ext = 0.75; // cunha de 30° com pontas além do círculo (a roda corta no raio)
+                for (let s = 0; s < SLOTS; s++) {
+                    const fatia = document.createElement('div');
+                    fatia.className = 'fatia'; fatia.dataset.s = s; fatia._item = -1;
+                    fatia.style.transform = `rotate(${s * PASSO}deg)`;
+                    fatia.style.clipPath = `polygon(50% 50%, ${50 - ext * 100 * Math.sin(a)}% ${50 - ext * 100 * Math.cos(a)}%, ${50 + ext * 100 * Math.sin(a)}% ${50 - ext * 100 * Math.cos(a)}%)`;
+                    fatia.innerHTML = '<div class="fatia-conteudo"><span class="fatia-titulo"></span><img alt="" draggable="false"></div>';
+                    roda.appendChild(fatia);
+                }
+                roda.insertAdjacentHTML('beforeend', '<div class="divisorias"></div><div class="miolo-sombra"></div>');
+                atualizarMolduras();
+            }
+
+            // Cada moldura mostra o título da "volta" (k) mais próxima do ponteiro; troca só do lado escondido
+            function atualizarMolduras() {
+                const pos = posicaoNoPonteiro(), N = filmes.length;
+                if (!N) return;
+                roda.querySelectorAll('.fatia').forEach(f => {
+                    const s = Number(f.dataset.s);
+                    const item = mod(s + SLOTS * Math.round((pos - s) / SLOTS), N);
+                    if (f._item === item) return;
+                    f._item = item;
+                    const filme = filmes[item], img = f.querySelector('img');
+                    f.querySelector('.fatia-titulo').textContent = filme.titulo;
+                    img.style.opacity = '0';
+                    img.onload = () => { img.style.opacity = '1'; };
+                    img.src = IMG_ROLETA + filme.poster;
+                });
+            }
+
+            function preCarregar(posicao, raio = 3) {
+                for (let d = -raio; d <= raio; d++) { const im = new Image(); im.src = IMG_ROLETA + filmes[mod(posicao + d, filmes.length)].poster; }
+            }
+
+            // Centro da roda no canto inferior direito da área da aba
+            function posicionar() {
+                if (!tela.classList.contains('modo-roleta') || !tela.clientWidth) return;
+                const W = tela.clientWidth, H = tela.clientHeight;
+                const topoFim = $('topo').getBoundingClientRect().bottom - tela.getBoundingClientRect().top;
+                cx = W; cy = H;
+                R = Math.max(120, Math.min(W - 14, cy - topoFim - 30));
+                Object.assign(roda.style, { width: `${2 * R}px`, height: `${2 * R}px`, left: `${cx - R}px`, top: `${cy - R}px` });
+                const rc = R * 0.2;
+                Object.assign(centro.style, { width: `${2 * rc}px`, height: `${2 * rc}px`, left: `${cx - rc}px`, top: `${cy - rc}px` });
+                centro.firstElementChild.style.cssText = `left:${rc * 0.32}px; top:${rc * 0.3}px;`;
+                // Ponteiro na borda, na diagonal: a ponta do SVG aponta para baixo (180°); girando 315° aponta para o centro
+                const rad = (ANGULO_PONTEIRO - 90) * Math.PI / 180, rp = R + 14;
+                const px = cx + rp * Math.cos(rad), py = cy + rp * Math.sin(rad);
+                const rot = `translate(${px - 17}px, ${py}px) rotate(${ANGULO_PONTEIRO}deg)`;
+                ponteiro.style.left = '0'; ponteiro.style.top = '0'; ponteiro.style.transformOrigin = '17px 0';
+                ponteiro.style.setProperty('--rot', rot); ponteiro.style.transform = rot;
+                dica.style.left = `${cx - R * 0.55}px`; dica.style.top = `${cy - R * 0.3}px`;
+                cardVencedor.style.top = `${topoFim + 10}px`;
+                aplicarAngulo();
+            }
+
+            function aplicarAngulo() {
+                roda.style.transform = `rotate(${angulo}deg)`;
+                atualizarMolduras();
+                const atual = Math.round(posicaoNoPonteiro());
+                if (atual !== ultimaPosicao) {
+                    if (ultimaPosicao !== null && animando) { ponteiro.classList.remove('tique'); void ponteiro.offsetWidth; ponteiro.classList.add('tique'); if (navigator.vibrate) navigator.vibrate(4); }
+                    ultimaPosicao = atual;
+                }
+            }
+
+            // Giro baseado no tempo (ease-out cúbico); já termina no centro de um pôster
+            function animar(v0) {
+                const T = Math.min(5, Math.max(1.4, Math.abs(v0) / 380));
+                const inicio = angulo, alvoNatural = inicio + v0 * T / 3;
+                const posFinal = Math.round((ANGULO_PONTEIRO - alvoNatural) / PASSO);
+                const alvo = ANGULO_PONTEIRO - posFinal * PASSO;
+                preCarregar(posFinal);
+                const t0 = performance.now();
+                const passo = (agora) => {
+                    const p = Math.min(1, (agora - t0) / (T * 1000)), e = 1 - Math.pow(1 - p, 3);
+                    angulo = inicio + (alvo - inicio) * e; aplicarAngulo();
+                    if (p < 1) requestAnimationFrame(passo); else finalizar();
+                };
+                requestAnimationFrame(passo);
+            }
+
+            // Arrasto lento: só encaixa no pôster mais próximo
+            function encaixar() {
+                const alvo = ANGULO_PONTEIRO - Math.round(posicaoNoPonteiro()) * PASSO;
+                const inicio = angulo, dif = alvo - inicio, t0 = performance.now(), dur = 380;
+                const passo = (agora) => {
+                    const p = Math.min(1, (agora - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+                    angulo = inicio + dif * e; aplicarAngulo();
+                    if (p < 1) requestAnimationFrame(passo); else finalizar();
+                };
+                requestAnimationFrame(passo);
+            }
+
+            let posicaoInicioGiro = 0;
+            function finalizar() {
+                animando = false; btnGirar.disabled = false;
+                const pos = Math.round(posicaoNoPonteiro()), f = filmes[mod(pos, filmes.length)];
+                vencedorAtual = f;
+                roda.classList.add('resultado');
+                roda.querySelectorAll('.fatia').forEach(x => x.classList.toggle('vencedora', Number(x.dataset.s) === mod(pos, SLOTS)));
+                $('v-poster').src = IMG_ROLETA + f.poster;
+                $('v-titulo').textContent = f.titulo;
+                $('v-meta').innerHTML = `${f.ano || '—'} · <b>⭐ ${f.nota}</b>`;
+                $('v-passaram').textContent = `passou por ${Math.abs(pos - posicaoInicioGiro)} ${palavra()}`;
+                cardVencedor.classList.add('visivel');
+                if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+            }
+
+            function limparResultado() { roda.classList.remove('resultado'); cardVencedor.classList.remove('visivel'); dica.classList.add('oculta'); }
+            function iniciarGiro(v) {
+                animando = true; btnGirar.disabled = true; posicaoInicioGiro = Math.round(posicaoNoPonteiro());
+                limparResultado(); animar(v);
+            }
+            btnGirar.addEventListener('click', () => iniciarGiro(1200 + Math.random() * 1000));
+
+            // Arrastar com o dedo/mouse: a roda acompanha e, ao soltar, continua com o impulso
+            let arrastando = false, angToqueAnt = 0, amostras = [];
+            const anguloDoToque = (e) => { const r = tela.getBoundingClientRect(); return Math.atan2(e.clientY - r.top - cy, e.clientX - r.left - cx) * 180 / Math.PI; };
+            roda.addEventListener('pointerdown', (e) => {
+                if (animando) return;
+                arrastando = true; roda.setPointerCapture(e.pointerId); roda.classList.add('arrastando');
+                angToqueAnt = anguloDoToque(e); amostras = [{ t: performance.now(), a: angulo }];
+                posicaoInicioGiro = Math.round(posicaoNoPonteiro());
+                limparResultado();
+            });
+            roda.addEventListener('pointermove', (e) => {
+                if (!arrastando) return;
+                const a = anguloDoToque(e); let d = a - angToqueAnt;
+                if (d > 180) d -= 360; if (d < -180) d += 360;
+                angulo += d; angToqueAnt = a; aplicarAngulo();
+                amostras.push({ t: performance.now(), a: angulo }); if (amostras.length > 6) amostras.shift();
+            });
+            const soltar = () => {
+                if (!arrastando) return; arrastando = false; roda.classList.remove('arrastando');
+                const ini = amostras[0], fim = amostras[amostras.length - 1];
+                const v = (fim.t - ini.t) > 0 ? (fim.a - ini.a) / ((fim.t - ini.t) / 1000) : 0;
+                animando = true; btnGirar.disabled = true;
+                if (Math.abs(v) < 60) { encaixar(); return; }
+                animar(Math.max(-2600, Math.min(2600, v * 1.1)));
+            };
+            roda.addEventListener('pointerup', soltar);
+            roda.addEventListener('pointercancel', soltar);
+
+            $('embaralhar').addEventListener('click', () => {
+                if (animando) return;
+                filmes = embaralhar(filmes);
+                roda.classList.remove('resultado'); cardVencedor.classList.remove('visivel');
+                roda.querySelectorAll('.fatia').forEach(f => { f._item = -1; });
+                atualizarMolduras();
+            });
+
+            // Vencedor → integra com o resto do app (cache + modal de detalhes / Organizar)
+            function registrarVencedor() {
+                const f = vencedorAtual; if (!f) return null;
+                const chave = f.tipo === 'serie' ? `tv:${f.tmdbId}` : f.tmdbId;
+                bancoDeFilmesLocal.set(chave, { id: chave, tmdbId: f.tmdbId, tipo: f.tipo, titulo: f.titulo, ano: f.ano, notaTmdb: f.nota, notaImdb: 'N/A', notaRt: 'N/A', capa: IMG_BASE + f.poster, sinopse: f.sinopse });
+                return chave;
+            }
+            $('v-detalhes').addEventListener('click', () => { const c = registrarVencedor(); if (c !== null) abrirDetalhes(c); });
+            $('v-salvar').addEventListener('click', () => { const c = registrarVencedor(); if (c !== null) abrirModal(c, 'explorar'); });
+
+            // Navegadores sem overflow: clip: desfaz qualquer rolagem causada por foco
+            tela.addEventListener('scroll', () => { tela.scrollTop = 0; tela.scrollLeft = 0; });
+            new ResizeObserver(posicionar).observe(tela);
+
+            // Chamado por mudarAba quando a aba Roleta abre
+            function aoAbrir() {
+                if (!contagensIniciais) {
+                    contagensIniciais = true;
+                    ['movie', 'tv'].forEach(tipo => {
+                        fetch(`${URL_BASE}/discover/${tipo}?api_key=${TMDB_KEY}&vote_count.gte=${MIN_VOTOS[tipo]}&watch_region=BR`).then(r => r.json())
+                            .then(d => { $(`qtd-${tipo}`).textContent = `${fmt(d.total_results || 0)} no catálogo`; }).catch(() => {});
+                    });
+                }
+                requestAnimationFrame(posicionar);
+            }
+
+            irParaEtapa(1);
+            return { aoAbrir };
+        })();
 
         // =========================================
         // === BLOCO: JS CHAT IA (GROQ) ===

@@ -1404,7 +1404,7 @@
                         <img src="${filme.capa}" alt="${filme.titulo}">
                         <div class="movie-card-overlay">
                             <button class="btn-action btn-info" data-id="${filme.id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            ${filme.tipo !== 'serie' ? `<button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">➕ Lista</button>` : ''}
+                            <button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">➕ Lista</button>
                         </div>
                     </div>
                 </div>`;
@@ -1428,8 +1428,7 @@
             let acoesHtml = '';
             if (context === 'explorar' || context === 'comunidade' || context === 'playlist-amigo') {
                 acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
-                // Séries ainda não podem ser salvas (o banco só guarda filmes por enquanto)
-                if (f.tipo !== 'serie') acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">➕ Lista</button>`;
+                acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">➕ Lista</button>`;
             } else if (context === 'minha-playlist') {
                 acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
                 acoesHtml += `<button class="btn-action btn-delete" data-id="${f.id || f.tmdb_id}" data-action="remover-playlist">🗑️ Remover</button>`;
@@ -1474,12 +1473,27 @@
         // =========================================
         // === BLOCO: JS MINHAS LISTAS E SUPABASE ===
         // =========================================
+        // ===== Filmes x Séries =====
+        // Chave única no app: filme = número do TMDB; série = 'tv:<id>' (IDs de filme e série se repetem no TMDB).
+        // No banco (meus_filmes): coluna tipo = 'filme' | 'serie' + tmdb_id numérico.
+        function normalizarChave(valor) { return String(valor).startsWith('tv:') ? String(valor) : parseInt(valor); }
+        function chaveDaLinha(f) { return f.tipo === 'serie' ? `tv:${f.tmdb_id}` : Number(f.tmdb_id); }
+        function partesDaChave(chave) {
+            const s = String(chave);
+            return s.startsWith('tv:') ? { tipo: 'serie', tmdbId: parseInt(s.slice(3)) } : { tipo: 'filme', tmdbId: parseInt(s) };
+        }
+        // Linha de meus_filmes -> objeto usado no cache/detalhes
+        function conteudoDaLinha(f) {
+            const ehSerie = f.tipo === 'serie';
+            return { id: chaveDaLinha(f), tmdbId: Number(f.tmdb_id), tipo: ehSerie ? 'serie' : 'filme', titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb || f.nota, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse };
+        }
+
         async function carregarFilmesDaNuvem() {
             const { data } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', usuarioAtual.id);
             if (data) {
                 listaQueroAssistir = data.filter(f => f.grupo === 'quero');
                 listaJaAssisti = data.filter(f => f.grupo === 'ja');
-                data.forEach(f => bancoDeFilmesLocal.set(f.tmdb_id, { id: f.tmdb_id, titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse }));
+                data.forEach(f => { const c = conteudoDaLinha(f); bancoDeFilmesLocal.set(c.id, c); });
                 renderizarMinhasListas();
             }
         }
@@ -1495,10 +1509,10 @@
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">
                         <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-watched" data-id="${f.tmdb_id}" data-action="mover-ja">⬇ Assistido</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕ Playlist</button>
-                            <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Remover</button>
+                            <button class="btn-action btn-info" data-id="${chaveDaLinha(f)}" data-action="sinopse">ℹ️ Sinopse</button>
+                            <button class="btn-action btn-watched" data-id="${chaveDaLinha(f)}" data-action="mover-ja">⬇ Assistido</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${chaveDaLinha(f)}" data-action="add-playlist">➕ Playlist</button>
+                            <button class="btn-action btn-delete" data-id="${chaveDaLinha(f)}" data-action="remover">🗑️ Remover</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
@@ -1528,10 +1542,10 @@
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">
                         <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-add" data-id="${f.tmdb_id}" data-action="mover-quero">⬆ Watchlist</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${f.tmdb_id}" data-action="add-playlist">➕ Playlist</button>
-                            <button class="btn-action btn-delete" data-id="${f.tmdb_id}" data-action="remover">🗑️ Remover</button>
+                            <button class="btn-action btn-info" data-id="${chaveDaLinha(f)}" data-action="sinopse">ℹ️ Sinopse</button>
+                            <button class="btn-action btn-add" data-id="${chaveDaLinha(f)}" data-action="mover-quero">⬆ Watchlist</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${chaveDaLinha(f)}" data-action="add-playlist">➕ Playlist</button>
+                            <button class="btn-action btn-delete" data-id="${chaveDaLinha(f)}" data-action="remover">🗑️ Remover</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
@@ -1562,15 +1576,26 @@
         async function salvarNoGrupo(grupo) {
             if (!filmeSelecionadoTemporario) return;
             const filme = filmeSelecionadoTemporario;
-            const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => f.tmdb_id == filme.id);
-            if (jaExiste) { alert('Este filme já está na sua lista!'); fecharModalSeguro('modal-escolha'); return; }
-            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: filme.id, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, grupo: grupo };
-            await supabaseClient.from('meus_filmes').insert([novoFilme]);
+            const { tipo, tmdbId } = partesDaChave(filme.id);
+            const jaExiste = [...listaQueroAssistir, ...listaJaAssisti].some(f => String(chaveDaLinha(f)) === String(filme.id));
+            if (jaExiste) { alert(tipo === 'serie' ? 'Esta série já está na sua lista!' : 'Este filme já está na sua lista!'); fecharModalSeguro('modal-escolha'); return; }
+            const novoFilme = { user_id: usuarioAtual.id, tmdb_id: tmdbId, tipo: tipo, titulo: filme.titulo, ano: filme.ano, nota: filme.notaTmdb, capa: filme.capa, sinopse: filme.sinopse, grupo: grupo };
+            const { error } = await supabaseClient.from('meus_filmes').insert([novoFilme]);
+            if (error) { console.error('Erro ao salvar:', error); alert('Não foi possível salvar. Tente novamente.'); return; }
             carregarFilmesDaNuvem(); fecharModalSeguro('modal-escolha');
         }
 
-        async function moverFilme(tmdb_id, novoGrupo) { await supabaseClient.from('meus_filmes').update({ grupo: novoGrupo }).eq('tmdb_id', tmdb_id).eq('user_id', usuarioAtual.id); carregarFilmesDaNuvem(); }
-        async function removerFilme(tmdb_id) { await supabaseClient.from('meus_filmes').delete().eq('tmdb_id', tmdb_id).eq('user_id', usuarioAtual.id); listaQueroAssistir = listaQueroAssistir.filter(f => f.tmdb_id !== tmdb_id); listaJaAssisti = listaJaAssisti.filter(f => f.tmdb_id !== tmdb_id); renderizarMinhasListas(); }
+        async function moverFilme(chave, novoGrupo) {
+            const { tipo, tmdbId } = partesDaChave(chave);
+            await supabaseClient.from('meus_filmes').update({ grupo: novoGrupo }).eq('tmdb_id', tmdbId).eq('tipo', tipo).eq('user_id', usuarioAtual.id);
+            carregarFilmesDaNuvem();
+        }
+        async function removerFilme(chave) {
+            const { tipo, tmdbId } = partesDaChave(chave);
+            await supabaseClient.from('meus_filmes').delete().eq('tmdb_id', tmdbId).eq('tipo', tipo).eq('user_id', usuarioAtual.id);
+            listaQueroAssistir = listaQueroAssistir.filter(f => String(chaveDaLinha(f)) !== String(chave)); listaJaAssisti = listaJaAssisti.filter(f => String(chaveDaLinha(f)) !== String(chave));
+            renderizarMinhasListas();
+        }
 
         // =========================================
         // === BLOCO: JS PLAYLISTS ===
@@ -1631,9 +1656,12 @@
         async function adicionarFilmeNaPlaylist(playlistId) {
             if (!filmeSelecionadoTemporario) return;
             const playlist = minhasPlaylists.find(p => String(p.id) === String(playlistId)); if (!playlist) return;
-            const jaExiste = (playlist.filmes || []).some(f => String(f.id) === String(filmeSelecionadoTemporario.id));
-            if (jaExiste) { alert('Este filme já está nesta playlist!'); return; }
+            const jaExiste = (playlist.filmes || []).some(f => String(normalizarChave(f.id || f.tmdb_id)) === String(normalizarChave(filmeSelecionadoTemporario.id)));
+            if (jaExiste) { alert('Este título já está nesta playlist!'); return; }
             const filmeLimpo = { id: filmeSelecionadoTemporario.id, titulo: filmeSelecionadoTemporario.titulo, ano: filmeSelecionadoTemporario.ano, notaTmdb: filmeSelecionadoTemporario.notaTmdb, notaImdb: filmeSelecionadoTemporario.notaImdb, capa: filmeSelecionadoTemporario.capa, sinopse: filmeSelecionadoTemporario.sinopse };
+            // Séries guardam tipo e tmdbId no JSON da playlist (filmes antigos continuam sem esses campos)
+            const partes = partesDaChave(filmeSelecionadoTemporario.id);
+            if (partes.tipo === 'serie') { filmeLimpo.tipo = 'serie'; filmeLimpo.tmdbId = partes.tmdbId; }
             const novosFilmes = [...(playlist.filmes || []), filmeLimpo];
             const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
             if (!error) { alert('🎬 Adicionado à playlist com sucesso!'); carregarPlaylistsDaNuvem(); fecharModalSeguro('modal-escolha'); } else { alert('Erro ao guardar na playlist.'); }
@@ -1642,7 +1670,7 @@
         async function removerFilmeDaPlaylist(filmeId) {
             if (!playlistAbertaAtualId) return; const playlist = minhasPlaylists.find(p => String(p.id) === String(playlistAbertaAtualId)); if (!playlist) return;
             if (confirm('Deseja remover este filme da sua playlist?')) {
-                const novosFilmes = (playlist.filmes || []).filter(f => parseInt(f.id || f.tmdb_id) !== parseInt(filmeId));
+                const novosFilmes = (playlist.filmes || []).filter(f => String(normalizarChave(f.id || f.tmdb_id)) !== String(normalizarChave(filmeId)));
                 const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
                 if (!error) { playlist.filmes = novosFilmes; abrirVerPlaylist(playlist.id, false); } else { alert('Erro ao remover o filme.'); }
             }
@@ -1651,7 +1679,7 @@
         function abrirVerPlaylist(playlistId, isAmigo = false) {
             playlistAbertaAtualId = isAmigo ? null : playlistId;
             const p = isAmigo ? playlistsAmigoAtual.find(p => String(p.id) === String(playlistId)) : minhasPlaylists.find(p => String(p.id) === String(playlistId)); if (!p) return;
-            (p.filmes || []).forEach(f => { bancoDeFilmesLocal.set(parseInt(f.id || f.tmdb_id), f); });
+            (p.filmes || []).forEach(f => { bancoDeFilmesLocal.set(normalizarChave(f.id || f.tmdb_id), f); });
             document.getElementById('titulo-ver-playlist').innerText = p.nome; document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`;
 
             const btnEdit = document.getElementById('btn-editar-ver-playlist');
@@ -1698,16 +1726,15 @@
                     console.warn('Filme nao encontrado no cache local:', id);
                     return;
                 }
-                // Séries: endpoints /tv do TMDB; por enquanto só leitura (sem salvar/assistir)
+                // Séries: endpoints /tv do TMDB; podem ser organizadas, mas ainda sem assistir/recomendar
                 const ehSerie = filme.tipo === 'serie';
                 const tipoTmdb = ehSerie ? 'tv' : 'movie';
                 const idTmdb = ehSerie ? filme.tmdbId : id;
                 // Os botões de assistir têm display !important no CSS, por isso escondo o container deles
                 const blocoAssistir = document.querySelector('#modal-detalhes .hero-buttons');
                 if (blocoAssistir) blocoAssistir.style.display = ehSerie ? 'none' : '';
-                ['btn-modal-organizar-novo', 'btn-recomendar-amigo-novo'].forEach(idBtn => {
-                    const b = document.getElementById(idBtn); if (b) b.style.display = ehSerie ? 'none' : '';
-                });
+                const btnRecomendarSerie = document.getElementById('btn-recomendar-amigo-novo');
+                if (btnRecomendarSerie) btnRecomendarSerie.style.display = ehSerie ? 'none' : '';
 
                 const detalheTitulo = document.getElementById('detalhe-titulo');
                 const detalheAno = document.getElementById('detalhe-ano');
@@ -2429,10 +2456,10 @@
             const lista = filmes.filter(f => f.grupo === grupo); const container = document.getElementById('perfil-amigo-conteudo');
             if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;
             // Coloca os filmes do amigo no cache para o modal de detalhes (não mexe nas listas pessoais)
-            lista.forEach(f => bancoDeFilmesLocal.set(Number(f.tmdb_id), { id: Number(f.tmdb_id), titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb || f.nota, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse }));
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `<div class="card-filme-amigo" data-id="${Number(f.tmdb_id)}" role="button" tabindex="0" style="background:#111827;border-radius:10px;overflow:hidden;cursor:pointer;"><img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;"><div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div></div>`).join('')}</div>`;
+            lista.forEach(f => { const c = conteudoDaLinha(f); bancoDeFilmesLocal.set(c.id, c); });
+            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `<div class="card-filme-amigo" data-id="${chaveDaLinha(f)}" role="button" tabindex="0" style="background:#111827;border-radius:10px;overflow:hidden;cursor:pointer;"><img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;"><div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div></div>`).join('')}</div>`;
             container.querySelectorAll('.card-filme-amigo').forEach(card => {
-                const abrir = () => abrirDetalhes(Number(card.getAttribute('data-id')));
+                const abrir = () => abrirDetalhes(normalizarChave(card.getAttribute('data-id')));
                 card.addEventListener('click', abrir);
                 card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
             });
@@ -2504,7 +2531,7 @@
 
         function abrirVerPlaylistGlobal(playlistId) {
             playlistAbertaAtualId = null; const p = playlistsComunidadeAtual.find(x => String(x.id) === String(playlistId)); if (!p) return;
-            (p.filmes || []).forEach(f => { bancoDeFilmesLocal.set(parseInt(f.id || f.tmdb_id), f); });
+            (p.filmes || []).forEach(f => { bancoDeFilmesLocal.set(normalizarChave(f.id || f.tmdb_id), f); });
             document.getElementById('titulo-ver-playlist').innerText = p.nome; document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`; document.getElementById('btn-editar-ver-playlist').style.display = 'none';
             const grid = document.getElementById('grid-ver-playlist');
             if (!p.filmes || p.filmes.length === 0) { document.getElementById('msg-playlist-vazia').style.display = 'block'; grid.innerHTML = ''; } 

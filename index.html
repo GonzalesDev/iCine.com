@@ -413,6 +413,12 @@
         .filters-row { display: flex; gap: 0.75rem; width: 100%; }
         .filters-row select { flex: 1; }
 
+        /* === Toggle Filmes / Séries === */
+        .tipo-conteudo-toggle { display: flex; gap: 0.25rem; padding: 0.3rem; margin-bottom: 1rem; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .tipo-conteudo-btn { flex: 1; padding: 0.6rem 1rem; border: none; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s, box-shadow 0.2s; }
+        .tipo-conteudo-btn.ativo { background: var(--purple); color: #fff; box-shadow: 0 0 12px rgba(139, 92, 246, 0.6); }
+        .tipo-conteudo-btn:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+
         /* ========================================= */
         /* === BLOCO: CSS CARDS DE FILMES & GRIDS === */
         /* ========================================= */
@@ -732,6 +738,10 @@
             <br><hr style="border: 1px solid #1f2937; margin-bottom: 1.5rem;">
 
             <h2><div class="h2-detail"></div> Explorar Catálogo Geral</h2>
+            <div class="tipo-conteudo-toggle" id="toggle-tipo-conteudo" role="group" aria-label="Tipo de conteúdo">
+                <button type="button" class="tipo-conteudo-btn ativo" data-tipo="movie" aria-pressed="true">🎬 Filmes</button>
+                <button type="button" class="tipo-conteudo-btn" data-tipo="tv" aria-pressed="false">📺 Séries</button>
+            </div>
             <div class="filters-container">
                 <input type="text" id="input-pesquisa" class="filter-input" placeholder="Buscar por nome...">
                 <div class="filters-row">
@@ -1090,6 +1100,8 @@
         let filmeParaRecomendar = null;
         let recomendacoesRecebidas = [];
 
+        let tipoConteudoAtual = 'movie'; // 'movie' = Filmes, 'tv' = Séries (TMDB)
+
         window.addEventListener('load', () => { window.history.replaceState({ base: true }, '', window.location.pathname); });
 
         function abrirModalSeguro(idModal) {
@@ -1216,6 +1228,18 @@
             const notaReal = filme.notaTmdb || filme.nota || '0.0';
             return `<span class="imdb-score">⭐ ${notaReal}</span>`;
         }
+
+        // Toggle Filmes / Séries (por enquanto só muda o estado; aplicarFiltros ainda não usa)
+        document.getElementById('toggle-tipo-conteudo').addEventListener('click', (e) => {
+            const btn = e.target.closest('.tipo-conteudo-btn');
+            if (!btn || btn.dataset.tipo === tipoConteudoAtual) return;
+            tipoConteudoAtual = btn.dataset.tipo;
+            document.querySelectorAll('#toggle-tipo-conteudo .tipo-conteudo-btn').forEach(b => {
+                const ativo = b === btn;
+                b.classList.toggle('ativo', ativo);
+                b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+            });
+        });
 
         async function aplicarFiltros(resetarPagina = false) {
             if (resetarPagina) { paginaAtual = 1; filmesExplorarAcumulados = []; }

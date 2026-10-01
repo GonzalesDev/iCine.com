@@ -419,6 +419,18 @@
         .tipo-conteudo-btn.ativo { background: var(--purple); color: #fff; box-shadow: 0 0 12px rgba(139, 92, 246, 0.6); }
         .tipo-conteudo-btn:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
 
+        /* === Botão Carregar Mais (Explorar) === */
+        .flex-center { display: flex; justify-content: center; width: 100%; margin: 1.75rem 0 1rem; }
+        .btn-carregar-mais { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; min-width: 220px; padding: 0.85rem 1.75rem; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.45); background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #f9fafb; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 0 0 rgba(139, 92, 246, 0); transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s; }
+        .btn-carregar-mais .btn-carregar-mais-icone { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); font-size: 0.85rem; line-height: 1; }
+        .btn-carregar-mais:hover { background: rgba(139, 92, 246, 0.14); border-color: rgba(139, 92, 246, 0.8); box-shadow: 0 0 18px rgba(139, 92, 246, 0.35); }
+        .btn-carregar-mais:active { transform: scale(0.97); }
+        .btn-carregar-mais:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+        .btn-carregar-mais.carregando { cursor: wait; opacity: 0.85; }
+        .btn-carregar-mais.carregando .btn-carregar-mais-icone { background: transparent; border: 2px solid rgba(255, 255, 255, 0.25); border-top-color: var(--pink); animation: girarCarregarMais 0.8s linear infinite; }
+        .btn-carregar-mais.carregando .btn-carregar-mais-icone span { visibility: hidden; }
+        @keyframes girarCarregarMais { to { transform: rotate(360deg); } }
+
         /* ========================================= */
         /* === BLOCO: CSS CARDS DE FILMES & GRIDS === */
         /* ========================================= */
@@ -763,7 +775,7 @@
             </div>
 
             <div class="movies-grid" id="explorar-grid"></div>
-            <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" style="display: none;">⬇ Carregar Mais</button></div>
+            <div class="flex-center"><button id="btn-carregar-mais" class="btn-carregar-mais" type="button" style="display: none;"><span class="btn-carregar-mais-icone" aria-hidden="true"><span>↓</span></span><span class="btn-carregar-mais-texto">Carregar mais</span></button></div>
         </div>
 
         <div id="aba-cenas" class="aba" style="position: fixed; top: 0; left: 0; right: 0; bottom: 65px; padding: 0; margin: 0; z-index: 100; overflow: hidden; background: #000;">
@@ -1239,7 +1251,15 @@
         });
         document.getElementById('select-genero').addEventListener('change', () => aplicarFiltros(true));
         document.getElementById('select-ordem').addEventListener('change', () => aplicarFiltros(true));
-        document.getElementById('btn-carregar-mais').addEventListener('click', () => { paginaAtual++; aplicarFiltros(false); });
+        document.getElementById('btn-carregar-mais').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-carregar-mais');
+            if (btn.classList.contains('carregando')) return; // evita pular páginas com cliques repetidos
+            const texto = btn.querySelector('.btn-carregar-mais-texto');
+            btn.classList.add('carregando'); btn.setAttribute('aria-busy', 'true'); texto.textContent = 'Carregando...';
+            paginaAtual++;
+            try { await aplicarFiltros(false); }
+            finally { btn.classList.remove('carregando'); btn.removeAttribute('aria-busy'); texto.textContent = 'Carregar mais'; }
+        });
 
         function renderScoreBadge(filme) {
             const notaReal = filme.notaTmdb || filme.nota || '0.0';
@@ -1337,7 +1357,7 @@
                 filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
                 filmesExplorarAcumulados.forEach(f => bancoDeFilmesLocal.set(f.id, f));
                 renderizarGridExplorar(filmesExplorarAcumulados);
-                document.getElementById('btn-carregar-mais').style.display = (dados && dados.total_pages > paginaAtual && ordem !== 'radar_curado' && termoBusca === '') ? 'block' : 'none';
+                document.getElementById('btn-carregar-mais').style.display = (dados && dados.total_pages > paginaAtual && ordem !== 'radar_curado' && termoBusca === '') ? 'inline-flex' : 'none';
             } catch (erro) { console.error(erro); }
         }
 
@@ -1373,7 +1393,7 @@
                 filmesExplorarAcumulados = [...filmesExplorarAcumulados, ...novasCapas];
                 filmesExplorarAcumulados.forEach(s => bancoDeFilmesLocal.set(s.id, s));
                 renderizarGridExplorar(filmesExplorarAcumulados);
-                document.getElementById('btn-carregar-mais').style.display = (dados && dados.total_pages > paginaAtual && termoBusca === '') ? 'block' : 'none';
+                document.getElementById('btn-carregar-mais').style.display = (dados && dados.total_pages > paginaAtual && termoBusca === '') ? 'inline-flex' : 'none';
             } catch (erro) { console.error(erro); }
         }
 

@@ -167,6 +167,25 @@
         .nav-btn .icon { font-size: 1.2rem; }
         .nav-btn.active { color: var(--purple); }
 
+        /* Ícone de Amigos no cabeçalho (ao lado da logo) */
+        .header-esquerda { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-header-amigos { position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; color: #e2e8f0; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s; -webkit-tap-highlight-color: transparent; }
+        .btn-header-amigos svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+        .btn-header-amigos:hover { background: rgba(139, 92, 246, 0.18); border-color: rgba(139, 92, 246, 0.5); }
+        .btn-header-amigos:active { transform: scale(0.92); }
+        .btn-header-amigos:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+        .btn-header-amigos.active { color: #fff; background: var(--purple); border-color: var(--purple); box-shadow: 0 0 12px rgba(139, 92, 246, 0.55); }
+        .btn-header-amigos .badge-notif { top: -3px; right: -3px; }
+
+        /* Aba Roleta (provisória) */
+        .roleta-em-breve { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.6rem; margin: 3rem auto 0; max-width: 360px; padding: 2rem 1.5rem; border-radius: 22px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(139, 92, 246, 0.3); }
+        .roleta-em-breve-icone { font-size: 3.5rem; animation: girarRoletaEmBreve 6s linear infinite; }
+        .roleta-em-breve-titulo { font-size: 1.4rem; font-weight: 900; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent; }
+        .roleta-em-breve-texto { color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; }
+        .roleta-em-breve-selo { margin-top: 0.4rem; padding: 4px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, var(--purple), var(--pink)); }
+        @keyframes girarRoletaEmBreve { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .roleta-em-breve-icone { animation: none; } }
+
         /* ========================================= */
         /* === BLOCO: CSS LAYOUT PRINCIPAL & ABAS === */
         /* ========================================= */
@@ -478,7 +497,14 @@
     </div>
 
     <header>
-        <div class="logo">iCine</div>
+        <div class="header-esquerda">
+            <div class="logo">iCine</div>
+            <!-- Amigos saiu da barra inferior: ícone ao lado da logo (o badge de pedidos continua) -->
+            <button id="btn-amigos" class="btn-header-amigos" type="button" aria-label="Amigos" title="Amigos">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.2c3 .2 5 2.3 5 5.3"/></svg>
+                <span id="badge-amigos" class="badge-notif"></span>
+            </button>
+        </div>
         <button id="btn-sair-acao" class="btn-sair">Sair</button>
     </header>
 
@@ -486,8 +512,8 @@
         <button id="btn-inicio" class="nav-btn active"><span class="icon">🍿</span><span>Listas</span></button>
         <button id="btn-explorar" class="nav-btn"><span class="icon">🔍</span><span>Explorar</span></button>
         <button id="btn-cenas" class="nav-btn"><span class="icon">⚡</span><span>Cenas</span></button>
+        <button id="btn-roleta" class="nav-btn"><span class="icon">🎡</span><span>Roleta</span></button>
         <button id="btn-comunidade" class="nav-btn"><span class="icon">🌍</span><span>Feed</span></button>
-        <button id="btn-amigos" class="nav-btn"><span class="icon">👥</span><span>Amigos</span><span id="badge-amigos" class="badge-notif"></span></button>
     </nav>
 
     <main>
@@ -561,6 +587,16 @@
             <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Comunidade iCine</h2>
             <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 1.5rem;">Descobre as playlists mais populares partilhadas pelos cinéfilos de todo o mundo.</p>
             <div id="comunidade-grid" class="comunidade-grid"></div>
+        </div>
+
+        <!-- Roleta: projeto novo, ainda em planejamento. Por enquanto só o espaço reservado. -->
+        <div id="aba-roleta" class="aba">
+            <div class="roleta-em-breve">
+                <div class="roleta-em-breve-icone" aria-hidden="true">🎡</div>
+                <h2 class="roleta-em-breve-titulo">Roleta de Filmes</h2>
+                <p class="roleta-em-breve-texto">Em breve: escolha um gênero, gire a roleta e deixe a sorte decidir o filme da noite.</p>
+                <span class="roleta-em-breve-selo">Em breve</span>
+            </div>
         </div>
 
         <div id="aba-amigos" class="aba">
@@ -995,10 +1031,11 @@
         document.getElementById('btn-cenas').addEventListener('click', () => mudarAba('cenas'));
         document.getElementById('btn-comunidade').addEventListener('click', () => mudarAba('comunidade'));
         document.getElementById('btn-amigos').addEventListener('click', () => mudarAba('amigos'));
+        document.getElementById('btn-roleta').addEventListener('click', () => mudarAba('roleta'));
 
         function mudarAba(abaId) {
             document.querySelectorAll('.aba').forEach(aba => aba.classList.remove('ativa'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.nav-btn, .btn-header-amigos').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`aba-${abaId}`).classList.add('ativa');
             document.getElementById(`btn-${abaId}`).classList.add('active');
 

@@ -2607,6 +2607,9 @@
         const btnEnviarChat = document.getElementById('btn-enviar-chat');
         const chatMessages = document.getElementById('chat-messages');
         let historicoChat = [];
+        // Modelo do Groq. O antigo (llama-3.3-70b-versatile) foi desativado e o chat parou de responder.
+        // Modelos disponíveis: https://console.groq.com/docs/models
+        const MODELO_CHAT_IA = 'openai/gpt-oss-120b';
 
         btnChatFab.addEventListener('click', () => { if (chatWindow.style.display !== 'flex') { abrirModalSeguro('chat-window'); chatInput.focus(); } else { fecharModalSeguro('chat-window'); } });
         btnFecharChat.addEventListener('click', () => { fecharModalSeguro('chat-window'); });
@@ -2625,14 +2628,14 @@
             const SYSTEM_PROMPT = "Você é o assistente inteligente do app iCine, focado estritamente em responder ao que o usuário perguntou de forma amigável e direta. NÃO dê recomendações extras de outros filmes se o usuário não tiver pedido por recomendações. Se o usuário perguntar sobre a sinopse, história ou curiosidade de um filme específico, foque APENAS em responder sobre esse filme e encerre a resposta. A REGRA DE OURO: SE (e somente se) você indicar ou citar algum filme, é OBRIGATÓRIO escrever o título e o ano no formato exato: [Título do Filme | Ano] para que o sistema gere o card.";
 
             try {
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` }, body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historicoChat] }) });
-                if (!response.ok) throw new Error("Erro API"); const data = await response.json(); const botText = data.choices?.[0]?.message?.content;
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` }, body: JSON.stringify({ model: MODELO_CHAT_IA, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...historicoChat] }) });
+                if (!response.ok) { const detalhe = await response.text().catch(() => ''); throw new Error(`Groq respondeu ${response.status}: ${detalhe.slice(0, 200)}`); } const data = await response.json(); const botText = data.choices?.[0]?.message?.content;
                 if (!botText) throw new Error("Sem resposta da IA."); historicoChat.push({ role: "assistant", content: botText });
                 let textoDeExibicao = botText; const regexFilmes = /\[(.*?)\s*\|\s*(\d{4})\]/g; let match; const filmesParaProcurar = [];
                 while ((match = regexFilmes.exec(botText)) !== null) { filmesParaProcurar.push({ titulo: match[1].trim(), ano: match[2] }); textoDeExibicao = textoDeExibicao.replace(match[0], `<strong>${match[1].trim()} (${match[2]})</strong>`); }
                 loadingMsg.innerHTML = textoDeExibicao;
                 for (const f of filmesParaProcurar) { buscarERenderizarFilmeChat(f.titulo, f.ano); }
-            } catch (e) { loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial."; }
+            } catch (e) { console.error('Chat IA:', e); loadingMsg.innerText = "Desculpe, não consegui ligar-me ao motor de Inteligência Artificial."; }
         }
 
         async function buscarERenderizarFilmeChat(titulo, ano) {

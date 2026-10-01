@@ -2319,7 +2319,14 @@
         function renderizarFilmesAmigo(filmes, grupo) {
             const lista = filmes.filter(f => f.grupo === grupo); const container = document.getElementById('perfil-amigo-conteudo');
             if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `<div style="background:#111827;border-radius:10px;overflow:hidden;"><img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;"><div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div></div>`).join('')}</div>`;
+            // Coloca os filmes do amigo no cache para o modal de detalhes (não mexe nas listas pessoais)
+            lista.forEach(f => bancoDeFilmesLocal.set(Number(f.tmdb_id), { id: Number(f.tmdb_id), titulo: f.titulo, ano: f.ano, notaTmdb: f.notaTmdb || f.nota, notaImdb: f.notaImdb, notaRt: f.notaRt, capa: f.capa, sinopse: f.sinopse }));
+            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `<div class="card-filme-amigo" data-id="${Number(f.tmdb_id)}" role="button" tabindex="0" style="background:#111827;border-radius:10px;overflow:hidden;cursor:pointer;"><img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;"><div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div></div>`).join('')}</div>`;
+            container.querySelectorAll('.card-filme-amigo').forEach(card => {
+                const abrir = () => abrirDetalhes(Number(card.getAttribute('data-id')));
+                card.addEventListener('click', abrir);
+                card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
+            });
         }
 
         function renderizarPlaylistsAmigo() {

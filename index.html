@@ -216,6 +216,9 @@
         #aba-roleta .f-generos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
         #aba-roleta .f-genero { display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); color: #fff; font-size: 0.88rem; font-weight: 700; text-align: left; cursor: pointer; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, background 0.2s; }
         #aba-roleta .f-genero .emoji { font-size: 1.2rem; }
+        #aba-roleta .sub.alerta { color: #f9a8d4; font-weight: 700; }
+        #aba-roleta .f-genero.negado { animation: rolNegado 0.35s; }
+        @keyframes rolNegado { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
         #aba-roleta .f-streamings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
         #aba-roleta .f-streaming { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); color: #e2e8f0; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s, background 0.2s; }
         #aba-roleta .f-streaming img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
@@ -236,6 +239,7 @@
         #aba-roleta .topo { position: relative; z-index: 4; display: flex; align-items: center; gap: 8px; padding: 18px 18px 0; }
         #aba-roleta .rol-cab-texto { flex: 1; min-width: 0; }
         #aba-roleta .titulo { font-size: 1.6rem; font-weight: 900; margin: 0; line-height: 1.15; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #aba-roleta .titulo.varios { font-size: 1.2rem; line-height: 1.2; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         #aba-roleta .rol-sub { margin-top: 4px; font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #aba-roleta .rol-icone { width: 42px; height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; color: #e2e8f0; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer; transition: background 0.2s, transform 0.15s; }
         #aba-roleta .rol-icone svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -715,6 +719,7 @@
                         </div>
                         <div class="f-etapa" data-etapa="2">
                             <h2>Qual gênero?</h2>
+                            <p class="sub" id="rol-generos-sub">Escolha até 3</p>
                             <div class="f-generos" id="rol-generos"></div>
                         </div>
                         <div class="f-etapa" data-etapa="3">
@@ -2827,14 +2832,15 @@
             const tela = $('tela');
 
             // ---------------- Funil ----------------
-            const escolha = { tipo: null, genero: null, generoNome: '', streamings: [] };
+            const MAX_GENEROS = 3;
+            const escolha = { tipo: null, generos: [], streamings: [] };   // generos: [{ id, nome }]
             let etapa = 1, totalAtual = null, pedidoContagem = 0, contagensIniciais = false;
             const cacheGeneros = {}, cacheStreamings = {};
             const palavra = () => escolha.tipo === 'tv' ? 'séries' : 'filmes';
 
             function urlDiscover(extra = {}) {
                 const p = new URLSearchParams({ api_key: TMDB_KEY, language: 'pt-BR', sort_by: ORDEM, 'vote_count.gte': MIN_VOTOS[escolha.tipo], watch_region: 'BR' });
-                if (escolha.genero) p.set('with_genres', escolha.genero);
+                if (escolha.generos.length) p.set('with_genres', escolha.generos.map(g => g.id).join('|'));
                 if (escolha.streamings.length) p.set('with_watch_providers', escolha.streamings.join('|')); // | = qualquer um deles
                 Object.entries(extra).forEach(([k, v]) => p.set(k, v));
                 return `${URL_BASE}/discover/${escolha.tipo}?${p}`;
@@ -2867,21 +2873,27 @@
 
             const nomeStreaming = (id) => ((cacheStreamings[escolha.tipo] || []).find(s => s.provider_id === id)?.provider_name || 'Streaming').replace(' Amazon Channel', '');
 
-            // Etapa 3 tem um único botão: monta a roleta (com ou sem streaming marcado)
+            // Etapa 2: "Continuar" (precisa de 1 a 3 gêneros). Etapa 3: "Montar roleta" (com ou sem streaming)
             function montarRodape() {
                 const r = $('rodape'); r.innerHTML = '';
+                if (etapa === 2) {
+                    const qtdGen = escolha.generos.length;
+                    r.innerHTML = `<button class="f-btn primario" type="button" ${qtdGen ? '' : 'disabled'}>Continuar${qtdGen ? ` · ${qtdGen} gênero${qtdGen > 1 ? 's' : ''}` : ''}</button>`;
+                    r.firstChild.addEventListener('click', () => irParaEtapa(3));
+                    return;
+                }
                 if (etapa !== 3) return;
                 const semResultado = totalAtual === 0;
                 const qtd = totalAtual ? ` · ${fmt(Math.min(totalAtual, LIMITE_ROLETA))}` : '';
                 r.innerHTML = `<button class="f-btn primario" type="button" ${semResultado || totalAtual === null ? 'disabled' : ''}>🎡 Montar roleta${qtd}</button>`;
                 r.firstChild.addEventListener('click', montarRoleta);
                 $('erro').hidden = !semResultado;
-                if (semResultado) $('erro').textContent = `Nenhum ${escolha.tipo === 'tv' ? 'série' : 'filme'} conhecido desse gênero nesses streamings. Marque outro.`;
+                if (semResultado) $('erro').textContent = `Nenhum ${escolha.tipo === 'tv' ? 'série' : 'filme'} conhecido desses gêneros nesses streamings. Marque outro.`;
             }
 
             // Etapa 1: tipo
             tela.querySelectorAll('.f-tipo').forEach(b => b.addEventListener('click', () => {
-                if (escolha.tipo !== b.dataset.tipo) { escolha.genero = null; escolha.generoNome = ''; escolha.streamings = []; totalAtual = null; }
+                if (escolha.tipo !== b.dataset.tipo) { escolha.generos = []; escolha.streamings = []; totalAtual = null; }
                 escolha.tipo = b.dataset.tipo;
                 tela.querySelectorAll('.f-tipo').forEach(x => x.classList.toggle('sel', x === b));
                 atualizarContador();
@@ -2899,16 +2911,28 @@
                     }
                 } catch (e) { box.innerHTML = '<p class="f-erro">Erro ao carregar os gêneros. Volte e tente de novo.</p>'; return; }
                 box.innerHTML = '';
+                const sub = $('generos-sub');
+                const atualizarSub = () => { sub.textContent = escolha.generos.length ? `Escolha até ${MAX_GENEROS} · ${escolha.generos.length} de ${MAX_GENEROS}` : `Escolha até ${MAX_GENEROS}`; sub.classList.remove('alerta'); };
+                atualizarSub();
                 cacheGeneros[escolha.tipo].forEach(g => {
+                    const marcado = escolha.generos.some(x => x.id === g.id);
                     const b = document.createElement('button');
-                    b.type = 'button'; b.className = 'f-genero' + (escolha.genero === g.id ? ' sel' : '');
+                    b.type = 'button'; b.className = 'f-genero' + (marcado ? ' sel' : '');
+                    b.setAttribute('aria-pressed', marcado);
                     b.innerHTML = `<span class="emoji">${EMOJI_GENERO[g.id] || '🎞️'}</span><span></span>`;
                     b.lastChild.textContent = g.name;
                     b.addEventListener('click', () => {
-                        escolha.genero = g.id; escolha.generoNome = g.name;
-                        box.querySelectorAll('.f-genero').forEach(x => x.classList.toggle('sel', x === b));
-                        atualizarContador();
-                        setTimeout(() => irParaEtapa(3), 220);
+                        const i = escolha.generos.findIndex(x => x.id === g.id);
+                        if (i >= 0) escolha.generos.splice(i, 1);
+                        else if (escolha.generos.length >= MAX_GENEROS) {
+                            // Já tem 3: avisa sem marcar
+                            sub.textContent = `Máximo de ${MAX_GENEROS} gêneros — desmarque um para trocar`; sub.classList.add('alerta');
+                            b.classList.remove('negado'); void b.offsetWidth; b.classList.add('negado');
+                            return;
+                        } else escolha.generos.push({ id: g.id, nome: g.name });
+                        b.classList.toggle('sel', i < 0); b.setAttribute('aria-pressed', i < 0);
+                        atualizarSub();
+                        totalAtual = null; atualizarContador(); montarRodape();
                     });
                     box.appendChild(b);
                 });
@@ -2972,7 +2996,10 @@
 
             function abrirRoda(removidos) {
                 tela.classList.replace('modo-filtros', 'modo-roleta');
-                $('titulo').textContent = `${EMOJI_GENERO[escolha.genero] || '🎞️'} ${escolha.generoNome}`;
+                // 1 gênero: emoji + nome grande; vários: só os nomes, menor e em até 2 linhas
+                const varios = escolha.generos.length > 1;
+                $('titulo').classList.toggle('varios', varios);
+                $('titulo').textContent = varios ? escolha.generos.map(g => g.nome).join(' + ') : `${EMOJI_GENERO[escolha.generos[0].id] || '🎞️'} ${escolha.generos[0].nome}`;
                 const streamings = escolha.streamings.length === 0 ? 'todos os streamings'
                     : escolha.streamings.length === 1 ? nomeStreaming(escolha.streamings[0])
                     : `${nomeStreaming(escolha.streamings[0])} +${escolha.streamings.length - 1}`;

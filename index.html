@@ -242,19 +242,12 @@
         #aba-roleta .rol-icone:hover { background: rgba(139, 92, 246, 0.25); }
         #aba-roleta .rol-icone:active { transform: scale(0.92); }
         #aba-roleta .rol-icone:disabled { opacity: 0.4; }
-        #aba-roleta .roda { position: absolute; z-index: 2; border-radius: 50%; overflow: hidden; background: #0b1120; will-change: transform; cursor: grab; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.85), 0 0 0 9px rgba(236, 72, 153, 0.5), 0 0 40px rgba(139, 92, 246, 0.6); }
+        #aba-roleta .roda { position: absolute; z-index: 2; border-radius: 50%; overflow: hidden; background: #0b1120; cursor: grab; touch-action: none; box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.85), 0 0 0 9px rgba(236, 72, 153, 0.5), 0 0 40px rgba(139, 92, 246, 0.6); }
         #aba-roleta .roda.arrastando { cursor: grabbing; }
-        #aba-roleta .fatia { position: absolute; inset: 0; pointer-events: none; }
-        #aba-roleta .fatia-conteudo { position: absolute; inset: 0; background: linear-gradient(180deg, #1e1b4b, #0b1120 45%); transition: filter 0.4s; }
-        #aba-roleta .fatia img { position: absolute; left: 39%; top: 1.2%; width: 22%; height: 33%; object-fit: cover; transition: opacity 0.25s; }
-        #aba-roleta .fatia-titulo { position: absolute; left: 41%; top: 6%; width: 18%; font-size: 0.8rem; font-weight: 800; text-align: center; color: #c4b5fd; line-height: 1.2; }
-        #aba-roleta .roda.resultado .fatia:not(.vencedora) .fatia-conteudo { filter: brightness(0.35) saturate(0.6); }
-        #aba-roleta .divisorias { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: repeating-conic-gradient(from -15deg, rgba(3, 7, 18, 0.95) 0deg 1.2deg, transparent 1.2deg 30deg); }
+        /* Canvas cobre só o quarto visível (canto superior esquerdo da caixa da roda) */
+        #aba-roleta .roda-canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
         #aba-roleta .miolo-sombra { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(3, 7, 18, 0.95) 0 28%, rgba(3, 7, 18, 0) 55%); }
         #aba-roleta .centro { position: absolute; z-index: 3; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #c084fc, var(--purple) 45%, #6d28d9); box-shadow: 0 0 25px rgba(139, 92, 246, 0.8); pointer-events: none; }
-        #aba-roleta .centro span { position: absolute; font-size: 1.5rem; }
-        #aba-roleta .centro span.pulo { animation: rolPuloBalde 0.45s cubic-bezier(.3, 1.6, .5, 1); }
-        @keyframes rolPuloBalde { 0% { transform: scale(1); } 35% { transform: scale(1.45) rotate(-12deg) translate(-4px, -6px); } 100% { transform: scale(1); } }
         #aba-roleta .rol-pipocas { position: absolute; inset: 0; z-index: 8; width: 100%; height: 100%; pointer-events: none; }
         #aba-roleta .ponteiro { position: absolute; z-index: 4; width: 34px; height: 40px; pointer-events: none; filter: drop-shadow(0 4px 10px rgba(236, 72, 153, 0.8)); }
         #aba-roleta .ponteiro svg { width: 100%; height: 100%; }
@@ -264,8 +257,8 @@
         #aba-roleta .btn-girar:active { transform: scale(0.95); }
         #aba-roleta .btn-girar:disabled { opacity: 0.5; cursor: default; }
         /* Sorteado: ocupa todo o espaço entre o topo e a roda (top/altura calculados em posicionar()) */
-        #aba-roleta .rol-fundo { position: absolute; z-index: 0; left: -10%; right: -10%; top: -20px; background-size: cover; background-position: center 25%; filter: blur(30px) saturate(1.2); opacity: 0; transform: scale(1.1); transition: opacity 0.6s; pointer-events: none; -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent); }
-        #aba-roleta .rol-fundo.visivel { opacity: 0.45; }
+        #aba-roleta .rol-fundo { position: absolute; z-index: 0; left: -10%; right: -10%; top: -20px; background-size: cover; background-position: center 25%; filter: blur(30px) saturate(1.2); opacity: 0; visibility: hidden; transform: scale(1.1); transition: opacity 0.6s, visibility 0s 0.6s; pointer-events: none; -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent); }
+        #aba-roleta .rol-fundo.visivel { opacity: 0.45; visibility: visible; transition: opacity 0.6s; }
         #aba-roleta .vencedor, #aba-roleta .vencedor-vazio { position: absolute; z-index: 6; left: 18px; right: 18px; }
         #aba-roleta .vencedor { display: flex; gap: 16px; opacity: 0; transform: translateY(12px); transition: opacity 0.35s, transform 0.35s; pointer-events: none; }
         #aba-roleta .vencedor.visivel { opacity: 1; transform: none; pointer-events: auto; }
@@ -745,7 +738,7 @@
                     <button class="rol-icone" id="rol-editar" type="button" aria-label="Mudar filtros" title="Mudar filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
                 </div>
                 <div class="roda so-roleta" id="rol-roda" aria-label="Roleta com pôsteres. Arraste para girar."></div>
-                <div class="centro so-roleta" id="rol-centro"><span>🍿</span></div>
+                <div class="centro so-roleta" id="rol-centro"></div>
                 <!-- Pipocas estourando quando a roda para (desenhadas em canvas, não bloqueia toques) -->
                 <canvas class="rol-pipocas so-roleta" id="rol-pipocas" aria-hidden="true"></canvas>
                 <div class="ponteiro so-roleta" id="rol-ponteiro"><svg viewBox="0 0 34 40" aria-hidden="true"><defs><linearGradient id="rol-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><path d="M17 40 L2 8 A15 15 0 0 1 32 8 Z" fill="url(#rol-grad)" stroke="#fff" stroke-width="2"/><circle cx="17" cy="11" r="4" fill="#fff"/></svg></div>
@@ -3006,40 +2999,93 @@
             let angulo = 0, animando = false, ultimaPosicao = null, cx = 0, cy = 0, R = 0, vencedorAtual = null;
             const posicaoNoPonteiro = () => (ANGULO_PONTEIRO - angulo) / PASSO;
 
-            function montarFatias() {
-                roda.innerHTML = '';
-                const a = (PASSO / 2) * Math.PI / 180, ext = 0.75; // cunha de 30° com pontas além do círculo (a roda corta no raio)
-                for (let s = 0; s < SLOTS; s++) {
-                    const fatia = document.createElement('div');
-                    fatia.className = 'fatia'; fatia.dataset.s = s; fatia._item = -1;
-                    fatia.style.transform = `rotate(${s * PASSO}deg)`;
-                    fatia.style.clipPath = `polygon(50% 50%, ${50 - ext * 100 * Math.sin(a)}% ${50 - ext * 100 * Math.cos(a)}%, ${50 + ext * 100 * Math.sin(a)}% ${50 - ext * 100 * Math.cos(a)}%)`;
-                    fatia.innerHTML = '<div class="fatia-conteudo"><span class="fatia-titulo"></span><img alt="" draggable="false"></div>';
-                    roda.appendChild(fatia);
-                }
-                roda.insertAdjacentHTML('beforeend', '<div class="divisorias"></div><div class="miolo-sombra"></div>');
-                atualizarMolduras();
-            }
+            // A roda é desenhada num canvas que cobre só o quarto visível (centro no canto inferior direito).
+            // A cada quadro redesenha as poucas fatias visíveis com capas já decodificadas: leve no celular
+            // e sem piscar (antes, girar um elemento enorme e trocar capas forçava redesenhos pesados).
+            // Cada posição lógica L (…, -1, 0, 1, …) é um título: filmes[L mod N]. Assim, até 300 títulos
+            // passam em sequência antes de repetir.
+            const canvasRoda = document.createElement('canvas'); canvasRoda.className = 'roda-canvas';
+            const ctxRoda = canvasRoda.getContext('2d');
+            const cacheCapas = new Map();   // pôster → { img, pronta }
+            let dprRoda = 1;
 
-            // Cada moldura mostra o título da "volta" (k) mais próxima do ponteiro; troca só do lado escondido
-            function atualizarMolduras() {
-                const pos = posicaoNoPonteiro(), N = filmes.length;
-                if (!N) return;
-                roda.querySelectorAll('.fatia').forEach(f => {
-                    const s = Number(f.dataset.s);
-                    const item = mod(s + SLOTS * Math.round((pos - s) / SLOTS), N);
-                    if (f._item === item) return;
-                    f._item = item;
-                    const filme = filmes[item], img = f.querySelector('img');
-                    f.querySelector('.fatia-titulo').textContent = filme.titulo;
-                    img.style.opacity = '0';
-                    img.onload = () => { img.style.opacity = '1'; };
-                    img.src = IMG_ROLETA + filme.poster;
-                });
+            function capa(poster) {
+                let c = cacheCapas.get(poster);
+                if (!c) {
+                    const img = new Image();
+                    c = { img, pronta: false }; cacheCapas.set(poster, c);
+                    img.onload = () => {
+                        // decode() deixa a imagem pronta fora do quadro de animação (evita engasgos ao desenhar)
+                        (img.decode ? img.decode() : Promise.resolve()).catch(() => {}).then(() => { c.pronta = true; if (!animando) desenharRoda(); });
+                    };
+                    img.src = IMG_ROLETA + poster;
+                }
+                return c;
             }
 
             function preCarregar(posicao, raio = 3) {
-                for (let d = -raio; d <= raio; d++) { const im = new Image(); im.src = IMG_ROLETA + filmes[mod(posicao + d, filmes.length)].poster; }
+                for (let d = -raio; d <= raio; d++) capa(filmes[mod(posicao + d, filmes.length)].poster);
+            }
+
+            function montarFatias() {
+                if (!canvasRoda.isConnected) {
+                    roda.innerHTML = '';
+                    roda.appendChild(canvasRoda);
+                    roda.insertAdjacentHTML('beforeend', '<div class="miolo-sombra"></div>');
+                }
+                desenharRoda();
+            }
+
+            function ajustarCanvasRoda() {
+                dprRoda = Math.min(2, window.devicePixelRatio || 1);
+                const lado = Math.round(R * dprRoda);
+                if (canvasRoda.width !== lado) { canvasRoda.width = lado; canvasRoda.height = lado; }
+                canvasRoda.style.width = canvasRoda.style.height = `${R}px`;
+            }
+
+            // Quebra o título em até 3 linhas (aparece só enquanto a capa não carregou)
+            function linhasTitulo(c, texto, largura) {
+                const palavras = texto.split(' '), linhas = [];
+                let atual = '';
+                palavras.forEach(p => { const t = atual ? `${atual} ${p}` : p; if (c.measureText(t).width > largura && atual) { linhas.push(atual); atual = p; } else atual = t; });
+                if (atual) linhas.push(atual);
+                return linhas.slice(0, 3);
+            }
+
+            function desenharRoda() {
+                const N = filmes.length;
+                if (!N || !R) return;
+                const c = ctxRoda;
+                c.setTransform(dprRoda, 0, 0, dprRoda, 0, 0);
+                c.clearRect(0, 0, R, R);
+                const pos = posicaoNoPonteiro(), base = Math.round(pos);
+                const comResultado = roda.classList.contains('resultado');
+                const meia = (PASSO / 2) * Math.PI / 180;
+                const larguraCapa = R * 0.68, alturaCapa = R * 1.02;   // capa 2:3 maior que a fatia (zoom): sem bordas
+                for (let L = base - 3; L <= base + 3; L++) {
+                    const ang = (ANGULO_PONTEIRO + (L - pos) * PASSO) * Math.PI / 180;   // horário a partir do topo
+                    const f = filmes[mod(L, N)], cp = capa(f.poster);
+                    c.save();
+                    c.translate(R, R); c.rotate(ang);                     // "para cima" local = direção da fatia
+                    c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, R + 1, -Math.PI / 2 - meia, -Math.PI / 2 + meia); c.closePath(); c.clip();
+                    if (cp.pronta) {
+                        c.drawImage(cp.img, -larguraCapa / 2, -R - R * 0.01, larguraCapa, alturaCapa);
+                    } else {
+                        const g = c.createLinearGradient(0, -R, 0, 0); g.addColorStop(0, '#2e1065'); g.addColorStop(0.6, '#0b1120');
+                        c.fillStyle = g; c.fillRect(-R, -R, 2 * R, R);
+                        c.fillStyle = '#c4b5fd'; c.font = `800 ${Math.max(11, R * 0.035)}px system-ui, sans-serif`; c.textAlign = 'center';
+                        linhasTitulo(c, f.titulo, R * 0.4).forEach((l, i) => c.fillText(l, 0, -R * 0.82 + i * R * 0.05));
+                    }
+                    if (comResultado && L !== base) { c.fillStyle = 'rgba(3, 7, 18, 0.62)'; c.fillRect(-R, -R, 2 * R, R + 1); }
+                    c.restore();
+                    // Divisória escura entre fatias
+                    c.save(); c.translate(R, R); c.rotate(ang + meia);
+                    c.strokeStyle = 'rgba(3, 7, 18, 0.95)'; c.lineWidth = 2.5;
+                    c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -R - 2); c.stroke();
+                    c.restore();
+                }
+                // Já começa a carregar as próximas capas (nos dois sentidos)
+                for (let d = 4; d <= 8; d++) { capa(filmes[mod(base + d, N)].poster); capa(filmes[mod(base - d, N)].poster); }
             }
 
             // Centro da roda no canto inferior direito da área da aba
@@ -3058,7 +3104,7 @@
                 Object.assign(roda.style, { width: `${2 * R}px`, height: `${2 * R}px`, left: `${cx - R}px`, top: `${cy - R}px` });
                 const rc = R * 0.2;
                 Object.assign(centro.style, { width: `${2 * rc}px`, height: `${2 * rc}px`, left: `${cx - rc}px`, top: `${cy - rc}px` });
-                centro.firstElementChild.style.cssText = `left:${rc * 0.32}px; top:${rc * 0.3}px;`;
+                ajustarCanvasRoda();
                 // Ponteiro na borda, na diagonal: a ponta do SVG aponta para baixo (180°); girando 315° aponta para o centro
                 const rad = (ANGULO_PONTEIRO - 90) * Math.PI / 180, rp = R + 14;
                 const px = cx + rp * Math.cos(rad), py = cy + rp * Math.sin(rad);
@@ -3081,8 +3127,7 @@
             }
 
             function aplicarAngulo() {
-                roda.style.transform = `rotate(${angulo}deg)`;
-                atualizarMolduras();
+                desenharRoda();
                 const atual = Math.round(posicaoNoPonteiro());
                 if (atual !== ultimaPosicao) {
                     if (ultimaPosicao !== null && animando) { ponteiro.classList.remove('tique'); void ponteiro.offsetWidth; ponteiro.classList.add('tique'); if (podeVibrar()) navigator.vibrate(4); }
@@ -3123,7 +3168,7 @@
                 const pos = Math.round(posicaoNoPonteiro()), f = filmes[mod(pos, filmes.length)];
                 vencedorAtual = f;
                 roda.classList.add('resultado');
-                roda.querySelectorAll('.fatia').forEach(x => x.classList.toggle('vencedora', Number(x.dataset.s) === mod(pos, SLOTS)));
+                desenharRoda();
                 $('v-poster').src = IMG_ROLETA + f.poster;
                 $('v-titulo').textContent = f.titulo;
                 $('v-meta').innerHTML = `${f.ano || '—'} · <b>⭐ ${f.nota}</b>`;
@@ -3136,7 +3181,7 @@
             }
 
             // ---------------- Pipocas estourando ----------------
-            // Rajada saindo do balde (centro da roda, no canto): cada pipoca sai como milho dourado e
+            // Rajada saindo do centro da roda (no canto): cada pipoca sai como milho dourado e
             // "estoura" no ar virando pipoca branca, junto com confetes nas cores do app.
             const canvasPipocas = $('pipocas'), ctxPipocas = canvasPipocas.getContext('2d');
             const CORES_CONFETE = ['#8b5cf6', '#ec4899', '#fbbf24', '#c084fc', '#f472b6'];
@@ -3152,11 +3197,9 @@
             }
 
             function estourarPipocas() {
-                const balde = centro.firstElementChild;
-                balde.classList.remove('pulo'); void balde.offsetWidth; balde.classList.add('pulo');
                 ajustarCanvasPipocas();
                 const poucas = reduzirMovimento.matches;
-                const ox = cx - R * 0.08, oy = cy - R * 0.08;     // boca do balde (o centro fica no canto)
+                const ox = cx - R * 0.1, oy = cy - R * 0.1;      // centro da roda (que fica no canto)
                 const rand = (a, b) => a + Math.random() * (b - a);
                 const qtdPipocas = poucas ? 10 : 65, qtdConfetes = poucas ? 0 : 35;
                 for (let i = 0; i < qtdPipocas + qtdConfetes; i++) {
@@ -3254,8 +3297,7 @@
                 if (animando) return;
                 filmes = embaralhar(filmes);
                 roda.classList.remove('resultado'); cardVencedor.classList.remove('visivel'); fundo.classList.remove('visivel'); vazio.classList.remove('oculto');
-                roda.querySelectorAll('.fatia').forEach(f => { f._item = -1; });
-                atualizarMolduras();
+                desenharRoda();
             });
 
             // Vencedor → integra com o resto do app (cache + modal de detalhes / Organizar)

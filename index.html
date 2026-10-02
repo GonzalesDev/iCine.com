@@ -253,6 +253,9 @@
         #aba-roleta .miolo-sombra { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(3, 7, 18, 0.95) 0 28%, rgba(3, 7, 18, 0) 55%); }
         #aba-roleta .centro { position: absolute; z-index: 3; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #c084fc, var(--purple) 45%, #6d28d9); box-shadow: 0 0 25px rgba(139, 92, 246, 0.8); pointer-events: none; }
         #aba-roleta .centro span { position: absolute; font-size: 1.5rem; }
+        #aba-roleta .centro span.pulo { animation: rolPuloBalde 0.45s cubic-bezier(.3, 1.6, .5, 1); }
+        @keyframes rolPuloBalde { 0% { transform: scale(1); } 35% { transform: scale(1.45) rotate(-12deg) translate(-4px, -6px); } 100% { transform: scale(1); } }
+        #aba-roleta .rol-pipocas { position: absolute; inset: 0; z-index: 8; width: 100%; height: 100%; pointer-events: none; }
         #aba-roleta .ponteiro { position: absolute; z-index: 4; width: 34px; height: 40px; pointer-events: none; filter: drop-shadow(0 4px 10px rgba(236, 72, 153, 0.8)); }
         #aba-roleta .ponteiro svg { width: 100%; height: 100%; }
         #aba-roleta .ponteiro.tique { animation: rolTique 0.12s ease-out; }
@@ -743,6 +746,8 @@
                 </div>
                 <div class="roda so-roleta" id="rol-roda" aria-label="Roleta com pôsteres. Arraste para girar."></div>
                 <div class="centro so-roleta" id="rol-centro"><span>🍿</span></div>
+                <!-- Pipocas estourando quando a roda para (desenhadas em canvas, não bloqueia toques) -->
+                <canvas class="rol-pipocas so-roleta" id="rol-pipocas" aria-hidden="true"></canvas>
                 <div class="ponteiro so-roleta" id="rol-ponteiro"><svg viewBox="0 0 34 40" aria-hidden="true"><defs><linearGradient id="rol-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><path d="M17 40 L2 8 A15 15 0 0 1 32 8 Z" fill="url(#rol-grad)" stroke="#fff" stroke-width="2"/><circle cx="17" cy="11" r="4" fill="#fff"/></svg></div>
                 <button class="btn-girar so-roleta" id="rol-girar" type="button">Girar</button>
                 <!-- Fundo: capa do sorteado desfocada, preenchendo a parte de cima -->
@@ -2825,6 +2830,7 @@
             const $ = (id) => document.getElementById(`rol-${id}`);
             const fmt = (n) => n.toLocaleString('pt-BR');
             const mod = (a, n) => ((a % n) + n) % n;
+            const podeVibrar = () => !!navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
             const tela = $('tela');
 
             // ---------------- Funil ----------------
@@ -3070,6 +3076,7 @@
                     [cardVencedor, vazio].forEach(el => { el.style.top = `${painelTopo}px`; el.style.height = `${altura}px`; el.style.width = ''; el.style.right = ''; });
                     fundo.style.height = `${cy - R + 40}px`;
                 }
+                if (typeof ajustarCanvasPipocas === 'function') ajustarCanvasPipocas();
                 aplicarAngulo();
             }
 
@@ -3078,7 +3085,7 @@
                 atualizarMolduras();
                 const atual = Math.round(posicaoNoPonteiro());
                 if (atual !== ultimaPosicao) {
-                    if (ultimaPosicao !== null && animando) { ponteiro.classList.remove('tique'); void ponteiro.offsetWidth; ponteiro.classList.add('tique'); if (navigator.vibrate) navigator.vibrate(4); }
+                    if (ultimaPosicao !== null && animando) { ponteiro.classList.remove('tique'); void ponteiro.offsetWidth; ponteiro.classList.add('tique'); if (podeVibrar()) navigator.vibrate(4); }
                     ultimaPosicao = atual;
                 }
             }
@@ -3124,7 +3131,88 @@
                 fundo.style.backgroundImage = `url('${IMG_ROLETA}${f.poster}')`;
                 fundo.classList.add('visivel'); vazio.classList.add('oculto');
                 cardVencedor.classList.add('visivel');
-                if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+                if (podeVibrar()) navigator.vibrate([30, 40, 60]);
+                estourarPipocas();
+            }
+
+            // ---------------- Pipocas estourando ----------------
+            // Rajada saindo do balde (centro da roda, no canto): cada pipoca sai como milho dourado e
+            // "estoura" no ar virando pipoca branca, junto com confetes nas cores do app.
+            const canvasPipocas = $('pipocas'), ctxPipocas = canvasPipocas.getContext('2d');
+            const CORES_CONFETE = ['#8b5cf6', '#ec4899', '#fbbf24', '#c084fc', '#f472b6'];
+            const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)');
+            let particulas = [], animandoPipocas = false, tAnteriorPipocas = 0;
+
+            function ajustarCanvasPipocas() {
+                const dpr = Math.min(2, window.devicePixelRatio || 1);
+                const w = Math.round(tela.clientWidth * dpr), h = Math.round(tela.clientHeight * dpr);
+                if (canvasPipocas.width === w && canvasPipocas.height === h) return; // mudar o tamanho apaga o desenho
+                canvasPipocas.width = w; canvasPipocas.height = h;
+                ctxPipocas.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+
+            function estourarPipocas() {
+                const balde = centro.firstElementChild;
+                balde.classList.remove('pulo'); void balde.offsetWidth; balde.classList.add('pulo');
+                ajustarCanvasPipocas();
+                const poucas = reduzirMovimento.matches;
+                const ox = cx - R * 0.08, oy = cy - R * 0.08;     // boca do balde (o centro fica no canto)
+                const rand = (a, b) => a + Math.random() * (b - a);
+                const qtdPipocas = poucas ? 10 : 65, qtdConfetes = poucas ? 0 : 35;
+                for (let i = 0; i < qtdPipocas + qtdConfetes; i++) {
+                    const confete = i >= qtdPipocas;
+                    const ang = rand(-178, -92) * Math.PI / 180;    // para cima e para a esquerda (rumo ao sorteado)
+                    const vel = R * rand(2.3, 4.4);
+                    particulas.push({
+                        confete, x: ox + rand(-8, 8), y: oy + rand(-8, 8),
+                        vx: Math.cos(ang) * vel, vy: Math.sin(ang) * vel,
+                        rot: rand(0, Math.PI * 2), vrot: rand(-9, 9),
+                        tam: confete ? rand(6, 10) : rand(11, 18),
+                        cor: CORES_CONFETE[i % CORES_CONFETE.length],
+                        estouraEm: confete ? 0 : rand(0.05, 0.35),     // milho → pipoca
+                        vida: rand(1.6, 2.4), t: 0
+                    });
+                }
+                if (!animandoPipocas) { animandoPipocas = true; tAnteriorPipocas = performance.now(); requestAnimationFrame(passoPipocas); }
+            }
+
+            // Pipoca fofa: 4 "nuvens" creme com sombra dourada
+            function desenharPipoca(c, s) {
+                c.fillStyle = '#fef3c7';
+                [[-0.32, 0.05], [0.32, 0.05], [0, -0.3], [0.02, 0.32]].forEach(([dx, dy]) => { c.beginPath(); c.arc(dx * s, dy * s, s * 0.48, 0, Math.PI * 2); c.fill(); });
+                c.fillStyle = '#fffbeb';
+                c.beginPath(); c.arc(-0.08 * s, -0.08 * s, s * 0.42, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#f59e0b';
+                c.beginPath(); c.ellipse(0.18 * s, 0.22 * s, s * 0.14, s * 0.1, 0.5, 0, Math.PI * 2); c.fill();
+            }
+
+            function passoPipocas(agora) {
+                const dt = Math.min(0.05, (agora - tAnteriorPipocas) / 1000); tAnteriorPipocas = agora;
+                const W = tela.clientWidth, H = tela.clientHeight, gravidade = Math.max(900, R * 2.8);
+                ctxPipocas.clearRect(0, 0, W, H);
+                particulas = particulas.filter(p => p.t < p.vida && p.y < H + 40);
+                particulas.forEach(p => {
+                    p.t += dt;
+                    p.vx *= Math.pow(p.confete ? 0.4 : 0.55, dt); p.vy = p.vy * Math.pow(p.confete ? 0.4 : 0.6, dt) + gravidade * (p.confete ? 0.35 : 1) * dt;
+                    p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vrot * dt;
+                    const alfa = Math.min(1, (p.vida - p.t) / 0.5);
+                    ctxPipocas.save(); ctxPipocas.globalAlpha = Math.max(0, alfa);
+                    ctxPipocas.translate(p.x, p.y); ctxPipocas.rotate(p.rot);
+                    if (p.confete) {
+                        ctxPipocas.scale(1, Math.cos(p.t * 9));            // papelzinho girando
+                        ctxPipocas.fillStyle = p.cor; ctxPipocas.fillRect(-p.tam / 2, -p.tam * 0.8, p.tam, p.tam * 1.6);
+                    } else if (p.t < p.estouraEm) {
+                        ctxPipocas.fillStyle = '#d97706';                    // milho ainda fechado
+                        ctxPipocas.beginPath(); ctxPipocas.ellipse(0, 0, p.tam * 0.26, p.tam * 0.18, 0, 0, Math.PI * 2); ctxPipocas.fill();
+                    } else {
+                        const k = Math.min(1, (p.t - p.estouraEm) / 0.16);   // estouro com "pulo" de tamanho
+                        const q = k - 1, escala = 0.3 + 0.7 * (1 + 2.70158 * q * q * q + 1.70158 * q * q); // ease-out-back: passa um pouco e volta
+                        desenharPipoca(ctxPipocas, p.tam * escala);
+                    }
+                    ctxPipocas.restore();
+                });
+                if (particulas.length) requestAnimationFrame(passoPipocas);
+                else { animandoPipocas = false; ctxPipocas.clearRect(0, 0, W, H); }
             }
 
             function limparResultado() { roda.classList.remove('resultado'); cardVencedor.classList.remove('visivel'); fundo.classList.remove('visivel'); }

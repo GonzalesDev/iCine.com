@@ -183,7 +183,7 @@
         /* A aba ocupa a área entre o cabeçalho e a barra inferior (como Cenas) */
         #aba-roleta.ativa { position: fixed; top: 60px; bottom: 65px; left: 0; right: 0; z-index: 100; background: var(--bg-color); }
         /* overflow: clip (e não hidden): o resto da roda fica fora da tela e não pode virar área rolável */
-        #aba-roleta .rol-tela { position: absolute; inset: 0; max-width: 600px; margin: 0 auto; overflow: hidden; overflow: clip; touch-action: none; user-select: none; -webkit-user-select: none; color: var(--text-main); }
+        #aba-roleta .rol-tela { position: absolute; inset: 0; max-width: 1100px; margin: 0 auto; overflow: hidden; overflow: clip; touch-action: none; user-select: none; -webkit-user-select: none; color: var(--text-main); }
         #aba-roleta .rol-tela::before { content: ''; position: absolute; right: -30%; bottom: -10%; width: 110%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(139, 92, 246, 0.22), transparent 65%); pointer-events: none; }
         #aba-roleta .rol-tela.modo-filtros .so-roleta { display: none !important; }
         #aba-roleta .rol-tela.modo-roleta .so-filtros { display: none !important; }
@@ -270,7 +270,7 @@
         #aba-roleta .v-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
         #aba-roleta .v-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
         #aba-roleta .vencedor-rotulo { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #f9a8d4; }
-        #aba-roleta .v-titulo { margin: 0; font-size: 1.3rem; font-weight: 900; line-height: 1.15; color: #fff; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        #aba-roleta .v-titulo { margin: 0; font-size: 1.3rem; font-weight: 900; line-height: 1.15; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         #aba-roleta .vencedor .meta { font-size: 0.85rem; color: #cbd5e1; }
         #aba-roleta .vencedor .meta b { color: #fbbf24; }
         #aba-roleta .v-sinopse { flex: 0 1 auto; min-height: 0; margin: 0; font-size: 0.8rem; line-height: 1.45; color: var(--text-muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
@@ -280,6 +280,14 @@
         #aba-roleta .v-salvar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
         #aba-roleta .v-salvar:hover { background: rgba(139, 92, 246, 0.35); }
         #aba-roleta .v-capa:active, #aba-roleta .v-detalhes:active, #aba-roleta .v-salvar:active { transform: scale(0.95); }
+        /* Layout largo (computador): coluna com capa grande em cima e texto embaixo */
+        #aba-roleta .layout-largo .vencedor { flex-direction: column; gap: 14px; }
+        #aba-roleta .layout-largo .v-capa { height: auto; flex: 1 1 auto; min-height: 0; align-self: flex-start; max-width: 100%; }
+        #aba-roleta .layout-largo .v-capa img { height: 100%; width: auto; aspect-ratio: 2 / 3; }
+        #aba-roleta .layout-largo .v-info { flex: 0 0 auto; padding: 0; }
+        #aba-roleta .layout-largo .v-titulo { font-size: 1.6rem; -webkit-line-clamp: 2; }
+        #aba-roleta .layout-largo .v-acoes { margin-top: 6px; max-width: 320px; }
+        #aba-roleta .layout-largo .rol-fundo { -webkit-mask-image: linear-gradient(to right, #000 40%, transparent 85%); mask-image: linear-gradient(to right, #000 40%, transparent 85%); }
         /* Convite antes do primeiro giro (mesmo espaço do sorteado) */
         #aba-roleta .vencedor-vazio { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; border-radius: 20px; border: 1.5px dashed rgba(139, 92, 246, 0.4); background: rgba(139, 92, 246, 0.05); transition: opacity 0.3s; }
         #aba-roleta .vencedor-vazio.oculto { opacity: 0; pointer-events: none; }
@@ -3034,7 +3042,13 @@
                 const W = tela.clientWidth, H = tela.clientHeight;
                 const topoFim = $('topo').getBoundingClientRect().bottom - tela.getBoundingClientRect().top;
                 cx = W; cy = H;
-                R = Math.max(120, Math.min(W - 14, cy - topoFim - 30));
+                // Tela larga e baixa (computador/tablet deitado): sorteado numa coluna à esquerda e a roda à direita.
+                // Tela em pé (celular): sorteado no espaço entre o topo e a roda.
+                const largo = W >= 720 && W > H * 0.95;
+                tela.classList.toggle('layout-largo', largo);
+                R = largo
+                    ? Math.max(200, Math.min(cy - topoFim - 10, W * 0.58))
+                    : Math.max(120, Math.min(W - 14, cy - topoFim - 30));
                 Object.assign(roda.style, { width: `${2 * R}px`, height: `${2 * R}px`, left: `${cx - R}px`, top: `${cy - R}px` });
                 const rc = R * 0.2;
                 Object.assign(centro.style, { width: `${2 * rc}px`, height: `${2 * rc}px`, left: `${cx - rc}px`, top: `${cy - rc}px` });
@@ -3045,9 +3059,17 @@
                 const rot = `translate(${px - 17}px, ${py}px) rotate(${ANGULO_PONTEIRO}deg)`;
                 ponteiro.style.left = '0'; ponteiro.style.top = '0'; ponteiro.style.transformOrigin = '17px 0';
                 ponteiro.style.setProperty('--rot', rot); ponteiro.style.transform = rot;
-                const painelTopo = topoFim + 14, painelAltura = Math.max(130, Math.min(320, (cy - R) - painelTopo - 22));
-                [cardVencedor, vazio].forEach(el => { el.style.top = `${painelTopo}px`; el.style.height = `${painelAltura}px`; });
-                fundo.style.height = `${cy - R + 40}px`;
+                const painelTopo = topoFim + 14;
+                if (largo) {
+                    // Coluna à esquerda da roda; embaixo fica o botão Girar
+                    const largura = Math.min(420, W - R - 60), altura = Math.max(260, cy - painelTopo - 96);
+                    [cardVencedor, vazio].forEach(el => { el.style.top = `${painelTopo}px`; el.style.height = `${altura}px`; el.style.width = `${largura}px`; el.style.right = 'auto'; });
+                    fundo.style.height = `${cy + 40}px`;
+                } else {
+                    const altura = Math.max(130, Math.min(320, (cy - R) - painelTopo - 22));
+                    [cardVencedor, vazio].forEach(el => { el.style.top = `${painelTopo}px`; el.style.height = `${altura}px`; el.style.width = ''; el.style.right = ''; });
+                    fundo.style.height = `${cy - R + 40}px`;
+                }
                 aplicarAngulo();
             }
 

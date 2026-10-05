@@ -510,6 +510,14 @@
         .amigo-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem; background: var(--card-bg); border: 1px solid #1f2937; border-radius: 12px; margin-bottom: 0.6rem; cursor: pointer; transition: border-color 0.2s; }
         .amigo-item:active { border-color: var(--purple); }
         .amigo-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; color: white; flex-shrink: 0; }
+        .amigo-avatar { position: relative; overflow: hidden; }
+        .amigo-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .meu-avatar-wrap { position: relative; flex-shrink: 0; cursor: pointer; }
+        .meu-avatar-wrap .amigo-avatar { width: 52px; height: 52px; font-size: 1.3rem; transition: opacity 0.2s; }
+        .meu-avatar-wrap.enviando .amigo-avatar { opacity: 0.4; }
+        .avatar-camera { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%; background: var(--purple); border: 2px solid var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+        .meu-avatar-wrap:focus-within .amigo-avatar { outline: 2px solid var(--pink); outline-offset: 2px; }
+        .perfil-amigo-foto { width: 64px; height: 64px; font-size: 1.6rem; margin-bottom: 0.6rem; }
         .amigo-info { flex: 1; min-width: 0; }
         .amigo-username { font-weight: 700; font-size: 0.95rem; }
         .amigo-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
@@ -833,10 +841,14 @@
             </div>
 
             <div id="meu-perfil-card" class="meu-perfil-card" style="display:none;">
-                <div class="amigo-avatar" id="meu-avatar">?</div>
+                <label class="meu-avatar-wrap" id="meu-avatar-wrap" title="Trocar foto de perfil">
+                    <div class="amigo-avatar" id="meu-avatar">?</div>
+                    <span class="avatar-camera" aria-hidden="true">📷</span>
+                    <input type="file" id="input-foto-perfil" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;" aria-label="Trocar foto de perfil">
+                </label>
                 <div>
                     <div style="font-weight: 900; font-size: 1rem;" id="meu-username-display">@username</div>
-                    <div style="font-size: 0.78rem; color: var(--text-muted);">O teu perfil público</div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);" id="meu-avatar-dica">Toque na foto para trocar</div>
                 </div>
                 <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
             </div>
@@ -1077,6 +1089,7 @@
 
     <div id="modal-perfil-amigo" class="modal" style="z-index: 2400; display:none;">
         <div class="modal-content modal-detalhes-content">
+            <div id="perfil-amigo-foto"></div>
             <h3 id="perfil-amigo-titulo" style="margin-bottom: 1rem; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent;">@amigo</h3>
             <div class="perfil-amigo-tabs">
                 <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Assistidos</button>
@@ -1179,6 +1192,7 @@
         let meuPerfil = null; 
         let pedidosPendentes = [];
         let listaAmigos = [];
+        const fotosPerfis = new Map(); // user_id -> foto_url (cache das fotos de perfil)
 
         let listaQueroAssistir = [];
         let listaJaAssisti = [];
@@ -2665,7 +2679,7 @@
 
             lista.innerHTML = comentariosArray.map(c => `
                 <div style="display: flex; gap: 12px; animation: fadeIn 0.3s ease-out;">
-                    <div class="amigo-avatar" style="width: 36px; height: 36px; font-size: 0.9rem;">${(c.username || '?').charAt(0).toUpperCase()}</div>
+                    ${avatarHTML(c.username, fotosPerfis.get(c.user_id), '', 'width: 36px; height: 36px; font-size: 0.9rem;')}
                     <div style="flex: 1; background: #1f2937; padding: 10px 14px; border-radius: 4px 16px 16px 16px; border: 1px solid #374151;">
                         <div style="font-weight: 800; font-size: 0.8rem; color: var(--purple); margin-bottom: 4px;">@${c.username || 'anonimo'} <span style="font-weight: normal; color: var(--text-muted); font-size: 0.7rem; float: right;">${c.data || ''}</span></div>
                         <div style="font-size: 0.9rem; color: white; line-height: 1.4;">${c.texto || ''}</div>
@@ -2673,6 +2687,16 @@
                 </div>
             `).join('');
             lista.scrollTop = lista.scrollHeight;
+            // Busca as fotos de quem comentou e ainda não está no cache (uma vez por pessoa)
+            const faltando = [...new Set(comentariosArray.map(c => c.user_id).filter(id => id && !fotosPerfis.has(id)))];
+            if (faltando.length) {
+                faltando.forEach(id => fotosPerfis.set(id, null));
+                supabaseClient.from('perfis').select('user_id, foto_url').in('user_id', faltando).then(({ data }) => {
+                    if (!data || !data.some(p => p.foto_url)) return;
+                    data.forEach(p => fotosPerfis.set(p.user_id, p.foto_url));
+                    renderizarComentarios(comentariosArray);
+                });
+            }
         }
 
         async function enviarComentario(cenaId) {
@@ -2715,16 +2739,16 @@
             const { data: pedidosRaw } = await supabaseClient.from('amizades').select('*').eq('destinatario_id', usuarioAtual.id).eq('status', 'pendente');
             pedidosPendentes = [];
             for (const p of (pedidosRaw || [])) {
-                const { data: perf } = await supabaseClient.from('perfis').select('username').eq('user_id', p.solicitante_id).maybeSingle();
-                if (perf) pedidosPendentes.push({ ...p, username_solicitante: perf.username || 'utilizador' });
+                const { data: perf } = await supabaseClient.from('perfis').select('username, foto_url').eq('user_id', p.solicitante_id).maybeSingle();
+                if (perf) { fotosPerfis.set(p.solicitante_id, perf.foto_url); pedidosPendentes.push({ ...p, username_solicitante: perf.username || 'utilizador' }); }
             }
 
             const { data: aceites } = await supabaseClient.from('amizades').select('*').eq('status', 'aceite').or(`solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${usuarioAtual.id}`);
             listaAmigos = [];
             for (const a of (aceites || [])) {
                 const amigoId = a.solicitante_id === usuarioAtual.id ? a.destinatario_id : a.solicitante_id;
-                const { data: perf } = await supabaseClient.from('perfis').select('username, user_id').eq('user_id', amigoId).maybeSingle();
-                if (perf && perf.username) listaAmigos.push({ ...perf, amizade_id: a.id });
+                const { data: perf } = await supabaseClient.from('perfis').select('username, user_id, foto_url').eq('user_id', amigoId).maybeSingle();
+                if (perf && perf.username) { fotosPerfis.set(perf.user_id, perf.foto_url); listaAmigos.push({ ...perf, amizade_id: a.id }); }
             }
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
@@ -2744,16 +2768,16 @@
             if (!meuPerfil || !meuPerfil.username) { setupCard.style.display = 'block'; perfilCard.style.display = 'none'; secPedidos.style.display = 'none'; secAmigos.style.display = 'none'; return; }
 
             setupCard.style.display = 'none'; perfilCard.style.display = 'flex'; secAmigos.style.display = 'block';
-            document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username; document.getElementById('meu-avatar').innerText = meuPerfil.username.charAt(0).toUpperCase();
+            document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username; document.getElementById('meu-avatar').innerHTML = avatarConteudo(meuPerfil.username, meuPerfil.foto_url);
 
             if (pedidosPendentes.length > 0) {
                 secPedidos.style.display = 'block';
-                document.getElementById('lista-pedidos').innerHTML = pedidosPendentes.map(p => `<div class="amigo-item"><div class="amigo-avatar">${p.username_solicitante.charAt(0).toUpperCase()}</div><div class="amigo-info"><div class="amigo-username">@${p.username_solicitante}</div></div><div class="amigo-actions"><button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button></div></div>`).join('');
+                document.getElementById('lista-pedidos').innerHTML = pedidosPendentes.map(p => `<div class="amigo-item">${avatarHTML(p.username_solicitante, fotosPerfis.get(p.solicitante_id))}<div class="amigo-info"><div class="amigo-username">@${p.username_solicitante}</div></div><div class="amigo-actions"><button class="btn-aceitar" onclick="aceitarPedido('${p.id}')">✓</button></div></div>`).join('');
             } else { secPedidos.style.display = 'none'; }
 
             const listaEl = document.getElementById('lista-amigos');
             if (listaAmigos.length === 0) listaEl.innerHTML = '<p class="empty-msg">Ainda não tens amigos no iCine.</p>';
-            else { listaEl.innerHTML = listaAmigos.map(a => `<div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')"><div class="amigo-avatar">${a.username.charAt(0).toUpperCase()}</div><div class="amigo-info"><div class="amigo-username">@${a.username}</div></div></div>`).join(''); }
+            else { listaEl.innerHTML = listaAmigos.map(a => `<div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')">${avatarHTML(a.username, a.foto_url)}<div class="amigo-info"><div class="amigo-username">@${a.username}</div></div></div>`).join(''); }
         }
 
         document.getElementById('btn-salvar-username').addEventListener('click', async () => {
@@ -2775,7 +2799,7 @@
             const { data } = await supabaseClient.from('perfis').select('*').eq('username', termo).neq('user_id', usuarioAtual.id).maybeSingle();
             if (!data || !data.username) return resultado.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:0.5rem">Nenhum utilizador encontrado.</p>';
             const jaAmigo = listaAmigos.some(a => a.user_id === data.user_id);
-            resultado.innerHTML = `<div class="amigo-item" style="cursor:default;"><div class="amigo-avatar">${data.username.charAt(0).toUpperCase()}</div><div class="amigo-info"><div class="amigo-username">@${data.username}</div></div>${jaAmigo ? '<span style="color:var(--purple);font-size:0.8rem;font-weight:bold;">✓ Já é amigo</span>' : `<button class="btn-aceitar" id="btn-enviar-pedido-resultado">+ Adicionar</button>`}</div>`;
+            resultado.innerHTML = `<div class="amigo-item" style="cursor:default;">${avatarHTML(data.username, data.foto_url)}<div class="amigo-info"><div class="amigo-username">@${data.username}</div></div>${jaAmigo ? '<span style="color:var(--purple);font-size:0.8rem;font-weight:bold;">✓ Já é amigo</span>' : `<button class="btn-aceitar" id="btn-enviar-pedido-resultado">+ Adicionar</button>`}</div>`;
             if (!jaAmigo) document.getElementById('btn-enviar-pedido-resultado').addEventListener('click', () => enviarPedido(data.user_id));
         }
 
@@ -2788,7 +2812,7 @@
         async function rejeitarPedido(id) { await supabaseClient.from('amizades').delete().eq('id', id); carregarAmigos(); }
 
         async function abrirPerfilAmigo(userId, username) {
-            abrirModalSeguro('modal-perfil-amigo'); document.getElementById('perfil-amigo-titulo').innerText = '@' + username; document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
+            abrirModalSeguro('modal-perfil-amigo'); document.getElementById('perfil-amigo-titulo').innerText = '@' + username; document.getElementById('perfil-amigo-foto').innerHTML = avatarHTML(username, fotosPerfis.get(userId), 'perfil-amigo-foto'); document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
             document.getElementById('tab-amigo-assisti').classList.add('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo');
             const { data: fData } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId); const filmesAmigo = fData || [];
             const { data: pData } = await supabaseClient.from('playlists').select('*').eq('user_id', userId); playlistsAmigoAtual = pData || [];
@@ -2886,6 +2910,54 @@
         }
 
         // =========================================
+        // === BLOCO: JS FOTO DE PERFIL ===
+        // =========================================
+        // Coluna perfis.foto_url (migrations/2026-10-05_foto_perfil.sql). Arquivo vai para o bucket 'capas'
+        // (o mesmo das capas de playlist), já recortado em quadrado e reduzido.
+        // Sem foto (ou se a imagem falhar), aparece a inicial do nome como antes.
+        function avatarConteudo(nome, foto) {
+            const inicial = escaparHTML((nome || '?').charAt(0).toUpperCase());
+            return inicial + (foto ? `<img src="${escaparHTML(foto)}" alt="" loading="lazy" onerror="this.remove()">` : '');
+        }
+        function avatarHTML(nome, foto, classeExtra = '', estilo = '') {
+            return `<div class="amigo-avatar${classeExtra ? ' ' + classeExtra : ''}"${estilo ? ` style="${estilo}"` : ''}>${avatarConteudo(nome, foto)}</div>`;
+        }
+
+        async function reduzirFotoPerfil(arquivo, lado = 320) {
+            const url = URL.createObjectURL(arquivo);
+            try {
+                const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = url; });
+                const corte = Math.min(img.naturalWidth, img.naturalHeight);
+                const canvas = document.createElement('canvas'); canvas.width = canvas.height = lado;
+                canvas.getContext('2d').drawImage(img, (img.naturalWidth - corte) / 2, (img.naturalHeight - corte) / 2, corte, corte, 0, 0, lado, lado);
+                return await new Promise(ok => canvas.toBlob(ok, 'image/jpeg', 0.85));
+            } finally { URL.revokeObjectURL(url); }
+        }
+
+        document.getElementById('input-foto-perfil').addEventListener('change', async (e) => {
+            const arquivo = e.target.files && e.target.files[0]; e.target.value = '';
+            if (!arquivo || !meuPerfil) return;
+            const wrap = document.getElementById('meu-avatar-wrap'); const dica = document.getElementById('meu-avatar-dica');
+            wrap.classList.add('enviando'); dica.innerText = 'Enviando foto...';
+            try {
+                const blob = await reduzirFotoPerfil(arquivo);
+                if (!blob) throw new Error('imagem inválida');
+                const nomeArquivo = `avatar_${usuarioAtual.id}_${Date.now()}.jpg`;
+                const { error: erroUpload } = await supabaseClient.storage.from('capas').upload(nomeArquivo, blob, { contentType: 'image/jpeg' });
+                if (erroUpload) throw erroUpload;
+                const fotoUrl = supabaseClient.storage.from('capas').getPublicUrl(nomeArquivo).data.publicUrl;
+                const { error: erroPerfil } = await supabaseClient.from('perfis').update({ foto_url: fotoUrl }).eq('user_id', usuarioAtual.id);
+                if (erroPerfil) throw erroPerfil;
+                meuPerfil.foto_url = fotoUrl; fotosPerfis.set(usuarioAtual.id, fotoUrl);
+                document.getElementById('meu-avatar').innerHTML = avatarConteudo(meuPerfil.username, fotoUrl);
+                dica.innerText = 'Foto atualizada!';
+            } catch (err) {
+                console.error('Erro ao trocar foto de perfil:', err);
+                dica.innerText = 'Não foi possível enviar. Tente outra foto.';
+            } finally { wrap.classList.remove('enviando'); setTimeout(() => { dica.innerText = 'Toque na foto para trocar'; }, 3000); }
+        });
+
+        // =========================================
         // === BLOCO: JS FEED AVALIAÇÕES ===
         // =========================================
         // Tabela avaliacoes (migrations/2026-10-05_avaliacoes.sql): uma por usuário e título; nota 0–10.
@@ -2928,8 +3000,9 @@
             if (!data || data.length === 0) { lista.innerHTML = '<p class="empty-msg">Ninguém avaliou nada ainda. Seja o primeiro!</p>'; return; }
 
             const ids = [...new Set(data.map(a => a.user_id))];
-            const { data: perfis } = await supabaseClient.from('perfis').select('user_id, username').in('user_id', ids);
+            const { data: perfis } = await supabaseClient.from('perfis').select('user_id, username, foto_url').in('user_id', ids);
             const nomes = new Map((perfis || []).map(p => [p.user_id, p.username]));
+            (perfis || []).forEach(p => fotosPerfis.set(p.user_id, p.foto_url));
             const amigos = new Set(listaAmigos.map(a => a.user_id));
 
             // Amigos primeiro; dentro de cada grupo, mais recentes primeiro (o banco já entrega nessa ordem)
@@ -2946,7 +3019,7 @@
                     </button>
                     <div class="aval-corpo">
                         <div class="aval-usuario">
-                            <div class="amigo-avatar">${escaparHTML(nome.charAt(0).toUpperCase())}</div>
+                            ${avatarHTML(nome, fotosPerfis.get(a.user_id))}
                             <div>
                                 <div class="aval-nome">@${escaparHTML(nome)}${ehAmigo ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo">★</span>' : ''}</div>
                                 <div class="aval-quando">${tempoRelativo(a.created_at)}</div>

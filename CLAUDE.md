@@ -46,3 +46,9 @@ como trabalhamos e as decisões tomadas desde então.
 - Feed mostra avaliações de **todos**, com as dos **amigos primeiro** e uma estrela verde ao lado do nome.
 - Ao marcar como Assistido (`salvarNoGrupo('ja')` / `moverFilme(id,'ja')`) abre a janela de avaliar
   automaticamente com "Agora não" (só se ainda não avaliou). Sem curtidas nas avaliações (decisão do usuário).
+
+## Foto de perfil (bloco "JS FOTO DE PERFIL")
+- Coluna `perfis.foto_url` (`migrations/2026-10-05_foto_perfil.sql`). Troca tocando no próprio avatar
+  na tela de Amigos; a imagem é recortada em quadrado (320px, JPEG) e vai para o bucket `capas`.
+- Use `avatarHTML(nome, foto)` / `avatarConteudo(...)` em qualquer lugar que mostre usuário; cache
+  `fotosPerfis` (user_id → url). Sem foto ou se a imagem falhar, mostra a inicial.

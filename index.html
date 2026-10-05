@@ -523,6 +523,45 @@
         .meu-perfil-card { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
         .btn-add-amigo { margin-left: auto; background: var(--purple); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
+        /* === Feed: Avaliações (escopo .aval-*) === */
+        .aval-compor { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; margin-bottom: 0.5rem; border-radius: 14px; border: 1px dashed rgba(139, 92, 246, 0.6); background: rgba(139, 92, 246, 0.08); color: var(--text-main); font-size: 0.9rem; font-weight: 600; cursor: pointer; text-align: left; }
+        .aval-compor-mais { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--purple), var(--pink)); font-weight: 900; flex-shrink: 0; }
+        .aval-lista, .aval-compor { max-width: 680px; }
+        .aval-item { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid #1f2937; }
+        .aval-poster { position: relative; width: 92px; aspect-ratio: 2/3; border-radius: 10px; overflow: hidden; background: #1f2937; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); cursor: pointer; border: none; padding: 0; }
+        .aval-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .aval-selo { position: absolute; top: 5px; left: 5px; font-size: 0.58rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.65); color: #fff; }
+        .aval-corpo { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .aval-usuario { display: flex; align-items: center; gap: 8px; }
+        .aval-usuario .amigo-avatar { width: 34px; height: 34px; font-size: 0.85rem; }
+        .aval-nome { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 4px; }
+        .aval-amigo { color: #22c55e; font-size: 0.95rem; line-height: 1; }
+        .aval-quando { color: var(--text-muted); font-size: 0.72rem; }
+        .aval-titulo { color: var(--text-muted); font-size: 0.76rem; }
+        .aval-comentario { font-size: 0.88rem; line-height: 1.4; color: #e5e7eb; overflow-wrap: anywhere; white-space: pre-line; }
+        .aval-nota { display: flex; align-items: center; gap: 6px; }
+        .aval-estrelas { display: flex; gap: 1px; font-size: 0.8rem; color: #374151; }
+        .aval-estrelas .on { color: #facc15; }
+        .aval-nota b { font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+        .aval-folha-topo { display: flex; gap: 12px; align-items: center; text-align: left; margin-bottom: 1rem; }
+        .aval-folha-topo img { width: 56px; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; background: #1f2937; }
+        .aval-folha-topo small { color: var(--text-muted); }
+        .aval-estrelas-input { display: flex; justify-content: space-between; max-width: 360px; margin: 0 auto; }
+        .aval-estrelas-input button { background: none; border: none; padding: 2px; font-size: 1.6rem; line-height: 1; color: #374151; cursor: pointer; }
+        .aval-estrelas-input button.on { color: #facc15; }
+        .aval-estrelas-input button:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; border-radius: 4px; }
+        .aval-nota-grande { text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: 0.9rem; margin: 0.5rem 0 1rem; }
+        .aval-nota-grande b { color: var(--text-main); font-size: 1.3rem; }
+        #aval-comentario { width: 100%; min-height: 84px; resize: none; margin-bottom: 1rem; font-family: inherit; }
+        .aval-acoes { display: flex; gap: 10px; }
+        .aval-acoes button { flex: 1; padding: 12px; border-radius: 999px; border: 1px solid #374151; background: transparent; color: var(--text-main); font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+        .aval-acoes .aval-publicar { border: none; background: linear-gradient(135deg, var(--purple), var(--pink)); }
+        .aval-acoes button:disabled { opacity: 0.5; cursor: wait; }
+        .aval-escolha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; max-height: 55vh; overflow-y: auto; text-align: left; }
+        .aval-escolha-grid button { background: none; border: none; padding: 0; color: var(--text-main); cursor: pointer; font-size: 0.7rem; display: flex; flex-direction: column; gap: 4px; }
+        .aval-escolha-grid img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; background: #1f2937; }
+        .aval-escolha-grid span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
         /* ========================================= */
         /* === BLOCO: CSS RESPONSIVIDADE (DESKTOP) === */
         /* ========================================= */
@@ -695,8 +734,18 @@
 
         <div id="aba-comunidade" class="aba">
             <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Comunidade iCine</h2>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 1.5rem;">Descobre as playlists mais populares partilhadas pelos cinéfilos de todo o mundo.</p>
-            <div id="comunidade-grid" class="comunidade-grid"></div>
+            <div class="tipo-conteudo-toggle" id="toggle-feed" role="group" aria-label="Tipo de feed">
+                <button type="button" class="tipo-conteudo-btn" data-feed="playlists" aria-pressed="false">🎞️ Playlists</button>
+                <button type="button" class="tipo-conteudo-btn ativo" data-feed="avaliacoes" aria-pressed="true">⭐ Avaliações</button>
+            </div>
+            <div id="feed-playlists" hidden>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 1.5rem;">Descobre as playlists mais populares partilhadas pelos cinéfilos de todo o mundo.</p>
+                <div id="comunidade-grid" class="comunidade-grid"></div>
+            </div>
+            <div id="feed-avaliacoes">
+                <button type="button" class="aval-compor" id="btn-aval-compor"><span class="aval-compor-mais">+</span> Avaliar um filme que vi</button>
+                <div id="lista-avaliacoes" class="aval-lista"></div>
+            </div>
         </div>
 
         <!-- Roleta: escolha em etapas (tipo → gênero → streaming → nota) e roda de pôsteres "quase infinita" -->
@@ -838,6 +887,31 @@
                 <input type="text" id="input-comentario" placeholder="Adicione um comentário..." class="filter-input" style="flex:1; margin:0;">
                 <button id="btn-enviar-comentario" class="btn-modal btn-modal-quero" style="width:auto; padding: 0 1.2rem;">Enviar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-avaliar" class="modal" style="z-index: 3200;">
+        <div class="modal-content" role="dialog" aria-label="Avaliar">
+            <div class="aval-folha-topo">
+                <img id="aval-capa" src="" alt="">
+                <div><h3 id="aval-titulo-filme" style="margin:0;"></h3><small id="aval-sub"></small></div>
+            </div>
+            <div class="aval-estrelas-input" id="aval-estrelas-input" role="radiogroup" aria-label="Nota de 0 a 10"></div>
+            <div class="aval-nota-grande" id="aval-nota-grande"></div>
+            <textarea id="aval-comentario" class="filter-input" maxlength="280" placeholder="O que achou? (opcional)"></textarea>
+            <div class="aval-acoes">
+                <button type="button" id="btn-aval-agora-nao">Agora não</button>
+                <button type="button" id="btn-aval-publicar" class="aval-publicar">Publicar no Feed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-aval-escolher" class="modal" style="z-index: 3150;">
+        <div class="modal-content">
+            <h3>Qual você quer avaliar?</h3>
+            <p class="modal-movie-title" style="margin-bottom:1rem;">Seus Assistidos Recentemente</p>
+            <div id="aval-escolha-grid" class="aval-escolha-grid"></div>
+            <button type="button" class="btn-modal btn-modal-cancel" style="margin-top:1rem;" onclick="fecharModalSeguro('modal-aval-escolher')">Cancelar</button>
         </div>
     </div>
 
@@ -1230,7 +1304,7 @@
             }
 
             if (abaId === 'inicio') renderizarMinhasListas();
-            if (abaId === 'comunidade') carregarComunidade();
+            if (abaId === 'comunidade') carregarFeedAtual();
             if (abaId === 'amigos') renderizarAbaAmigos();
             if (abaId === 'roleta') { chatFab.style.display = 'none'; roleta.aoAbrir(); }
         }
@@ -1616,12 +1690,14 @@
             const { error } = await supabaseClient.from('meus_filmes').insert([novoFilme]);
             if (error) { console.error('Erro ao salvar:', error); alert('Não foi possível salvar. Tente novamente.'); return; }
             carregarFilmesDaNuvem(); fecharModalSeguro('modal-escolha');
+            if (grupo === 'ja') setTimeout(() => abrirAvaliacao(filme.id, true), 300); // espera o "voltar" do modal anterior
         }
 
         async function moverFilme(chave, novoGrupo) {
             const { tipo, tmdbId } = partesDaChave(chave);
             await supabaseClient.from('meus_filmes').update({ grupo: novoGrupo }).eq('tmdb_id', tmdbId).eq('tipo', tipo).eq('user_id', usuarioAtual.id);
             carregarFilmesDaNuvem();
+            if (novoGrupo === 'ja') abrirAvaliacao(normalizarChave(chave), true);
         }
         async function removerFilme(chave) {
             const { tipo, tmdbId } = partesDaChave(chave);
@@ -2808,6 +2884,148 @@
             else { document.getElementById('msg-playlist-vazia').style.display = 'none'; grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, 'comunidade')).join(''); }
             abrirModalSeguro('modal-ver-playlist'); mapearBotoesGrid();
         }
+
+        // =========================================
+        // === BLOCO: JS FEED AVALIAÇÕES ===
+        // =========================================
+        // Tabela avaliacoes (migrations/2026-10-05_avaliacoes.sql): uma por usuário e título; nota 0–10.
+        // Feed: avaliações de todos, com as dos amigos primeiro (marcadas com estrela verde).
+        let feedAtual = 'avaliacoes'; // 'avaliacoes' | 'playlists'
+        let avaliacaoEmEdicao = null;  // conteúdo (formato do bancoDeFilmesLocal) sendo avaliado
+        let notaAvaliacao = 0;
+
+        function escaparHTML(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+        function estrelasHTML(n) { return Array.from({ length: 10 }, (_, i) => `<span class="${i < n ? 'on' : ''}">★</span>`).join(''); }
+        function tempoRelativo(iso) {
+            const min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+            if (min < 1) return 'agora';
+            if (min < 60) return `há ${min} min`;
+            const h = Math.floor(min / 60); if (h < 24) return `há ${h} h`;
+            const d = Math.floor(h / 24); if (d === 1) return 'ontem';
+            if (d < 30) return `há ${d} dias`;
+            return new Date(iso).toLocaleDateString('pt-BR');
+        }
+
+        document.getElementById('toggle-feed').addEventListener('click', (e) => {
+            const btn = e.target.closest('.tipo-conteudo-btn'); if (!btn || btn.dataset.feed === feedAtual) return;
+            feedAtual = btn.dataset.feed;
+            document.querySelectorAll('#toggle-feed .tipo-conteudo-btn').forEach(b => { const on = b === btn; b.classList.toggle('ativo', on); b.setAttribute('aria-pressed', on); });
+            carregarFeedAtual();
+        });
+
+        function carregarFeedAtual() {
+            const ehAval = feedAtual === 'avaliacoes';
+            document.getElementById('feed-avaliacoes').hidden = !ehAval;
+            document.getElementById('feed-playlists').hidden = ehAval;
+            if (ehAval) carregarAvaliacoes(); else carregarComunidade();
+        }
+
+        async function carregarAvaliacoes() {
+            const lista = document.getElementById('lista-avaliacoes');
+            lista.innerHTML = '<p class="empty-msg">Carregando avaliações... ⏳</p>';
+            const { data, error } = await supabaseClient.from('avaliacoes').select('*').order('created_at', { ascending: false }).limit(150);
+            if (error) { console.error('Erro ao carregar avaliações:', error); lista.innerHTML = '<p class="empty-msg">Não foi possível carregar as avaliações.</p>'; return; }
+            if (!data || data.length === 0) { lista.innerHTML = '<p class="empty-msg">Ninguém avaliou nada ainda. Seja o primeiro!</p>'; return; }
+
+            const ids = [...new Set(data.map(a => a.user_id))];
+            const { data: perfis } = await supabaseClient.from('perfis').select('user_id, username').in('user_id', ids);
+            const nomes = new Map((perfis || []).map(p => [p.user_id, p.username]));
+            const amigos = new Set(listaAmigos.map(a => a.user_id));
+
+            // Amigos primeiro; dentro de cada grupo, mais recentes primeiro (o banco já entrega nessa ordem)
+            const ordenadas = [...data.filter(a => amigos.has(a.user_id)), ...data.filter(a => !amigos.has(a.user_id))];
+            lista.innerHTML = ordenadas.map(a => {
+                const chave = a.tipo === 'serie' ? `tv:${a.tmdb_id}` : Number(a.tmdb_id);
+                bancoDeFilmesLocal.set(chave, bancoDeFilmesLocal.get(chave) || { id: chave, tmdbId: Number(a.tmdb_id), tipo: a.tipo, titulo: a.titulo, ano: a.ano, capa: a.capa, sinopse: a.sinopse });
+                const nome = nomes.get(a.user_id) || 'cinefilo_oculto';
+                const ehAmigo = amigos.has(a.user_id);
+                return `<article class="aval-item">
+                    <button type="button" class="aval-poster" data-chave="${chave}" aria-label="Abrir ${escaparHTML(a.titulo)}">
+                        ${a.capa ? `<img src="${escaparHTML(a.capa)}" alt="" loading="lazy">` : ''}
+                        ${a.tipo === 'serie' ? '<span class="aval-selo">Série</span>' : ''}
+                    </button>
+                    <div class="aval-corpo">
+                        <div class="aval-usuario">
+                            <div class="amigo-avatar">${escaparHTML(nome.charAt(0).toUpperCase())}</div>
+                            <div>
+                                <div class="aval-nome">@${escaparHTML(nome)}${ehAmigo ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo">★</span>' : ''}</div>
+                                <div class="aval-quando">${tempoRelativo(a.created_at)}</div>
+                            </div>
+                        </div>
+                        <div class="aval-titulo">${escaparHTML(a.titulo)}${a.ano ? ` · ${escaparHTML(a.ano)}` : ''}</div>
+                        ${a.comentario ? `<div class="aval-comentario">${escaparHTML(a.comentario)}</div>` : ''}
+                        <div class="aval-nota"><div class="aval-estrelas" aria-label="Nota ${a.nota} de 10">${estrelasHTML(a.nota)}</div><b>${a.nota}/10</b></div>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        document.getElementById('lista-avaliacoes').addEventListener('click', (e) => {
+            const poster = e.target.closest('.aval-poster'); if (!poster) return;
+            abrirDetalhes(normalizarChave(poster.dataset.chave));
+        });
+
+        // Botão "Avaliar um filme que vi": escolhe entre os Assistidos
+        document.getElementById('btn-aval-compor').addEventListener('click', () => {
+            const grid = document.getElementById('aval-escolha-grid');
+            if (listaJaAssisti.length === 0) {
+                grid.innerHTML = '<p class="empty-msg" style="grid-column:1/-1;">Marque um filme como Assistido para poder avaliar.</p>';
+            } else {
+                grid.innerHTML = listaJaAssisti.map(f => `<button type="button" data-chave="${chaveDaLinha(f)}"><img src="${escaparHTML(f.capa || '')}" alt="" loading="lazy"><span>${escaparHTML(f.titulo)}</span></button>`).join('');
+            }
+            abrirModalSeguro('modal-aval-escolher');
+        });
+        document.getElementById('aval-escolha-grid').addEventListener('click', (e) => {
+            const b = e.target.closest('button[data-chave]'); if (!b) return;
+            const chave = normalizarChave(b.dataset.chave);
+            fecharModalSeguro('modal-aval-escolher');
+            setTimeout(() => abrirAvaliacao(chave, false), 300); // espera o "voltar" do modal anterior terminar
+        });
+
+        // Abre a janela de avaliar. automatico = veio de "marcar como Assistido": não abre se já avaliou.
+        async function abrirAvaliacao(chave, automatico) {
+            const conteudo = bancoDeFilmesLocal.get(chave); if (!conteudo || !usuarioAtual) return;
+            const { tipo, tmdbId } = partesDaChave(chave);
+            const { data: existente } = await supabaseClient.from('avaliacoes').select('nota, comentario').eq('user_id', usuarioAtual.id).eq('tmdb_id', tmdbId).eq('tipo', tipo).maybeSingle();
+            if (automatico && existente) return;
+
+            avaliacaoEmEdicao = conteudo;
+            document.getElementById('aval-capa').src = conteudo.capa || '';
+            document.getElementById('aval-titulo-filme').innerText = conteudo.titulo || '';
+            document.getElementById('aval-sub').innerText = [conteudo.ano, existente ? 'editar sua avaliação' : 'marcado como Assistido'].filter(Boolean).join(' · ');
+            document.getElementById('aval-comentario').value = existente?.comentario || '';
+            marcarNotaAvaliacao(existente ? existente.nota : 0);
+            const btn = document.getElementById('btn-aval-publicar'); btn.disabled = false; btn.innerText = 'Publicar no Feed';
+            abrirModalSeguro('modal-avaliar');
+        }
+
+        const caixaEstrelas = document.getElementById('aval-estrelas-input');
+        caixaEstrelas.innerHTML = Array.from({ length: 10 }, (_, i) => `<button type="button" role="radio" data-n="${i + 1}" aria-label="${i + 1} de 10">★</button>`).join('');
+        function marcarNotaAvaliacao(n) {
+            notaAvaliacao = n;
+            caixaEstrelas.querySelectorAll('button').forEach(b => { const v = +b.dataset.n; b.classList.toggle('on', v <= n); b.setAttribute('aria-checked', v === n); });
+            document.getElementById('aval-nota-grande').innerHTML = n ? `Sua nota · <b>${n}</b>/10` : 'Toque nas estrelas · <b>0</b>/10';
+        }
+        caixaEstrelas.addEventListener('click', (e) => {
+            const b = e.target.closest('button'); if (!b) return;
+            const n = +b.dataset.n;
+            marcarNotaAvaliacao(n === notaAvaliacao ? n - 1 : n); // tocar de novo na mesma estrela tira uma (permite nota 0)
+        });
+
+        document.getElementById('btn-aval-agora-nao').addEventListener('click', () => fecharModalSeguro('modal-avaliar'));
+        document.getElementById('btn-aval-publicar').addEventListener('click', async (e) => {
+            const btn = e.currentTarget; const c = avaliacaoEmEdicao; if (!c) return;
+            const { tipo, tmdbId } = partesDaChave(c.id);
+            const comentario = document.getElementById('aval-comentario').value.trim();
+            btn.disabled = true; btn.innerText = 'Publicando...';
+            const { error } = await supabaseClient.from('avaliacoes').upsert({
+                user_id: usuarioAtual.id, tmdb_id: tmdbId, tipo, titulo: c.titulo, ano: (String(c.ano || '').match(/\d{4}/) || [null])[0],
+                capa: c.capa || null, sinopse: c.sinopse || null, nota: notaAvaliacao, comentario: comentario || null, created_at: new Date().toISOString()
+            }, { onConflict: 'user_id,tmdb_id,tipo' });
+            if (error) { console.error('Erro ao publicar avaliação:', error); btn.disabled = false; btn.innerText = 'Publicar no Feed'; alert('Não foi possível publicar. Tente novamente.'); return; }
+            fecharModalSeguro('modal-avaliar');
+            if (document.getElementById('aba-comunidade').classList.contains('ativa') && feedAtual === 'avaliacoes') carregarAvaliacoes();
+        });
 
         // =========================================
         // === BLOCO: JS ROLETA ===

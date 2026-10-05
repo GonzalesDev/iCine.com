@@ -38,3 +38,11 @@ como trabalhamos e as decisões tomadas desde então.
   a partir do centro quando para.
 - Sorteado ocupa o espaço vazio com capa grande e fundo desfocado; no computador (tela larga),
   layout em duas colunas (sorteado à esquerda, roda à direita).
+
+## Feed (aba `#aba-comunidade`, bloco "JS FEED AVALIAÇÕES")
+- Toggle no topo: **Playlists** (feed antigo de playlists públicas) e **Avaliações** (padrão).
+- Tabela `avaliacoes` (`migrations/2026-10-05_avaliacoes.sql`): uma por usuário e título
+  (`user_id, tmdb_id, tipo`), nota 0–10, comentário opcional (até 280). Salva com upsert.
+- Feed mostra avaliações de **todos**, com as dos **amigos primeiro** e uma estrela verde ao lado do nome.
+- Ao marcar como Assistido (`salvarNoGrupo('ja')` / `moverFilme(id,'ja')`) abre a janela de avaliar
+  automaticamente com "Agora não" (só se ainda não avaliou). Sem curtidas nas avaliações (decisão do usuário).

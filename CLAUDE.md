@@ -75,3 +75,7 @@ como trabalhamos e as decisões tomadas desde então.
 - Chave VAPID pública fica no `index.html`; a privada e o `WEBHOOK_SECRET` só nos Secrets do Supabase.
 - iPhone só recebe push com o app adicionado à Tela de Início (iOS 16.4+). Desativar fica salvo no aparelho
   (`localStorage.icine_push_off`) para o login não religar sozinho.
+
+## Ícone de Amigos no cabeçalho
+- O botão `#btn-amigos` (ao lado da logo) mostra a foto de perfil do próprio usuário (ou a inicial, se não houver foto).
+  Atualizado por `atualizarAvatarHeader()`: chamada em `verificarPerfil`, ao criar o @username e ao trocar a foto.

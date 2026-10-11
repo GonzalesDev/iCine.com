@@ -58,3 +58,9 @@ como trabalhamos e as decisões tomadas desde então.
   na tela de Amigos; a imagem é recortada em quadrado (320px, JPEG) e vai para o bucket `capas`.
 - Use `avatarHTML(nome, foto)` / `avatarConteudo(...)` em qualquer lugar que mostre usuário; cache
   `fotosPerfis` (user_id → url). Sem foto ou se a imagem falhar, mostra a inicial.
+
+## Amizades
+- `amizades` guarda 1 linha por pedido. O UNIQUE original era só por direção, então A→B e B→A geravam
+  2 linhas e o amigo aparecia duplicado. Corrigido em 12/10: `carregarAmigos` deduplica por usuário,
+  `enviarPedido` confere os dois sentidos (se a pessoa já tinha te adicionado, aceita o pedido dela) e
+  `migrations/2026-10-12_amizades_sem_duplicados.sql` limpa os duplicados e cria índice único do par.

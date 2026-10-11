@@ -2759,11 +2759,15 @@
 
             const { data: aceites } = await supabaseClient.from('amizades').select('*').eq('status', 'aceite').or(`solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${usuarioAtual.id}`);
             listaAmigos = [];
+            const amigosVistos = new Set(); // o mesmo amigo pode ter 2 linhas (um pedido em cada direção): mostra uma só
             for (const a of (aceites || [])) {
                 const amigoId = a.solicitante_id === usuarioAtual.id ? a.destinatario_id : a.solicitante_id;
+                if (amigosVistos.has(amigoId)) continue; amigosVistos.add(amigoId);
                 const { data: perf } = await supabaseClient.from('perfis').select('username, user_id, foto_url').eq('user_id', amigoId).maybeSingle();
                 if (perf && perf.username) { fotosPerfis.set(perf.user_id, perf.foto_url); listaAmigos.push({ ...perf, amizade_id: a.id }); }
             }
+            // Pedido pendente de quem já é amigo não faz sentido: some da lista
+            pedidosPendentes = pedidosPendentes.filter(p => !amigosVistos.has(p.solicitante_id));
             atualizarBadgeAmigos();
             if (document.getElementById('aba-amigos').classList.contains('ativa')) renderizarAbaAmigos();
 
@@ -2818,7 +2822,15 @@
         }
 
         async function enviarPedido(destinatario_id) {
-            const { error } = await supabaseClient.from('amizades').insert([{ solicitante_id: usuarioAtual.id, destinatario_id, status: 'pendente' }]); const resultado = document.getElementById('resultado-busca-amigo');
+            const resultado = document.getElementById('resultado-busca-amigo');
+            // Já existe algo entre vocês dois, em qualquer direção?
+            const { data: existentes } = await supabaseClient.from('amizades').select('id, solicitante_id, status')
+                .or(`and(solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${destinatario_id}),and(solicitante_id.eq.${destinatario_id},destinatario_id.eq.${usuarioAtual.id})`);
+            if ((existentes || []).some(x => x.status === 'aceite')) { resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Vocês já são amigos.</p>'; carregarAmigos(); return; }
+            const dela = (existentes || []).find(x => x.solicitante_id === destinatario_id); // a pessoa já tinha te adicionado: aceita o pedido dela
+            if (dela) { await aceitarPedido(dela.id); resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido aceito, vocês já são amigos!</p>'; return; }
+            if ((existentes || []).length) { resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>'; return; }
+            const { error } = await supabaseClient.from('amizades').insert([{ solicitante_id: usuarioAtual.id, destinatario_id, status: 'pendente' }]);
             if (error) resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>'; else resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido enviado com sucesso!</p>';
         }
 

@@ -790,7 +790,7 @@
                         </div>
                         <div class="f-etapa" data-etapa="2">
                             <h2>Qual gênero?</h2>
-                            <p class="sub" id="rol-generos-sub">Escolha até 3</p>
+                            <p class="sub" id="rol-generos-sub">Escolha até 2 para misturar</p>
                             <div class="f-generos" id="rol-generos"></div>
                         </div>
                         <div class="f-etapa" data-etapa="3">
@@ -3173,6 +3173,10 @@
             // (Ordenar por "popularity" do TMDB trazia títulos obscuros/estrangeiros que estavam em alta no momento.)
             const ORDEM = 'vote_count.desc';
             const MIN_VOTOS = { movie: 300, tv: 150 };
+            // Misturar 2 gêneros (ex.: terror + romance) pode dar poucos títulos "famosos". Se der menos que
+            // ALVO_TITULOS, o filtro baixa o mínimo de avaliações em degraus até a roda ter títulos suficientes.
+            const DEGRAUS_VOTOS = { movie: [300, 100, 30], tv: [150, 50, 15] };
+            const ALVO_TITULOS = 60;
             const EMOJI_GENERO = { 28: '💥', 12: '🧭', 16: '🎨', 35: '😂', 80: '🕵️', 99: '🎥', 18: '🎭', 10751: '👨‍👩‍👧', 14: '🐉', 36: '🏛️', 27: '👻', 10402: '🎵', 9648: '🔍', 10749: '💘', 878: '🚀', 53: '🔪', 10752: '⚔️', 37: '🤠', 10759: '💥', 10762: '🧸', 10764: '🎤', 10765: '🚀', 10766: '💔', 10768: '⚔️' };
             const GENEROS_IGNORADOS = [10770, 10763, 10767];   // Cinema TV, Notícias, Talk show
             const STREAMINGS = [8, 119, 337, 1899, 350, 307, 531, 283];  // Netflix, Prime, Disney+, Max, Apple TV+, Globoplay, Paramount+, Crunchyroll
@@ -3183,15 +3187,15 @@
             const tela = $('tela');
 
             // ---------------- Funil ----------------
-            const MAX_GENEROS = 3;
+            const MAX_GENEROS = 2;   // 2 gêneros, lógica E: só títulos que têm OS DOIS gêneros ao mesmo tempo
             const escolha = { tipo: null, generos: [], streamings: [] };   // generos: [{ id, nome }]
-            let etapa = 1, totalAtual = null, pedidoContagem = 0, contagensIniciais = false;
+            let etapa = 1, totalAtual = null, votosUsados = null, pedidoContagem = 0, contagensIniciais = false;
             const cacheGeneros = {}, cacheStreamings = {};
             const palavra = () => escolha.tipo === 'tv' ? 'séries' : 'filmes';
 
             function urlDiscover(extra = {}) {
-                const p = new URLSearchParams({ api_key: TMDB_KEY, language: 'pt-BR', sort_by: ORDEM, 'vote_count.gte': MIN_VOTOS[escolha.tipo], watch_region: 'BR' });
-                if (escolha.generos.length) p.set('with_genres', escolha.generos.map(g => g.id).join('|'));
+                const p = new URLSearchParams({ api_key: TMDB_KEY, language: 'pt-BR', sort_by: ORDEM, 'vote_count.gte': votosUsados ?? MIN_VOTOS[escolha.tipo], watch_region: 'BR' });
+                if (escolha.generos.length) p.set('with_genres', escolha.generos.map(g => g.id).join(','));  // , = E (todos os gêneros)
                 if (escolha.streamings.length) p.set('with_watch_providers', escolha.streamings.join('|')); // | = qualquer um deles
                 Object.entries(extra).forEach(([k, v]) => p.set(k, v));
                 return `${URL_BASE}/discover/${escolha.tipo}?${p}`;
@@ -3202,9 +3206,18 @@
                 if (!escolha.tipo) return;
                 const meu = ++pedidoContagem;
                 try {
-                    const d = await fetch(urlDiscover()).then(r => r.json());
-                    if (meu !== pedidoContagem) return;
-                    totalAtual = d.total_results || 0;
+                    // Testa o mínimo normal de avaliações; se der poucos títulos, afrouxa (só tem efeito em misturas raras)
+                    const degraus = DEGRAUS_VOTOS[escolha.tipo];
+                    let total = 0, usado = degraus[0];
+                    for (const v of degraus) {
+                        votosUsados = v; usado = v;
+                        const d = await fetch(urlDiscover()).then(r => r.json());
+                        if (meu !== pedidoContagem) return;
+                        total = d.total_results || 0;
+                        if (total >= ALVO_TITULOS) break;
+                    }
+                    votosUsados = usado;
+                    totalAtual = total;
                 } catch (e) { if (meu === pedidoContagem) totalAtual = null; }
                 finally { if (meu === pedidoContagem) montarRodape(); }
             }
@@ -3239,7 +3252,7 @@
                 r.innerHTML = `<button class="f-btn primario" type="button" ${semResultado || totalAtual === null ? 'disabled' : ''}>🎡 Montar roleta${qtd}</button>`;
                 r.firstChild.addEventListener('click', montarRoleta);
                 $('erro').hidden = !semResultado;
-                if (semResultado) $('erro').textContent = `Nenhum ${escolha.tipo === 'tv' ? 'série' : 'filme'} conhecido desses gêneros nesses streamings. Marque outro.`;
+                if (semResultado) $('erro').textContent = `Nenhum ${escolha.tipo === 'tv' ? 'série' : 'filme'} com essa mistura de gêneros nesses streamings. Troque um gênero ou marque outro streaming.`;
             }
 
             // Etapa 1: tipo
@@ -3263,7 +3276,7 @@
                 } catch (e) { box.innerHTML = '<p class="f-erro">Erro ao carregar os gêneros. Volte e tente de novo.</p>'; return; }
                 box.innerHTML = '';
                 const sub = $('generos-sub');
-                const atualizarSub = () => { sub.textContent = escolha.generos.length ? `Escolha até ${MAX_GENEROS} · ${escolha.generos.length} de ${MAX_GENEROS}` : `Escolha até ${MAX_GENEROS}`; sub.classList.remove('alerta'); };
+                const atualizarSub = () => { sub.textContent = escolha.generos.length === 2 ? 'Só títulos que misturam os dois' : escolha.generos.length === 1 ? 'Escolha mais 1 para misturar (opcional)' : `Escolha até ${MAX_GENEROS} para misturar`; sub.classList.remove('alerta'); };
                 atualizarSub();
                 cacheGeneros[escolha.tipo].forEach(g => {
                     const marcado = escolha.generos.some(x => x.id === g.id);

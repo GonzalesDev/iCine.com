@@ -28,8 +28,11 @@ como trabalhamos e as decisões tomadas desde então.
 - Navegação: Amigos virou ícone no cabeçalho; barra inferior = Listas, Explorar, Cenas, Roleta, Feed.
 
 ## Roleta (aba `#aba-roleta`, bloco "JS ROLETA" — IIFE `roleta`, CSS escopado, IDs `rol-*`)
-- Funil em 3 etapas: Filme/Série → Gênero (**até 3**, lógica OU: `with_genres` com `|`) →
+- Funil em 3 etapas: Filme/Série → Gênero (**até 2**, lógica **E**: `with_genres` com `,`, só títulos que
+  têm os dois gêneros — decisão de 11/10; antes era até 3 com OU e misturava filmes de um só gênero) →
   Streamings (opcional, vários, `watch_region=BR`, lógica OU). Filtro de nota foi **removido**.
+- Misturas raras (ex.: terror+romance): se der menos de 60 títulos, o mínimo de avaliações baixa em
+  degraus (`DEGRAUS_VOTOS`: filmes 300→100→30, séries 150→50→15) até a roda ter títulos suficientes.
 - Só títulos conhecidos: `sort_by=vote_count.desc`, mínimo de 300 avaliações (filmes) / 150 (séries);
   no máximo **300** títulos na roda. Títulos já marcados como Assistidos ficam de fora.
 - Roda: só **1/4 visível** (centro no canto inferior direito), desenhada em **canvas** (fluida no

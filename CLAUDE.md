@@ -79,3 +79,5 @@ como trabalhamos e as decisões tomadas desde então.
 ## Ícone de Amigos no cabeçalho
 - O botão `#btn-amigos` (ao lado da logo) mostra a foto de perfil do próprio usuário (ou a inicial, se não houver foto).
   Atualizado por `atualizarAvatarHeader()`: chamada em `verificarPerfil`, ao criar o @username e ao trocar a foto.
+- Consistência do cartão: se o banco recusar a gravação do aparelho (`gravarOuDesfazerPush`), a inscrição do
+  navegador é desfeita; o cartão só mostra "ativado" quando o servidor conhece o aparelho.

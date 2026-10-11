@@ -3010,14 +3010,22 @@
             if (error) throw error;
         }
 
+        // Grava no banco. Se o banco recusar, desfaz a inscrição do navegador: assim o cartão só mostra
+        // "ativado" quando o servidor de fato conhece este aparelho.
+        async function gravarOuDesfazerPush(sub) {
+            try { await gravarAparelhoPush(sub); }
+            catch (e) { await sub.unsubscribe().catch(() => {}); throw e; }
+        }
+
         // Depois do login: se este aparelho já aceitou avisos, garante que a conta atual está ligada a ele
         async function sincronizarPush() {
             try {
                 if (!pushSuportado() || Notification.permission !== 'granted' || pushDesligadoPelaPessoa()) return;
                 const reg = await swPush();
                 const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveVapidParaBytes(VAPID_PUBLIC_KEY) });
-                await gravarAparelhoPush(sub);
+                await gravarOuDesfazerPush(sub);
             } catch (e) { console.warn('Não foi possível sincronizar os avisos:', e); }
+            finally { atualizarCardPush(); }
         }
 
         async function ativarPush() {
@@ -3028,10 +3036,11 @@
                 marcarPushDesligado(false);
                 const reg = await swPush();
                 const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveVapidParaBytes(VAPID_PUBLIC_KEY) });
-                await gravarAparelhoPush(sub);
+                await gravarOuDesfazerPush(sub);
             } catch (e) {
                 console.error('Erro ao ativar avisos:', e);
-                alert('Não foi possível ativar os avisos neste aparelho. Tente de novo.');
+                const motivo = e && (e.message || e.code) ? ` (${e.message || e.code})` : '';
+                alert(`Não foi possível ativar os avisos neste aparelho${motivo}. Tente de novo.`);
             } finally { btn.disabled = false; atualizarCardPush(); }
         }
 

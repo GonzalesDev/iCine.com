@@ -64,3 +64,14 @@ como trabalhamos e as decisões tomadas desde então.
   2 linhas e o amigo aparecia duplicado. Corrigido em 12/10: `carregarAmigos` deduplica por usuário,
   `enviarPedido` confere os dois sentidos (se a pessoa já tinha te adicionado, aceita o pedido dela) e
   `migrations/2026-10-12_amizades_sem_duplicados.sql` limpa os duplicados e cria índice único do par.
+
+## Avisos no celular (Web Push) — recomendações
+- Fluxo: recomendação criada → gatilho `trg_push_recomendacao` (pg_net) → Edge Function `enviar-push`
+  (`supabase/functions/enviar-push/`) → aviso para os aparelhos em `push_subscriptions` do destinatário.
+  SQL: `migrations/2026-10-13_push_notificacoes.sql` (tem o placeholder `COLE_AQUI_O_SEGREDO`; nunca commitar o real).
+- App: bloco "JS AVISOS NO CELULAR (WEB PUSH)"; cartão "Ativar/Desativar" na tela de Amigos; `sw-push.js` só recebe
+  avisos (sem cache). O app **continua apagando os service workers antigos** ao abrir (exceto `sw-push.js`).
+  Tocar no aviso abre `./?aba=amigos` (`abaDoLink`) ou manda mensagem à aba aberta.
+- Chave VAPID pública fica no `index.html`; a privada e o `WEBHOOK_SECRET` só nos Secrets do Supabase.
+- iPhone só recebe push com o app adicionado à Tela de Início (iOS 16.4+). Desativar fica salvo no aparelho
+  (`localStorage.icine_push_off`) para o login não religar sozinho.

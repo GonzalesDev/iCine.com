@@ -518,6 +518,12 @@
         .avatar-camera { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%; background: var(--purple); border: 2px solid var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
         .meu-avatar-wrap:focus-within .amigo-avatar { outline: 2px solid var(--pink); outline-offset: 2px; }
         .perfil-amigo-foto { width: 64px; height: 64px; font-size: 1.6rem; margin-bottom: 0.6rem; }
+        .push-box { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.7rem 1rem; margin-bottom: 1rem; border-radius: 12px; border: 1px solid #1f2937; background: var(--card-bg); font-size: 0.82rem; color: var(--text-muted); }
+        .push-box.ativo { border-color: rgba(34, 197, 94, 0.4); }
+        .push-btn { flex-shrink: 0; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.6); background: rgba(139, 92, 246, 0.15); color: var(--text-main); font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+        .push-btn.sec { border-color: #374151; background: transparent; color: var(--text-muted); }
+        .push-btn:disabled { opacity: 0.5; cursor: wait; }
+        .push-btn:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
         .amigo-info { flex: 1; min-width: 0; }
         .amigo-username { font-weight: 700; font-size: 0.95rem; }
         .amigo-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
@@ -867,6 +873,11 @@
                 <button class="btn-add-amigo" id="btn-abrir-busca">+ Amigo</button>
             </div>
 
+            <div id="push-box" class="push-box" style="display:none;">
+                <span id="push-texto"></span>
+                <button type="button" id="btn-push" class="push-btn" style="display:none;"></button>
+            </div>
+
             <div id="secao-inbox" style="display:none; margin-bottom: 1.5rem;">
                 <div class="secao-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>📬 Caixa de Entrada</span>
@@ -1181,11 +1192,17 @@
     <script>
         console.log("iCine Full Stack Core Active!");
 
+        // Remove service workers antigos (cache velho), mas mantém o sw-push.js, que só recebe avisos.
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
+                for (let registration of registrations) {
+                    const sw = registration.active || registration.waiting || registration.installing;
+                    if (!sw || !sw.scriptURL.endsWith('/sw-push.js')) registration.unregister();
+                }
             });
         }
+        // Aba pedida pelo link (tocar no aviso com o app fechado abre ./?aba=amigos). Lida aqui porque o load limpa a URL.
+        const abaDoLink = new URLSearchParams(window.location.search).get('aba');
 
         // =========================================
         // === BLOCO: CONFIGURAÇÕES E ESTADO GLOBAL ===
@@ -1251,6 +1268,7 @@
         // =========================================
         // === BLOCO: JS AUTENTICAÇÃO (LOGIN) ===
         // =========================================
+        let abaDoLinkUsada = false;
         async function checarSessao() {
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1263,6 +1281,8 @@
                     aplicarFiltros(true);
                     carregarTop10(8, "Netflix"); 
                     verificarPerfil();
+                    sincronizarPush();
+                    if (abaDoLink && !abaDoLinkUsada) { abaDoLinkUsada = true; if (document.getElementById(`aba-${abaDoLink}`)) mudarAba(abaDoLink); }
                 } else {
                     document.getElementById('tela-login').style.display = 'flex';
                 }
@@ -1294,6 +1314,7 @@
         });
 
         document.getElementById('btn-sair-acao').addEventListener('click', async () => {
+            await removerAparelhoPush(false);
             await supabaseClient.auth.signOut();
             listaQueroAssistir = []; listaJaAssisti = []; minhasPlaylists = []; bancoDeFilmesLocal.clear();
             checarSessao();
@@ -2787,6 +2808,7 @@
 
             setupCard.style.display = 'none'; perfilCard.style.display = 'flex'; secAmigos.style.display = 'block';
             document.getElementById('meu-username-display').innerText = '@' + meuPerfil.username; document.getElementById('meu-avatar').innerHTML = avatarConteudo(meuPerfil.username, meuPerfil.foto_url);
+            atualizarCardPush();
 
             if (pedidosPendentes.length > 0) {
                 secPedidos.style.display = 'block';
@@ -2933,6 +2955,101 @@
             if (!p.filmes || p.filmes.length === 0) { document.getElementById('msg-playlist-vazia').style.display = 'block'; grid.innerHTML = ''; } 
             else { document.getElementById('msg-playlist-vazia').style.display = 'none'; grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, 'comunidade')).join(''); }
             abrirModalSeguro('modal-ver-playlist'); mapearBotoesGrid();
+        }
+
+        // =========================================
+        // === BLOCO: JS AVISOS NO CELULAR (WEB PUSH) ===
+        // =========================================
+        // Fluxo: botão "Ativar" (Amigos) → permissão do navegador → inscrição no sw-push.js → registrar_push (Supabase).
+        // Quando alguém recomenda algo, o banco chama a Edge Function enviar-push, que manda o aviso para os aparelhos inscritos.
+        // SQL: migrations/2026-10-13_push_notificacoes.sql · Função: supabase/functions/enviar-push/index.ts
+        const VAPID_PUBLIC_KEY = 'BJsMzjxkyqAmVBUTC0MCgS92Gjbv8WJL-sLtwBzMgr__nygh8yUZw9o9HEQ_W3MR4m2eDeeyK0l_mfQracyw79Q'; // chave pública (pode ficar no código)
+
+        // Lembra no aparelho que a pessoa desligou os avisos de propósito (para o login não religar sozinho)
+        const pushDesligadoPelaPessoa = () => { try { return localStorage.getItem('icine_push_off') === '1'; } catch (e) { return false; } };
+        const marcarPushDesligado = (v) => { try { if (v) localStorage.setItem('icine_push_off', '1'); else localStorage.removeItem('icine_push_off'); } catch (e) {} };
+        const pushSuportado = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+        function chaveVapidParaBytes(base64url) {
+            const b64 = (base64url + '='.repeat((4 - base64url.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+            return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        }
+        async function swPush() {
+            await navigator.serviceWorker.register('sw-push.js');
+            return navigator.serviceWorker.ready;
+        }
+        async function inscricaoAtual() {
+            if (!pushSuportado()) return null;
+            const reg = await navigator.serviceWorker.getRegistration();
+            return reg ? reg.pushManager.getSubscription() : null;
+        }
+        async function gravarAparelhoPush(sub) {
+            const j = sub.toJSON();
+            const { error } = await supabaseClient.rpc('registrar_push', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth });
+            if (error) throw error;
+        }
+
+        // Depois do login: se este aparelho já aceitou avisos, garante que a conta atual está ligada a ele
+        async function sincronizarPush() {
+            try {
+                if (!pushSuportado() || Notification.permission !== 'granted' || pushDesligadoPelaPessoa()) return;
+                const reg = await swPush();
+                const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveVapidParaBytes(VAPID_PUBLIC_KEY) });
+                await gravarAparelhoPush(sub);
+            } catch (e) { console.warn('Não foi possível sincronizar os avisos:', e); }
+        }
+
+        async function ativarPush() {
+            const btn = document.getElementById('btn-push'); btn.disabled = true;
+            try {
+                const permissao = await Notification.requestPermission();
+                if (permissao !== 'granted') return;
+                marcarPushDesligado(false);
+                const reg = await swPush();
+                const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveVapidParaBytes(VAPID_PUBLIC_KEY) });
+                await gravarAparelhoPush(sub);
+            } catch (e) {
+                console.error('Erro ao ativar avisos:', e);
+                alert('Não foi possível ativar os avisos neste aparelho. Tente de novo.');
+            } finally { btn.disabled = false; atualizarCardPush(); }
+        }
+
+        // Tira este aparelho da conta atual. desligar=true (botão "Desativar") também cancela a inscrição no navegador;
+        // desligar=false (ao "Sair") só desvincula da conta: no próximo login o aparelho é ligado de novo.
+        async function removerAparelhoPush(desligar = true) {
+            try {
+                if (desligar) marcarPushDesligado(true);
+                const sub = await inscricaoAtual();
+                if (sub) {
+                    await supabaseClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+                    if (desligar) await sub.unsubscribe();
+                }
+            } catch (e) { console.warn('Não foi possível remover o aparelho dos avisos:', e); }
+            if (desligar) atualizarCardPush();
+        }
+
+        async function atualizarCardPush() {
+            const box = document.getElementById('push-box'), texto = document.getElementById('push-texto'), btn = document.getElementById('btn-push');
+            if (!box) return;
+            box.style.display = 'flex'; box.classList.remove('ativo'); btn.style.display = 'none'; btn.className = 'push-btn';
+            if (!pushSuportado()) { texto.textContent = '🔔 Para receber avisos no iPhone, abra o iCine pelo ícone da Tela de Início (Compartilhar → Adicionar à Tela de Início).'; return; }
+            if (Notification.permission === 'denied') { texto.textContent = '🔕 Os avisos estão bloqueados. Libere as notificações do iCine nas configurações do navegador.'; return; }
+            const sub = await inscricaoAtual();
+            if (sub && Notification.permission === 'granted') {
+                box.classList.add('ativo'); texto.textContent = '🔔 Avisos ativados neste aparelho.';
+                btn.textContent = 'Desativar'; btn.classList.add('sec'); btn.onclick = () => removerAparelhoPush(true);
+            } else {
+                texto.textContent = '🔔 Receber um aviso quando um amigo recomendar um filme.';
+                btn.textContent = 'Ativar'; btn.onclick = ativarPush;
+            }
+            btn.style.display = '';
+        }
+
+        // Tocou no aviso com o app já aberto: o service worker manda a aba para abrir
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (e) => {
+                const aba = e.data && e.data.aba;
+                if (aba && document.getElementById(`aba-${aba}`) && usuarioAtual) mudarAba(aba);
+            });
         }
 
         // =========================================

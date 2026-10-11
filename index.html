@@ -551,6 +551,20 @@
         .aval-estrelas { display: flex; gap: 1px; font-size: 0.8rem; color: #374151; }
         .aval-estrelas .on { color: #facc15; }
         .aval-nota b { font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+        .aval-nota { justify-content: space-between; }
+        .aval-nota-esq { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .aval-like { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border: none; background: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; border-radius: 999px; }
+        .aval-like svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s; }
+        .aval-like.curtiu { color: var(--pink); }
+        .aval-like.curtiu svg { fill: var(--pink); stroke: var(--pink); }
+        .aval-like:active svg { transform: scale(1.25); }
+        .aval-like:focus-visible, .aval-acao:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+        .aval-usuario { position: relative; }
+        .aval-acoes-dono { margin-left: auto; display: flex; gap: 2px; }
+        .aval-acao { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 50%; }
+        .aval-acao svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .aval-acao:active { background: rgba(255, 255, 255, 0.08); }
+        .aval-acao.excluir:active { color: var(--red); }
         .aval-folha-topo { display: flex; gap: 12px; align-items: center; text-align: left; margin-bottom: 1rem; }
         .aval-folha-topo img { width: 56px; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; background: #1f2937; }
         .aval-folha-topo small { color: var(--text-muted); }
@@ -3005,6 +3019,15 @@
             (perfis || []).forEach(p => fotosPerfis.set(p.user_id, p.foto_url));
             const amigos = new Set(listaAmigos.map(a => a.user_id));
 
+            // Curtidas: total por avaliação e se EU curti
+            curtidasAval.clear();
+            const { data: curtidas } = await supabaseClient.from('avaliacao_curtidas').select('avaliacao_id, user_id').in('avaliacao_id', data.map(a => a.id));
+            (curtidas || []).forEach(c => {
+                const e = curtidasAval.get(c.avaliacao_id) || { total: 0, eu: false };
+                e.total++; if (c.user_id === usuarioAtual.id) e.eu = true;
+                curtidasAval.set(c.avaliacao_id, e);
+            });
+
             // Amigos primeiro; dentro de cada grupo, mais recentes primeiro (o banco já entrega nessa ordem)
             const ordenadas = [...data.filter(a => amigos.has(a.user_id)), ...data.filter(a => !amigos.has(a.user_id))];
             lista.innerHTML = ordenadas.map(a => {
@@ -3012,7 +3035,9 @@
                 bancoDeFilmesLocal.set(chave, bancoDeFilmesLocal.get(chave) || { id: chave, tmdbId: Number(a.tmdb_id), tipo: a.tipo, titulo: a.titulo, ano: a.ano, capa: a.capa, sinopse: a.sinopse });
                 const nome = nomes.get(a.user_id) || 'cinefilo_oculto';
                 const ehAmigo = amigos.has(a.user_id);
-                return `<article class="aval-item">
+                const ehMinha = a.user_id === usuarioAtual.id;
+                const cur = curtidasAval.get(a.id) || { total: 0, eu: false };
+                return `<article class="aval-item" data-id="${a.id}">
                     <button type="button" class="aval-poster" data-chave="${chave}" aria-label="Abrir ${escaparHTML(a.titulo)}">
                         ${a.capa ? `<img src="${escaparHTML(a.capa)}" alt="" loading="lazy">` : ''}
                         ${a.tipo === 'serie' ? '<span class="aval-selo">Série</span>' : ''}
@@ -3024,19 +3049,54 @@
                                 <div class="aval-nome">@${escaparHTML(nome)}${ehAmigo ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo">★</span>' : ''}</div>
                                 <div class="aval-quando">${tempoRelativo(a.created_at)}</div>
                             </div>
+                            ${ehMinha ? `<div class="aval-acoes-dono">
+                                <button type="button" class="aval-acao editar" data-chave="${chave}" aria-label="Editar minha avaliação" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+                                <button type="button" class="aval-acao excluir" data-id="${a.id}" aria-label="Excluir minha avaliação" title="Excluir"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button>
+                            </div>` : ''}
                         </div>
                         <div class="aval-titulo">${escaparHTML(a.titulo)}${a.ano ? ` · ${escaparHTML(a.ano)}` : ''}</div>
                         ${a.comentario ? `<div class="aval-comentario">${escaparHTML(a.comentario)}</div>` : ''}
-                        <div class="aval-nota"><div class="aval-estrelas" aria-label="Nota ${a.nota} de 10">${estrelasHTML(a.nota)}</div><b>${a.nota}/10</b></div>
+                        <div class="aval-nota">
+                            <div class="aval-nota-esq"><div class="aval-estrelas" aria-label="Nota ${a.nota} de 10">${estrelasHTML(a.nota)}</div><b>${a.nota}/10</b></div>
+                            <button type="button" class="aval-like${cur.eu ? ' curtiu' : ''}" data-id="${a.id}" aria-pressed="${cur.eu}" aria-label="Curtir avaliação"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg><span class="aval-like-n">${cur.total}</span></button>
+                        </div>
                     </div>
                 </article>`;
             }).join('');
         }
 
+        const curtidasAval = new Map(); // avaliacao_id -> { total, eu }
+
         document.getElementById('lista-avaliacoes').addEventListener('click', (e) => {
+            const like = e.target.closest('.aval-like'); if (like) return alternarCurtidaAvaliacao(like);
+            const editar = e.target.closest('.aval-acao.editar'); if (editar) return abrirAvaliacao(normalizarChave(editar.dataset.chave), false);
+            const excluir = e.target.closest('.aval-acao.excluir'); if (excluir) return excluirAvaliacao(excluir.dataset.id);
             const poster = e.target.closest('.aval-poster'); if (!poster) return;
             abrirDetalhes(normalizarChave(poster.dataset.chave));
         });
+
+        async function alternarCurtidaAvaliacao(btn) {
+            const id = btn.dataset.id;
+            const e = curtidasAval.get(id) || { total: 0, eu: false };
+            const antes = { ...e };
+            e.eu = !e.eu; e.total += e.eu ? 1 : -1; curtidasAval.set(id, e);
+            btn.classList.toggle('curtiu', e.eu); btn.setAttribute('aria-pressed', e.eu); btn.querySelector('.aval-like-n').innerText = e.total;
+            const { error } = e.eu
+                ? await supabaseClient.from('avaliacao_curtidas').insert([{ avaliacao_id: id, user_id: usuarioAtual.id }])
+                : await supabaseClient.from('avaliacao_curtidas').delete().eq('avaliacao_id', id).eq('user_id', usuarioAtual.id);
+            if (error) { // desfaz na tela se o banco recusou
+                console.error('Erro ao curtir:', error);
+                curtidasAval.set(id, antes);
+                btn.classList.toggle('curtiu', antes.eu); btn.setAttribute('aria-pressed', antes.eu); btn.querySelector('.aval-like-n').innerText = antes.total;
+            }
+        }
+
+        async function excluirAvaliacao(id) {
+            if (!confirm('Excluir esta avaliação? As curtidas dela também serão apagadas.')) return;
+            const { error } = await supabaseClient.from('avaliacoes').delete().eq('id', id).eq('user_id', usuarioAtual.id);
+            if (error) { console.error('Erro ao excluir avaliação:', error); alert('Não foi possível excluir. Tente novamente.'); return; }
+            carregarAvaliacoes();
+        }
 
         // Botão "Avaliar um filme que vi": escolhe entre os Assistidos
         document.getElementById('btn-aval-compor').addEventListener('click', () => {
@@ -3068,7 +3128,7 @@
             document.getElementById('aval-sub').innerText = [conteudo.ano, existente ? 'editar sua avaliação' : 'marcado como Assistido'].filter(Boolean).join(' · ');
             document.getElementById('aval-comentario').value = existente?.comentario || '';
             marcarNotaAvaliacao(existente ? existente.nota : 0);
-            const btn = document.getElementById('btn-aval-publicar'); btn.disabled = false; btn.innerText = 'Publicar no Feed';
+            const btn = document.getElementById('btn-aval-publicar'); btn.disabled = false; btn.innerText = existente ? 'Salvar alterações' : 'Publicar no Feed'; btn.dataset.rotulo = btn.innerText; document.getElementById('btn-aval-agora-nao').innerText = existente ? 'Cancelar' : 'Agora não';
             abrirModalSeguro('modal-avaliar');
         }
 
@@ -3093,9 +3153,9 @@
             btn.disabled = true; btn.innerText = 'Publicando...';
             const { error } = await supabaseClient.from('avaliacoes').upsert({
                 user_id: usuarioAtual.id, tmdb_id: tmdbId, tipo, titulo: c.titulo, ano: (String(c.ano || '').match(/\d{4}/) || [null])[0],
-                capa: c.capa || null, sinopse: c.sinopse || null, nota: notaAvaliacao, comentario: comentario || null, created_at: new Date().toISOString()
+                capa: c.capa || null, sinopse: c.sinopse || null, nota: notaAvaliacao, comentario: comentario || null
             }, { onConflict: 'user_id,tmdb_id,tipo' });
-            if (error) { console.error('Erro ao publicar avaliação:', error); btn.disabled = false; btn.innerText = 'Publicar no Feed'; alert('Não foi possível publicar. Tente novamente.'); return; }
+            if (error) { console.error('Erro ao publicar avaliação:', error); btn.disabled = false; btn.innerText = btn.dataset.rotulo || 'Publicar no Feed'; alert('Não foi possível publicar. Tente novamente.'); return; }
             fecharModalSeguro('modal-avaliar');
             if (document.getElementById('aba-comunidade').classList.contains('ativa') && feedAtual === 'avaliacoes') carregarAvaliacoes();
         });

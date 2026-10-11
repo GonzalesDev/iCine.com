@@ -45,7 +45,10 @@ como trabalhamos e as decisões tomadas desde então.
   (`user_id, tmdb_id, tipo`), nota 0–10, comentário opcional (até 280). Salva com upsert.
 - Feed mostra avaliações de **todos**, com as dos **amigos primeiro** e uma estrela verde ao lado do nome.
 - Ao marcar como Assistido (`salvarNoGrupo('ja')` / `moverFilme(id,'ja')`) abre a janela de avaliar
-  automaticamente com "Agora não" (só se ainda não avaliou). Sem curtidas nas avaliações (decisão do usuário).
+  automaticamente com "Agora não" (só se ainda não avaliou).
+- Dono da avaliação vê ícones de **editar** (reabre a janela, mantém a data) e **excluir** (confirm).
+- Curtidas ❤️ (decisão revista em 11/10): tabela `avaliacao_curtidas` (`migrations/2026-10-11_curtidas_avaliacoes.sql`),
+  uma por pessoa e avaliação; coração + contagem no canto inferior direito de cada avaliação.
 
 ## Foto de perfil (bloco "JS FOTO DE PERFIL")
 - Coluna `perfis.foto_url` (`migrations/2026-10-05_foto_perfil.sql`). Troca tocando no próprio avatar

@@ -83,3 +83,5 @@ como trabalhamos e as decisões tomadas desde então.
   Atualizado por `atualizarAvatarHeader()`: chamada em `verificarPerfil`, ao criar o @username e ao trocar a foto.
 - Consistência do cartão: se o banco recusar a gravação do aparelho (`gravarOuDesfazerPush`), a inscrição do
   navegador é desfeita; o cartão só mostra "ativado" quando o servidor conhece o aparelho.
+- Último perfil conhecido fica em `localStorage.icine_meu_perfil` (username e foto). O cabeçalho usa esse cache
+  ao abrir o app e depois confirma com o servidor (`verificarPerfil`). Some ao sair da conta.

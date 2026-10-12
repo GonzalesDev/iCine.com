@@ -1278,6 +1278,7 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session) {
                     usuarioAtual = session.user;
+                    atualizarAvatarHeader(lerPerfilCache()); // mostra a última foto conhecida enquanto o servidor responde
                     document.getElementById('tela-login').style.display = 'none';
                     // Garante que o conteúdo seja mostrado
                     carregarFilmesDaNuvem(); 
@@ -1319,6 +1320,7 @@
 
         document.getElementById('btn-sair-acao').addEventListener('click', async () => {
             await removerAparelhoPush(false);
+            salvarPerfilCache(null);
             await supabaseClient.auth.signOut();
             listaQueroAssistir = []; listaJaAssisti = []; minhasPlaylists = []; bancoDeFilmesLocal.clear();
             checarSessao();
@@ -2771,6 +2773,7 @@
                 const { data, error } = await supabaseClient.from('perfis').select('*').eq('user_id', usuarioAtual.id).maybeSingle();
                 if (data && data.username) { meuPerfil = data; } else { meuPerfil = null; }
             } catch(e) { meuPerfil = null; }
+            salvarPerfilCache(meuPerfil);
             atualizarAvatarHeader();
             carregarAmigos();
         }
@@ -2801,11 +2804,16 @@
         }
 
         // Ícone de Amigos no cabeçalho mostra a foto de perfil (ou a inicial) do próprio usuário
-        function atualizarAvatarHeader() {
+        // Último perfil conhecido fica no aparelho: o cabeçalho mostra a foto logo ao abrir, antes da resposta do servidor
+        const CHAVE_PERFIL_CACHE = 'icine_meu_perfil';
+        function salvarPerfilCache(p) { try { if (p) localStorage.setItem(CHAVE_PERFIL_CACHE, JSON.stringify({ username: p.username, foto_url: p.foto_url || null })); else localStorage.removeItem(CHAVE_PERFIL_CACHE); } catch (e) {} }
+        function lerPerfilCache() { try { return JSON.parse(localStorage.getItem(CHAVE_PERFIL_CACHE) || 'null'); } catch (e) { return null; } }
+
+        function atualizarAvatarHeader(perfil = meuPerfil) {
             const btn = document.getElementById('btn-amigos');
             if (!btn) return;
-            const usuario = meuPerfil?.username;
-            const foto = meuPerfil?.foto_url;
+            const usuario = perfil?.username;
+            const foto = perfil?.foto_url;
             let av = btn.querySelector('.header-avatar');
             if (!usuario) { // sem perfil ainda: volta ao ícone de sempre
                 if (av) av.remove();

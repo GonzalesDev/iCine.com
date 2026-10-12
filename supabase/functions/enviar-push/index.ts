@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
   }
 
   const aparelhos: Aparelho[] = evento.aparelhos ?? [];
-  if (!aparelhos.length) return Response.json({ enviados: 0 });
+  if (!aparelhos.length) return Response.json({ enviados: 0, expirados: 0, aparelhos: 0 });
 
   const quem = evento.remetente ? `@${evento.remetente}` : 'Um amigo';
   const oQue = rec.tipo === 'serie' ? 'a série' : 'o filme';
@@ -61,5 +61,5 @@ Deno.serve(async (req) => {
     }
   }));
 
-  return Response.json({ enviados, expirados: expirados.length });
+  return Response.json({ enviados, expirados: expirados.length, aparelhos: aparelhos.length });
 });

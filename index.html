@@ -2813,7 +2813,8 @@
                 return;
             }
             if (!av) { av = document.createElement('div'); av.className = 'header-avatar'; btn.insertBefore(av, btn.firstChild); }
-            av.innerHTML = avatarConteudo(usuario, foto);
+            av.innerHTML = avatarConteudo(usuario, foto).replace(' loading="lazy"', ''); // cabeçalho: foto carrega já, sem adiar
+            if (foto) { const pre = new Image(); pre.src = foto; } // pré-carrega antes de desenhar
             btn.classList.add('com-foto');
         }
 

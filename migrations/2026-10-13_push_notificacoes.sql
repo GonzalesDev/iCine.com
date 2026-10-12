@@ -49,9 +49,10 @@ $$;
 REVOKE ALL ON FUNCTION public.registrar_push(TEXT, TEXT, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.registrar_push(TEXT, TEXT, TEXT) TO authenticated;
 
--- 4) Gatilho: a cada recomendação nova, chama a Edge Function enviar-push.
---    Acha sozinho o schema do pg_net. Se der erro, registra o motivo nos logs
---    e NÃO impede a recomendação de ser salva.
+-- 4) Gatilho: a cada recomendação nova, manda para a Edge Function enviar-push
+--    os aparelhos do destinatário e o nome de quem recomendou. Assim a função
+--    não precisa ler o banco. Acha sozinho o schema do pg_net. Se der erro, registra
+--    o motivo nos logs e NÃO impede a recomendação de ser salva.
 CREATE OR REPLACE FUNCTION public.notificar_push_recomendacao()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -60,6 +61,8 @@ SET search_path = public, extensions
 AS $$
 DECLARE
   sch TEXT;
+  nome_remetente TEXT;
+  aparelhos JSONB;
 BEGIN
   SELECT COALESCE(
     (SELECT n.nspname::text
@@ -69,11 +72,27 @@ BEGIN
     'net')
   INTO sch;
 
+  SELECT p.username INTO nome_remetente
+  FROM public.perfis p
+  WHERE p.user_id = NEW.remetente_id;
+
+  SELECT COALESCE(jsonb_agg(jsonb_build_object(
+           'id', s.id, 'endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth)), '[]'::jsonb)
+  INTO aparelhos
+  FROM public.push_subscriptions s
+  WHERE s.user_id = NEW.destinatario_id;
+
   EXECUTE format('SELECT %I.http_post(url := $1, headers := $2, body := $3)', sch)
     USING
       'https://kvwwbnwpnrzghgblgjpj.supabase.co/functions/v1/enviar-push',
       jsonb_build_object('Content-Type', 'application/json', 'x-webhook-secret', 'COLE_AQUI_O_SEGREDO'),
-      jsonb_build_object('type', 'INSERT', 'table', 'recomendacoes_amigos', 'record', to_jsonb(NEW));
+      jsonb_build_object(
+        'type', 'INSERT',
+        'table', 'recomendacoes_amigos',
+        'record', to_jsonb(NEW),
+        'remetente', nome_remetente,
+        'aparelhos', aparelhos
+      );
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN

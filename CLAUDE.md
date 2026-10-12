@@ -67,7 +67,9 @@ como trabalhamos e as decisões tomadas desde então.
 
 ## Avisos no celular (Web Push) — recomendações
 - Fluxo: recomendação criada → gatilho `trg_push_recomendacao` (pg_net) → Edge Function `enviar-push`
-  (`supabase/functions/enviar-push/`) → aviso para os aparelhos em `push_subscriptions` do destinatário.
+  (`supabase/functions/enviar-push/`) → aviso. O gatilho lê `push_subscriptions` e `perfis` (roda como dono da tabela,
+  por isso passa por RLS) e manda `aparelhos` + `remetente` no corpo; a função só envia, sem ler o banco
+  (antes ela lia e recebia lista vazia por RLS, com `{"enviados":0}`).
   SQL: `migrations/2026-10-13_push_notificacoes.sql` (tem o placeholder `COLE_AQUI_O_SEGREDO`; nunca commitar o real).
 - App: bloco "JS AVISOS NO CELULAR (WEB PUSH)"; cartão "Ativar/Desativar" na tela de Amigos; `sw-push.js` só recebe
   avisos (sem cache). O app **continua apagando os service workers antigos** ao abrir (exceto `sw-push.js`).

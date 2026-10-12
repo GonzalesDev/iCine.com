@@ -1,26 +1,22 @@
 // iCine — Edge Function "enviar-push"
-// Chamada pelo banco (gatilho em recomendacoes_amigos) a cada recomendação nova.
-// Envia um aviso push para todos os aparelhos inscritos do destinatário.
+// Chamada pelo gatilho do banco (trg_push_recomendacao) a cada recomendação nova.
+// O próprio banco manda no corpo os aparelhos do destinatário e o nome de quem recomendou,
+// então esta função NÃO lê o banco e não precisa de chave de acesso ao banco.
 //
-// Segredos necessários (Supabase → Edge Functions → Secrets):
-//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY  — chaves do Web Push
-//   WEBHOOK_SECRET                       — senha que o gatilho do banco manda no cabeçalho x-webhook-secret
-// (SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY já existem automaticamente)
-// Desligue "Verify JWT" desta função: quem chama é o banco, e a proteção é o WEBHOOK_SECRET.
+// Secrets necessários (Edge Functions → Secrets): VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, WEBHOOK_SECRET
+// "Verify JWT" deve ficar DESLIGADO.
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const supabase = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-
 webpush.setVapidDetails(
-  Deno.env.get('VAPID_SUBJECT') ?? SUPABASE_URL,
+  Deno.env.get('VAPID_SUBJECT') ?? 'https://kvwwbnwpnrzghgblgjpj.supabase.co',
   Deno.env.get('VAPID_PUBLIC_KEY')!,
   Deno.env.get('VAPID_PRIVATE_KEY')!,
 );
 
 const cortar = (t: string, n: number) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
+
+type Aparelho = { id: string; endpoint: string; p256dh: string; auth: string };
 
 Deno.serve(async (req) => {
   if (req.headers.get('x-webhook-secret') !== Deno.env.get('WEBHOOK_SECRET')) {
@@ -33,13 +29,10 @@ Deno.serve(async (req) => {
     return Response.json({ ignorado: true });
   }
 
-  const [{ data: remetente }, { data: aparelhos }] = await Promise.all([
-    supabase.from('perfis').select('username').eq('user_id', rec.remetente_id).maybeSingle(),
-    supabase.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('user_id', rec.destinatario_id),
-  ]);
-  if (!aparelhos?.length) return Response.json({ enviados: 0 });
+  const aparelhos: Aparelho[] = evento.aparelhos ?? [];
+  if (!aparelhos.length) return Response.json({ enviados: 0 });
 
-  const quem = remetente?.username ? `@${remetente.username}` : 'Um amigo';
+  const quem = evento.remetente ? `@${evento.remetente}` : 'Um amigo';
   const oQue = rec.tipo === 'serie' ? 'a série' : 'o filme';
   let corpo = `${quem} recomendou ${oQue} ${rec.titulo_filme}`;
   if (rec.mensagem) corpo += `\n“${cortar(String(rec.mensagem), 100)}”`;
@@ -52,7 +45,7 @@ Deno.serve(async (req) => {
   });
 
   let enviados = 0;
-  const mortos: string[] = [];
+  const expirados: string[] = [];
   await Promise.all(aparelhos.map(async (a) => {
     try {
       await webpush.sendNotification(
@@ -63,11 +56,10 @@ Deno.serve(async (req) => {
       enviados++;
     } catch (e) {
       const status = (e as { statusCode?: number }).statusCode;
-      if (status === 404 || status === 410) mortos.push(a.id); // aparelho desinstalou ou revogou: limpa
+      if (status === 404 || status === 410) expirados.push(a.id); // aparelho desinstalou ou revogou
       else console.error('Falha ao enviar push', status, (e as Error).message);
     }
   }));
-  if (mortos.length) await supabase.from('push_subscriptions').delete().in('id', mortos);
 
-  return Response.json({ enviados, removidos: mortos.length });
+  return Response.json({ enviados, expirados: expirados.length });
 });

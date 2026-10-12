@@ -1196,15 +1196,23 @@
     <script>
         console.log("iCine Full Stack Core Active!");
 
-        // Remove service workers antigos (cache velho), mas mantém o sw-push.js, que só recebe avisos.
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (let registration of registrations) {
-                    const sw = registration.active || registration.waiting || registration.installing;
-                    if (!sw || !sw.scriptURL.endsWith('/sw-push.js')) registration.unregister();
-                }
-            });
-        }
+        // Remove service workers antigos e caches (guardavam uma cópia velha do app no aparelho).
+        // Se havia um service worker antigo controlando esta página, recarrega uma vez para abrir a versão nova.
+        // O sw-push.js é mantido, pois só recebe avisos.
+        (async function limparCopiaAntiga() {
+            if (!('serviceWorker' in navigator)) return;
+            let removeu = false;
+            for (const registration of await navigator.serviceWorker.getRegistrations()) {
+                const sw = registration.active || registration.waiting || registration.installing;
+                if (!sw || !sw.scriptURL.endsWith('/sw-push.js')) { await registration.unregister(); removeu = true; }
+            }
+            if ('caches' in window) for (const k of await caches.keys()) await caches.delete(k);
+            let jaRecarregou = false; try { jaRecarregou = sessionStorage.getItem('icine_recarregou') === '1'; } catch (e) {}
+            if (removeu && !jaRecarregou && navigator.serviceWorker.controller) {
+                try { sessionStorage.setItem('icine_recarregou', '1'); } catch (e) {}
+                location.reload();
+            }
+        })();
         // Aba pedida pelo link (tocar no aviso com o app fechado abre ./?aba=amigos). Lida aqui porque o load limpa a URL.
         const abaDoLink = new URLSearchParams(window.location.search).get('aba');
 

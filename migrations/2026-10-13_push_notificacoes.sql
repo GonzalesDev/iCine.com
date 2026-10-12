@@ -49,10 +49,18 @@ $$;
 REVOKE ALL ON FUNCTION public.registrar_push(TEXT, TEXT, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.registrar_push(TEXT, TEXT, TEXT) TO authenticated;
 
--- 4) Gatilho: a cada recomendação nova, manda para a Edge Function enviar-push
+-- 4) Registro de erros do envio (para diagnóstico). Só o banco lê esta tabela.
+CREATE TABLE IF NOT EXISTS public.push_erros (
+  id     BIGSERIAL PRIMARY KEY,
+  quando TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  erro   TEXT
+);
+ALTER TABLE public.push_erros ENABLE ROW LEVEL SECURITY;
+
+-- 5) Gatilho: a cada recomendação nova, manda para a Edge Function enviar-push
 --    os aparelhos do destinatário e o nome de quem recomendou. Assim a função
---    não precisa ler o banco. Acha sozinho o schema do pg_net. Se der erro, registra
---    o motivo nos logs e NÃO impede a recomendação de ser salva.
+--    não precisa ler o banco. Acha sozinho o schema do pg_net. Qualquer erro fica
+--    registrado em push_erros e NÃO impede a recomendação de ser salva.
 CREATE OR REPLACE FUNCTION public.notificar_push_recomendacao()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -63,6 +71,7 @@ DECLARE
   sch TEXT;
   nome_remetente TEXT;
   aparelhos JSONB;
+  id_pedido BIGINT;
 BEGIN
   SELECT COALESCE(
     (SELECT n.nspname::text
@@ -83,6 +92,7 @@ BEGIN
   WHERE s.user_id = NEW.destinatario_id;
 
   EXECUTE format('SELECT %I.http_post(url := $1, headers := $2, body := $3)', sch)
+    INTO id_pedido
     USING
       'https://kvwwbnwpnrzghgblgjpj.supabase.co/functions/v1/enviar-push',
       jsonb_build_object('Content-Type', 'application/json', 'x-webhook-secret', 'COLE_AQUI_O_SEGREDO'),
@@ -94,9 +104,11 @@ BEGIN
         'aparelhos', aparelhos
       );
 
+  INSERT INTO public.push_erros (erro)
+  VALUES ('pedido enviado, id ' || id_pedido || ', aparelhos ' || jsonb_array_length(aparelhos));
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
-  RAISE WARNING 'Falha ao disparar aviso de recomendação: %', SQLERRM;
+  INSERT INTO public.push_erros (erro) VALUES ('ERRO: ' || SQLSTATE || ' - ' || SQLERRM);
   RETURN NEW;
 END;
 $$;

@@ -1,39 +1,13 @@
-const CACHE_NAME = 'icine-v2';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json'
-];
-
-self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Força a atualização imediata no telemóvel
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-});
+// iCine — este service worker agora só se desativa.
+// Ele substitui a versão antiga (que guardava uma cópia velha do app no aparelho):
+// apaga os caches, se remove e recarrega as abas abertas para mostrar a versão nova.
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => {
-        if (key !== CACHE_NAME) return caches.delete(key);
-      })
-    ))
-  );
-});
-
-self.addEventListener('fetch', (e) => {
-  // Ignora chamadas a APIs (Supabase, Groq, etc)
-  if (e.request.method !== 'GET') return;
-
-  // ESTRATÉGIA NETWORK FIRST: Tenta a internet primeiro. Se falhar, usa o cache.
-  e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(e.request))
-  );
+  e.waitUntil((async () => {
+    for (const chave of await caches.keys()) await caches.delete(chave);
+    await self.registration.unregister();
+    const abas = await self.clients.matchAll({ type: 'window' });
+    abas.forEach((aba) => aba.navigate(aba.url));
+  })());
 });

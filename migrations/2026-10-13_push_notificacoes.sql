@@ -59,8 +59,8 @@ ALTER TABLE public.push_erros ENABLE ROW LEVEL SECURITY;
 
 -- 5) Gatilho: a cada recomendação nova, manda para a Edge Function enviar-push
 --    os aparelhos do destinatário e o nome de quem recomendou. Assim a função
---    não precisa ler o banco. Acha sozinho o schema do pg_net. Qualquer erro fica
---    registrado em push_erros e NÃO impede a recomendação de ser salva.
+--    não precisa ler o banco. As funções do pg_net ficam no schema net.
+--    Qualquer erro fica registrado em push_erros e NÃO impede a recomendação de ser salva.
 CREATE OR REPLACE FUNCTION public.notificar_push_recomendacao()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -68,19 +68,10 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  sch TEXT;
   nome_remetente TEXT;
   aparelhos JSONB;
   id_pedido BIGINT;
 BEGIN
-  SELECT COALESCE(
-    (SELECT n.nspname::text
-       FROM pg_extension e
-       JOIN pg_namespace n ON n.oid = e.extnamespace
-      WHERE e.extname = 'pg_net'),
-    'net')
-  INTO sch;
-
   SELECT p.username INTO nome_remetente
   FROM public.perfis p
   WHERE p.user_id = NEW.remetente_id;
@@ -91,18 +82,17 @@ BEGIN
   FROM public.push_subscriptions s
   WHERE s.user_id = NEW.destinatario_id;
 
-  EXECUTE format('SELECT %I.http_post(url := $1, headers := $2, body := $3)', sch)
-    INTO id_pedido
-    USING
-      'https://kvwwbnwpnrzghgblgjpj.supabase.co/functions/v1/enviar-push',
-      jsonb_build_object('Content-Type', 'application/json', 'x-webhook-secret', 'COLE_AQUI_O_SEGREDO'),
-      jsonb_build_object(
-        'type', 'INSERT',
-        'table', 'recomendacoes_amigos',
-        'record', to_jsonb(NEW),
-        'remetente', nome_remetente,
-        'aparelhos', aparelhos
-      );
+  SELECT net.http_post(
+    url := 'https://kvwwbnwpnrzghgblgjpj.supabase.co/functions/v1/enviar-push',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-webhook-secret', 'COLE_AQUI_O_SEGREDO'),
+    body := jsonb_build_object(
+      'type', 'INSERT',
+      'table', 'recomendacoes_amigos',
+      'record', to_jsonb(NEW),
+      'remetente', nome_remetente,
+      'aparelhos', aparelhos
+    )
+  ) INTO id_pedido;
 
   INSERT INTO public.push_erros (erro)
   VALUES ('pedido enviado, id ' || id_pedido || ', aparelhos ' || jsonb_array_length(aparelhos));

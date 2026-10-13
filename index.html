@@ -528,6 +528,22 @@
         .push-btn.sec { border-color: #374151; background: transparent; color: var(--text-muted); }
         .push-btn:disabled { opacity: 0.5; cursor: wait; }
         .push-btn:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+        /* Busca dentro da playlist */
+        .bp-box { margin-bottom: 1.25rem; }
+        .bp-campo { position: relative; }
+        .bp-campo input { padding-left: 2.6rem; border-radius: 999px; }
+        .bp-lupa { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 1rem; }
+        .bp-dica { color: var(--text-muted); font-size: 0.85rem; margin: 0.7rem 0.25rem 0; }
+        .bp-resultados { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; max-height: 46vh; overflow-y: auto; }
+        .bp-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 12px; background: var(--card-bg); border: 1px solid #1f2937; }
+        .bp-item img { width: 44px; aspect-ratio: 2/3; object-fit: cover; border-radius: 6px; background: #1f2937; flex-shrink: 0; }
+        .bp-info { flex: 1; min-width: 0; }
+        .bp-titulo { font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bp-sub { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+        .bp-add { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.6); background: rgba(139, 92, 246, 0.15); color: #fff; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+        .bp-add.ok { border-color: rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.12); color: #86efac; cursor: default; }
+        .bp-add:disabled { opacity: 0.6; }
+        .bp-add:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
         .amigo-info { flex: 1; min-width: 0; }
         .amigo-username { font-weight: 700; font-size: 0.95rem; }
         .amigo-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
@@ -1006,6 +1022,14 @@
                 <h2 id="titulo-ver-playlist" style="position: absolute; bottom: 20px; left: 20px; font-size: 2.2rem; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.9); margin: 0;">Nome</h2>
             </div>
             <div style="padding: 1.5rem 1rem;">
+                <div id="busca-playlist-box" class="bp-box" style="display:none;">
+                    <div class="bp-campo">
+                        <span class="bp-lupa" aria-hidden="true">🔍</span>
+                        <input type="search" id="busca-playlist-input" class="filter-input" placeholder="Buscar filme ou série" autocomplete="off" enterkeyhint="search" aria-label="Buscar filme ou série para adicionar à playlist">
+                    </div>
+                    <p id="busca-playlist-dica" class="bp-dica">Digite o nome e toque em + para adicionar à playlist.</p>
+                    <div id="busca-playlist-resultados" class="bp-resultados"></div>
+                </div>
                 <p id="msg-playlist-vazia" class="empty-msg" style="display:none;">Esta playlist ainda não tem filmes.</p>
                 <div class="movies-grid" id="grid-ver-playlist"></div>
             </div>
@@ -1791,6 +1815,8 @@
                 const novaPlaylist = { user_id: usuarioAtual.id, nome: nome, capa_url: publicUrl, filmes: [], publica: isPublica, curtidas: [] };
                 const { error: dbError } = await supabaseClient.from('playlists').insert([novaPlaylist]); if (dbError) throw dbError;
                 await carregarPlaylistsDaNuvem(); fecharModalSeguro('modal-criar-playlist');
+                const criada = minhasPlaylists.find(pl => pl.capa_url === publicUrl); // abre a playlist nova já com a busca pronta
+                if (criada) setTimeout(() => abrirVerPlaylist(criada.id, false, true), 350);
             } catch (err) { msg.innerText = "Erro ao guardar na nuvem."; }
         });
 
@@ -1848,7 +1874,7 @@
             }
         }
 
-        function abrirVerPlaylist(playlistId, isAmigo = false) {
+        function abrirVerPlaylist(playlistId, isAmigo = false, focarBusca = false) {
             playlistAbertaAtualId = isAmigo ? null : playlistId;
             const p = isAmigo ? playlistsAmigoAtual.find(p => String(p.id) === String(playlistId)) : minhasPlaylists.find(p => String(p.id) === String(playlistId)); if (!p) return;
             (p.filmes || []).forEach(f => { bancoDeFilmesLocal.set(normalizarChave(f.id || f.tmdb_id), f); });
@@ -1866,7 +1892,82 @@
             else { document.getElementById('msg-playlist-vazia').style.display = 'none'; const contexto = isAmigo ? 'playlist-amigo' : 'minha-playlist'; grid.innerHTML = p.filmes.map(f => gerarCartaoFilmeHTML(f, contexto)).join(''); }
             if (document.getElementById('modal-ver-playlist').style.display !== 'flex') { abrirModalSeguro('modal-ver-playlist'); }
             mapearBotoesGrid();
+            configurarBuscaPlaylist(isAmigo ? null : p, focarBusca);
         }
+
+        // ===== Busca dentro da playlist: pesquisar filmes e séries e adicionar sem sair da tela =====
+        let buscaPlaylistId = null, buscaPlaylistTimer = null, buscaPlaylistPedido = 0;
+        let buscaPlaylistItens = []; // resultados atuais, já no formato guardado nas playlists
+
+        function configurarBuscaPlaylist(playlist, focar) {
+            const box = document.getElementById('busca-playlist-box'); if (!box) return;
+            if (!playlist) { box.style.display = 'none'; return; } // playlist de amigo ou da comunidade: só leitura
+            box.style.display = 'block';
+            if (String(buscaPlaylistId) !== String(playlist.id)) { // outra playlist: começa limpo
+                buscaPlaylistId = playlist.id; buscaPlaylistItens = [];
+                document.getElementById('busca-playlist-input').value = '';
+                document.getElementById('busca-playlist-resultados').innerHTML = '';
+                document.getElementById('busca-playlist-dica').textContent = 'Digite o nome e toque em + para adicionar à playlist.';
+            } else { renderizarResultadosBuscaPlaylist(); }
+            if (focar) setTimeout(() => document.getElementById('busca-playlist-input').focus(), 300);
+        }
+
+        function itemDaBusca(r) {
+            const ehSerie = r.media_type === 'tv';
+            const data = (ehSerie ? r.first_air_date : r.release_date) || '';
+            const base = { titulo: ehSerie ? r.name : r.title, ano: data.slice(0, 4) || 'N/A', notaTmdb: r.vote_average ? r.vote_average.toFixed(1) : '0.0', notaImdb: 'N/A', capa: `${IMG_BASE}${r.poster_path}`, sinopse: r.overview || 'Sinopse não disponibilizada.' };
+            return ehSerie ? { id: `tv:${r.id}`, tmdbId: r.id, tipo: 'serie', ...base } : { id: r.id, ...base };
+        }
+
+        function jaNaPlaylist(playlist, item) {
+            return (playlist.filmes || []).some(f => String(normalizarChave(f.id || f.tmdb_id)) === String(normalizarChave(item.id)));
+        }
+
+        function renderizarResultadosBuscaPlaylist() {
+            const playlist = minhasPlaylists.find(p => String(p.id) === String(buscaPlaylistId));
+            const box = document.getElementById('busca-playlist-resultados');
+            if (!playlist) { box.innerHTML = ''; return; }
+            box.innerHTML = buscaPlaylistItens.map(it => {
+                const ja = jaNaPlaylist(playlist, it);
+                return `<div class="bp-item">
+                    <img src="${escaparHTML(it.capa)}" alt="" loading="lazy">
+                    <div class="bp-info"><div class="bp-titulo">${escaparHTML(it.titulo)}</div><div class="bp-sub">${escaparHTML(it.ano)} · ${it.tipo === 'serie' ? 'Série' : 'Filme'}</div></div>
+                    <button type="button" class="bp-add${ja ? ' ok' : ''}" data-chave="${escaparHTML(String(it.id))}" ${ja ? 'disabled' : ''} aria-label="${ja ? 'Já está na playlist' : 'Adicionar à playlist'}">${ja ? '✓ Adicionado' : '+ Adicionar'}</button>
+                </div>`;
+            }).join('');
+        }
+
+        async function buscarParaPlaylist(termo) {
+            const dica = document.getElementById('busca-playlist-dica');
+            const meu = ++buscaPlaylistPedido;
+            if (termo.length < 2) { buscaPlaylistItens = []; renderizarResultadosBuscaPlaylist(); dica.textContent = 'Digite o nome e toque em + para adicionar à playlist.'; return; }
+            dica.textContent = 'Buscando… ⏳';
+            try {
+                const d = await fetch(`${URL_BASE}/search/multi?api_key=${TMDB_KEY}&language=pt-BR&include_adult=false&query=${encodeURIComponent(termo)}`).then(r => r.json());
+                if (meu !== buscaPlaylistPedido) return; // chegou uma resposta de busca mais antiga: ignora
+                buscaPlaylistItens = (d.results || []).filter(r => (r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path).slice(0, 10).map(itemDaBusca);
+                dica.textContent = buscaPlaylistItens.length ? 'Toque em + para adicionar à playlist.' : 'Nada encontrado. Tente outro nome.';
+                renderizarResultadosBuscaPlaylist();
+            } catch (e) { if (meu === buscaPlaylistPedido) dica.textContent = 'Não foi possível buscar agora. Tente de novo.'; }
+        }
+
+        document.getElementById('busca-playlist-input').addEventListener('input', (e) => {
+            clearTimeout(buscaPlaylistTimer);
+            const termo = e.target.value.trim();
+            buscaPlaylistTimer = setTimeout(() => buscarParaPlaylist(termo), 350);
+        });
+
+        document.getElementById('busca-playlist-resultados').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.bp-add'); if (!btn || btn.disabled) return;
+            const playlist = minhasPlaylists.find(p => String(p.id) === String(buscaPlaylistId)); if (!playlist) return;
+            const item = buscaPlaylistItens.find(it => String(it.id) === btn.dataset.chave); if (!item || jaNaPlaylist(playlist, item)) return;
+            btn.disabled = true; btn.textContent = 'Adicionando…';
+            const novosFilmes = [...(playlist.filmes || []), item];
+            const { error } = await supabaseClient.from('playlists').update({ filmes: novosFilmes }).eq('id', playlist.id);
+            if (error) { console.error('Erro ao adicionar na playlist:', error); alert('Não foi possível adicionar. Tente de novo.'); btn.disabled = false; btn.textContent = '+ Adicionar'; return; }
+            playlist.filmes = novosFilmes;
+            abrirVerPlaylist(playlist.id, false); // redesenha a lista da playlist embaixo e marca o item como adicionado
+        });
         document.getElementById('btn-fechar-ver-playlist').addEventListener('click', () => { fecharModalSeguro('modal-ver-playlist'); });
 
         // =========================================
@@ -2988,6 +3089,7 @@
 
         function abrirVerPlaylistGlobal(playlistId) {
             playlistAbertaAtualId = null; const p = playlistsComunidadeAtual.find(x => String(x.id) === String(playlistId)); if (!p) return;
+            configurarBuscaPlaylist(null);
             (p.filmes || []).forEach(f => { bancoDeFilmesLocal.set(normalizarChave(f.id || f.tmdb_id), f); });
             document.getElementById('titulo-ver-playlist').innerText = p.nome; document.getElementById('capa-ver-playlist').style.backgroundImage = `url('${p.capa_url}')`; document.getElementById('btn-editar-ver-playlist').style.display = 'none';
             const grid = document.getElementById('grid-ver-playlist');

@@ -85,3 +85,8 @@ como trabalhamos e as decisões tomadas desde então.
   navegador é desfeita; o cartão só mostra "ativado" quando o servidor conhece o aparelho.
 - Último perfil conhecido fica em `localStorage.icine_meu_perfil` (username e foto). O cabeçalho usa esse cache
   ao abrir o app e depois confirma com o servidor (`verificarPerfil`). Some ao sair da conta.
+
+## Busca dentro da playlist
+- Na tela de uma playlist **própria** (`abrirVerPlaylist`), `#busca-playlist-box` pesquisa filmes e séries juntos
+  (`/search/multi`) e o botão "+ Adicionar" grava direto em `playlists.filmes`. Playlists de amigos e da
+  comunidade não mostram a busca. Ao criar uma playlist, ela abre sozinha já com o campo de busca focado.

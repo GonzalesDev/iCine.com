@@ -90,3 +90,10 @@ como trabalhamos e as decisões tomadas desde então.
 - Na tela de uma playlist **própria** (`abrirVerPlaylist`), `#busca-playlist-box` pesquisa filmes e séries juntos
   (`/search/multi`) e o botão "+ Adicionar" grava direto em `playlists.filmes`. Playlists de amigos e da
   comunidade não mostram a busca. Ao criar uma playlist, ela abre sozinha já com o campo de busca focado.
+
+## Aba Avaliações nos detalhes do filme/série
+- Nos detalhes (`abrirDetalhes`), abas **Sinopse | Avaliações (N)** acima do texto. Usa a tabela `avaliacoes` do Feed por
+  título (`tmdb_id` + `tipo`), sem SQL novo. Resumo com média e nº de avaliações (e quantas de amigos), botão
+  Avaliar/Editar (mesma janela do Feed), sua avaliação no topo com editar/excluir, amigos primeiro, ❤️ (reusa
+  `alternarCurtidaAvaliacao`), 15 por vez com "Ver mais". Avaliações só com nota aparecem (só estrelas).
+  Estado em `detAval`; `recarregarAvaliacoesDetalhes()` é chamado ao publicar/excluir.

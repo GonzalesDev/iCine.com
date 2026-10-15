@@ -544,6 +544,22 @@
         .bp-add.ok { border-color: rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.12); color: #86efac; cursor: default; }
         .bp-add:disabled { opacity: 0.6; }
         .bp-add:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+        /* Detalhes: abas Sinopse | Avaliações */
+        .det-abas { display: flex; gap: 4px; padding: 4px; margin-top: 1.25rem; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); width: 100%; }
+        .det-abas button { flex: 1; padding: 10px 8px; border: none; border-radius: 999px; background: transparent; color: var(--text-muted); font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s, box-shadow 0.2s; }
+        .det-abas button.ativo { background: var(--purple); color: #fff; box-shadow: 0 0 12px rgba(139, 92, 246, 0.6); }
+        .det-abas button:focus-visible, .da-btn:focus-visible, .da-mais:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+        #detalhe-sinopse, #detalhe-avaliacoes { margin-top: 0.75rem; }
+        .da-resumo { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; border-bottom: 1px solid #1f2937; }
+        .da-media { font-size: 2.1rem; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+        .da-media small { font-size: 0.9rem; color: var(--text-muted); font-weight: 700; }
+        .da-sub { color: var(--text-muted); font-size: 0.76rem; margin-top: 3px; }
+        .da-btn { width: 100%; margin: 12px 0 4px; padding: 11px; border-radius: 999px; border: 1px solid rgba(139, 92, 246, 0.6); background: rgba(139, 92, 246, 0.14); color: var(--text-main); font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+        .da-item { padding: 14px 0; border-bottom: 1px solid #1f2937; }
+        .da-item.minha { background: rgba(139, 92, 246, 0.07); margin: 0 -15px; padding: 14px 15px; }
+        .da-mais { display: block; margin: 10px auto 0; padding: 9px 22px; border-radius: 999px; border: 1px solid #374151; background: transparent; color: var(--text-main); font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+        .da-vazio { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 14px 8px 4px; line-height: 1.5; }
+        .da-vazio b { display: block; color: var(--text-main); font-size: 0.95rem; margin-bottom: 4px; }
         .amigo-info { flex: 1; min-width: 0; }
         .amigo-username { font-weight: 700; font-size: 0.95rem; }
         .amigo-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
@@ -1080,7 +1096,12 @@
                 </div>
 
                 <!-- Sinopse e Streaming -->
+                <div class="det-abas" role="tablist" aria-label="Sinopse ou avaliações">
+                    <button type="button" role="tab" id="det-tab-sinopse" class="ativo" aria-selected="true">Sinopse</button>
+                    <button type="button" role="tab" id="det-tab-aval" aria-selected="false">⭐ Avaliações <span id="det-aval-contador"></span></button>
+                </div>
                 <p id="detalhe-sinopse" class="detalhe-sinopse"></p>
+                <div id="detalhe-avaliacoes" class="detalhe-sinopse" role="tabpanel" hidden></div>
 
                 <h4 id="titulo-streaming" class="detalhe-subtitulo" style="display: none;">Onde assistir oficialmente</h4>
                 <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 12px; align-items: center; width: 100%;"></div>
@@ -2148,6 +2169,7 @@
                 if (detalheSinopse) detalheSinopse.innerText = filme.sinopse || 'Sinopse indisponivel.';
                 if (detalheHero) detalheHero.style.backgroundImage = filme.capa ? `url('${filme.capa}')` : 'none';
                 document.getElementById('detalhe-tipo').innerText = ehSerie ? 'Série' : 'Filme';
+                iniciarAvaliacoesDetalhes(ehSerie ? `tv:${filme.tmdbId}` : Number(id), filme, tokenDetalhe);
                 document.getElementById('detalhe-duracao').innerText = '';
                 document.getElementById('detalhe-generos').innerHTML = '';
                 const detalheTagline = document.getElementById('detalhe-tagline');
@@ -3375,6 +3397,7 @@
             const { error } = await supabaseClient.from('avaliacoes').delete().eq('id', id).eq('user_id', usuarioAtual.id);
             if (error) { console.error('Erro ao excluir avaliação:', error); alert('Não foi possível excluir. Tente novamente.'); return; }
             carregarAvaliacoes();
+            recarregarAvaliacoesDetalhes();
         }
 
         // Botão "Avaliar um filme que vi": escolhe entre os Assistidos
@@ -3394,6 +3417,133 @@
             setTimeout(() => abrirAvaliacao(chave, false), 300); // espera o "voltar" do modal anterior terminar
         });
 
+        // ===== Avaliações dentro dos detalhes do filme/série (aba "Avaliações") =====
+        // Usa a tabela avaliacoes do Feed: aparece em qualquer lugar que abra os detalhes.
+        let detAval = null;            // { chave, tipo, tmdbId, token, carregado, promessa, minha, outras, visiveis }
+        const nomesAval = new Map();   // user_id -> username (cache)
+        const POR_PAGINA_AVAL = 15;
+        const $det = (id) => document.getElementById(id);
+
+        function aplicarAbaDetalhes(avaliacoes) {
+            $det('det-tab-sinopse').classList.toggle('ativo', !avaliacoes); $det('det-tab-aval').classList.toggle('ativo', avaliacoes);
+            $det('det-tab-sinopse').setAttribute('aria-selected', !avaliacoes); $det('det-tab-aval').setAttribute('aria-selected', avaliacoes);
+            $det('detalhe-sinopse').hidden = avaliacoes; $det('detalhe-avaliacoes').hidden = !avaliacoes;
+        }
+
+        function iniciarAvaliacoesDetalhes(chave, conteudo, token) {
+            if (!bancoDeFilmesLocal.has(chave)) bancoDeFilmesLocal.set(chave, conteudo);
+            const { tipo, tmdbId } = partesDaChave(chave);
+            aplicarAbaDetalhes(false);
+            $det('detalhe-avaliacoes').innerHTML = ''; $det('det-aval-contador').textContent = '';
+            const det = detAval = { chave, tipo, tmdbId, token, carregado: false, minha: null, outras: [], visiveis: POR_PAGINA_AVAL };
+            det.promessa = carregarLinhasAvaliacoesDetalhes(det);
+        }
+
+        async function carregarLinhasAvaliacoesDetalhes(det) {
+            try {
+                const { data, error } = await supabaseClient.from('avaliacoes').select('id, user_id, nota, comentario, created_at')
+                    .eq('tmdb_id', det.tmdbId).eq('tipo', det.tipo).order('created_at', { ascending: false }).limit(500);
+                if (det !== detAval) return; // o usuário já abriu outro título
+                if (error) throw error;
+                const linhas = data || [];
+                const amigos = new Set(listaAmigos.map(a => a.user_id));
+                det.minha = linhas.find(a => a.user_id === usuarioAtual.id) || null;
+                const demais = linhas.filter(a => a.user_id !== usuarioAtual.id);
+                det.outras = [...demais.filter(a => amigos.has(a.user_id)), ...demais.filter(a => !amigos.has(a.user_id))]; // amigos primeiro, depois os mais recentes
+                det.carregado = true;
+                const n = linhas.length; $det('det-aval-contador').textContent = n ? `(${n})` : '';
+            } catch (e) { console.error('Erro ao carregar avaliações do título:', e); if (det === detAval) det.erro = true; }
+        }
+
+        // Nomes, fotos e curtidas só das avaliações que vão aparecer agora
+        async function carregarExtrasAvaliacoes(linhas) {
+            const semNome = [...new Set(linhas.map(a => a.user_id).filter(id => !nomesAval.has(id)))];
+            const ids = linhas.map(a => a.id);
+            const [perfis, curtidas] = await Promise.all([
+                semNome.length ? supabaseClient.from('perfis').select('user_id, username, foto_url').in('user_id', semNome) : { data: [] },
+                ids.length ? supabaseClient.from('avaliacao_curtidas').select('avaliacao_id, user_id').in('avaliacao_id', ids) : { data: [] }
+            ]);
+            (perfis.data || []).forEach(p => { nomesAval.set(p.user_id, p.username); fotosPerfis.set(p.user_id, p.foto_url); });
+            ids.forEach(id => curtidasAval.set(id, { total: 0, eu: false }));
+            (curtidas.data || []).forEach(c => { const e = curtidasAval.get(c.avaliacao_id); if (!e) return; e.total++; if (c.user_id === usuarioAtual.id) e.eu = true; });
+        }
+
+        const ICONE_CORACAO = '<svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg>';
+        function itemAvaliacaoDetalhes(a, ehMinha, amigos) {
+            const nomeUsuario = ehMinha ? (meuPerfil?.username || 'voce') : (nomesAval.get(a.user_id) || 'cinefilo_oculto');
+            const foto = ehMinha ? meuPerfil?.foto_url : fotosPerfis.get(a.user_id);
+            const cur = curtidasAval.get(a.id) || { total: 0, eu: false };
+            return `<article class="da-item${ehMinha ? ' minha' : ''}" data-id="${a.id}">
+                <div class="aval-corpo">
+                    <div class="aval-usuario">
+                        ${avatarHTML(nomeUsuario, foto)}
+                        <div>
+                            <div class="aval-nome">${ehMinha ? 'Você' : '@' + escaparHTML(nomeUsuario)}${!ehMinha && amigos.has(a.user_id) ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo">★</span>' : ''}</div>
+                            <div class="aval-quando">${tempoRelativo(a.created_at)}</div>
+                        </div>
+                        ${ehMinha ? `<div class="aval-acoes-dono">
+                            <button type="button" class="aval-acao editar" aria-label="Editar minha avaliação" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+                            <button type="button" class="aval-acao excluir" data-id="${a.id}" aria-label="Excluir minha avaliação" title="Excluir"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button>
+                        </div>` : ''}
+                    </div>
+                    ${a.comentario ? `<div class="aval-comentario">${escaparHTML(a.comentario)}</div>` : ''}
+                    <div class="aval-nota">
+                        <div class="aval-nota-esq"><div class="aval-estrelas" aria-label="Nota ${a.nota} de 10">${estrelasHTML(a.nota)}</div><b>${a.nota}/10</b></div>
+                        <button type="button" class="aval-like${cur.eu ? ' curtiu' : ''}" data-id="${a.id}" aria-pressed="${cur.eu}" aria-label="Curtir avaliação">${ICONE_CORACAO}<span class="aval-like-n">${cur.total}</span></button>
+                    </div>
+                </div>
+            </article>`;
+        }
+
+        function renderizarAvaliacoesDetalhes() {
+            const det = detAval; if (!det || !det.carregado) return;
+            const painel = $det('detalhe-avaliacoes');
+            const todas = det.minha ? [det.minha, ...det.outras] : det.outras, n = todas.length;
+            const esteTitulo = det.tipo === 'serie' ? 'esta série' : 'este filme';
+            if (!n) { painel.innerHTML = `<div class="da-vazio"><b>Ninguém avaliou ainda</b>Seja a primeira pessoa a dar a sua opinião.</div><button type="button" class="da-btn" id="det-btn-avaliar">⭐ Avaliar ${esteTitulo}</button>`; return; }
+            const amigos = new Set(listaAmigos.map(a => a.user_id));
+            const mediaNum = todas.reduce((t, a) => t + a.nota, 0) / n;
+            const qtdAmigos = det.outras.filter(a => amigos.has(a.user_id)).length;
+            const mostrar = det.outras.slice(0, det.visiveis), faltam = det.outras.length - mostrar.length;
+            painel.innerHTML = `<div class="da-resumo">
+                    <div class="da-media">${mediaNum.toFixed(1).replace('.', ',')}<small>/10</small></div>
+                    <div><div class="aval-estrelas">${estrelasHTML(Math.round(mediaNum))}</div><div class="da-sub">${n} ${n === 1 ? 'avaliação' : 'avaliações'} no iCine${qtdAmigos ? ` · ${qtdAmigos} de amigos` : ''}</div></div>
+                </div>
+                <button type="button" class="da-btn" id="det-btn-avaliar">${det.minha ? '✎ Editar minha avaliação' : `⭐ Avaliar ${esteTitulo}`}</button>
+                ${det.minha ? itemAvaliacaoDetalhes(det.minha, true, amigos) : ''}${mostrar.map(a => itemAvaliacaoDetalhes(a, false, amigos)).join('')}
+                ${faltam > 0 ? `<button type="button" class="da-mais" id="det-mais">Ver mais (${faltam})</button>` : ''}`;
+        }
+
+        async function mostrarAvaliacoesDetalhes() {
+            const det = detAval; if (!det) return;
+            aplicarAbaDetalhes(true);
+            const painel = $det('detalhe-avaliacoes');
+            if (!det.carregado) painel.innerHTML = '<p class="empty-msg" style="padding:12px 0;">Carregando avaliações… ⏳</p>';
+            await det.promessa;
+            if (det !== detAval) return;
+            if (det.erro || !det.carregado) { painel.innerHTML = '<p class="empty-msg" style="padding:12px 0;">Não foi possível carregar as avaliações.</p>'; return; }
+            await carregarExtrasAvaliacoes([...(det.minha ? [det.minha] : []), ...det.outras.slice(0, det.visiveis)]);
+            if (det === detAval) renderizarAvaliacoesDetalhes();
+        }
+
+        // Depois de avaliar, editar ou excluir: busca de novo e redesenha, se a aba estiver aberta
+        async function recarregarAvaliacoesDetalhes() {
+            const det = detAval; if (!det) return;
+            const nova = detAval = { chave: det.chave, tipo: det.tipo, tmdbId: det.tmdbId, token: det.token, carregado: false, minha: null, outras: [], visiveis: det.visiveis };
+            nova.promessa = carregarLinhasAvaliacoesDetalhes(nova);
+            if (!$det('detalhe-avaliacoes').hidden) await mostrarAvaliacoesDetalhes(); else await nova.promessa;
+        }
+
+        $det('det-tab-sinopse').addEventListener('click', () => aplicarAbaDetalhes(false));
+        $det('det-tab-aval').addEventListener('click', mostrarAvaliacoesDetalhes);
+        $det('detalhe-avaliacoes').addEventListener('click', async (e) => {
+            const det = detAval; if (!det) return;
+            const like = e.target.closest('.aval-like'); if (like) return alternarCurtidaAvaliacao(like);
+            if (e.target.closest('#det-btn-avaliar') || e.target.closest('.aval-acao.editar')) return abrirAvaliacao(det.chave, false);
+            const excluir = e.target.closest('.aval-acao.excluir'); if (excluir) return excluirAvaliacao(excluir.dataset.id);
+            if (e.target.closest('#det-mais')) { det.visiveis += POR_PAGINA_AVAL; await mostrarAvaliacoesDetalhes(); }
+        });
+
         // Abre a janela de avaliar. automatico = veio de "marcar como Assistido": não abre se já avaliou.
         async function abrirAvaliacao(chave, automatico) {
             const conteudo = bancoDeFilmesLocal.get(chave); if (!conteudo || !usuarioAtual) return;
@@ -3404,7 +3554,7 @@
             avaliacaoEmEdicao = conteudo;
             document.getElementById('aval-capa').src = conteudo.capa || '';
             document.getElementById('aval-titulo-filme').innerText = conteudo.titulo || '';
-            document.getElementById('aval-sub').innerText = [conteudo.ano, existente ? 'editar sua avaliação' : 'marcado como Assistido'].filter(Boolean).join(' · ');
+            document.getElementById('aval-sub').innerText = [conteudo.ano, existente ? 'editar sua avaliação' : (automatico ? 'marcado como Assistido' : 'sua avaliação aparece no Feed')].filter(Boolean).join(' · ');
             document.getElementById('aval-comentario').value = existente?.comentario || '';
             marcarNotaAvaliacao(existente ? existente.nota : 0);
             const btn = document.getElementById('btn-aval-publicar'); btn.disabled = false; btn.innerText = existente ? 'Salvar alterações' : 'Publicar no Feed'; btn.dataset.rotulo = btn.innerText; document.getElementById('btn-aval-agora-nao').innerText = existente ? 'Cancelar' : 'Agora não';
@@ -3437,6 +3587,7 @@
             if (error) { console.error('Erro ao publicar avaliação:', error); btn.disabled = false; btn.innerText = btn.dataset.rotulo || 'Publicar no Feed'; alert('Não foi possível publicar. Tente novamente.'); return; }
             fecharModalSeguro('modal-avaliar');
             if (document.getElementById('aba-comunidade').classList.contains('ativa') && feedAtual === 'avaliacoes') carregarAvaliacoes();
+            recarregarAvaliacoesDetalhes();
         });
 
         // =========================================

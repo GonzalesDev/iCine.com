@@ -97,3 +97,6 @@ como trabalhamos e as decisões tomadas desde então.
   Avaliar/Editar (mesma janela do Feed), sua avaliação no topo com editar/excluir, amigos primeiro, ❤️ (reusa
   `alternarCurtidaAvaliacao`), 15 por vez com "Ver mais". Avaliações só com nota aparecem (só estrelas).
   Estado em `detAval`; `recarregarAvaliacoesDetalhes()` é chamado ao publicar/excluir.
+
+## Rolagem ao trocar de aba
+- `mudarAba()` começa com `window.scrollTo(0, 0)`: toda aba da barra inferior abre no topo (antes herdava a rolagem da anterior).

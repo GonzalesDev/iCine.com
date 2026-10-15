@@ -100,3 +100,9 @@ como trabalhamos e as decisões tomadas desde então.
 
 ## Rolagem ao trocar de aba
 - `mudarAba()` começa com `window.scrollTo(0, 0)`: toda aba da barra inferior abre no topo (antes herdava a rolagem da anterior).
+
+## Atualização automática do app instalado
+- O app instalado (PWA) guardava o `index.html` antigo em cache. Agora `index.html` tem `VERSAO_APP` e existe `version.json`
+  (`{"versao": "..."}`). O app confere o `version.json` sem cache ao abrir, ao voltar para o app e a cada 5 min; se for diferente,
+  recarrega em `?v=<versão>`. **A CADA PUSH que muda o app: trocar o valor nos DOIS lugares (mesmo valor)**, ex. `2026-10-15.2`.
+  A primeira vez que cada aparelho abrir a versão que contém isso ainda pode precisar de um refresh manual (a versão velha não tem a checagem).

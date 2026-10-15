@@ -1258,6 +1258,29 @@
                 location.reload();
             }
         })();
+        // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
+        // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
+        // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
+        const VERSAO_APP = '2026-10-15.1';
+        (function atualizarSozinho() {
+            async function conferir() {
+                try {
+                    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+                    if (!r.ok) return;
+                    const nova = String((await r.json()).versao || '');
+                    if (!nova || nova === VERSAO_APP) return;
+                    let tentada = null; try { tentada = sessionStorage.getItem('icine_versao_tentada'); } catch (e) {}
+                    if (tentada === nova) return; // já tentou nesta sessão: evita laço de recarregar
+                    try { sessionStorage.setItem('icine_versao_tentada', nova); } catch (e) {}
+                    const url = new URL(location.href);
+                    url.searchParams.set('v', nova);
+                    location.replace(url.toString());
+                } catch (e) {}
+            }
+            conferir();
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) conferir(); });
+            setInterval(() => { if (!document.hidden) conferir(); }, 5 * 60 * 1000);
+        })();
         // Aba pedida pelo link (tocar no aviso com o app fechado abre ./?aba=amigos). Lida aqui porque o load limpa a URL.
         const abaDoLink = new URLSearchParams(window.location.search).get('aba');
 

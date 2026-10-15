@@ -1390,6 +1390,7 @@
         document.getElementById('btn-roleta').addEventListener('click', () => mudarAba('roleta'));
 
         function mudarAba(abaId) {
+            window.scrollTo(0, 0); // cada aba começa sempre no topo (antes herdava a rolagem da aba anterior)
             document.querySelectorAll('.aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.nav-btn, .btn-header-amigos').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`aba-${abaId}`).classList.add('ativa');

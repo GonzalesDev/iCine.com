@@ -694,6 +694,20 @@
         .chat-input-area input:focus { border-color: var(--purple); }
         .chat-input-area button { background-color: var(--purple); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; }
     </style>
+    <!-- Prévia do visual novo: abra o app com ?visual=novo (volta com ?visual=antigo). Remover quando for aprovado e virar o padrão. -->
+    <script>
+        (function () {
+            try {
+                const q = new URLSearchParams(location.search).get('visual');
+                if (q === 'novo') localStorage.setItem('icine_visual', 'novo');
+                if (q === 'antigo') localStorage.removeItem('icine_visual');
+                if (localStorage.getItem('icine_visual') === 'novo') {
+                    document.documentElement.classList.add('novo');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=2">');
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body>
 
@@ -1261,7 +1275,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-15.1';
+        const VERSAO_APP = '2026-10-18.1';
         (function atualizarSozinho() {
             async function conferir() {
                 try {

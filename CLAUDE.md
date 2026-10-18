@@ -158,3 +158,15 @@ como trabalhamos e as decisões tomadas desde então.
 - Cenas: botão **Enviar** (`enviarCena`, abre a mesma janela de recomendar) e barra de progresso (`.short-prog`, atualizada pelo `timeupdate` do player único).
 - Assistidos mostram a **sua nota** (`minhasNotasAval`, carregada por `carregarMinhasNotas`; selo roxo) e caem na nota do TMDB se não avaliou.
   Recarrega ao publicar/excluir avaliação e ao carregar os filmes; limpa ao sair.
+
+## ONDE PARAMOS (resumo para começar uma conversa nova) — 18/10/2026
+- **Estado:** todo o visual novo (Listas, Explorar, Cenas, Roleta, Feed, janelas, login, Amigos, chat da IA) está no GitHub (`main`).
+  O usuário publica no Replit com Pull → Run → Republicar (não existe SQL pendente). Toda mudança no app exige subir `VERSAO_APP` (index.html) e
+  `version.json` (mesmo valor) e o `?v=` do link do `novo-visual.css`; assim o app instalado se atualiza sozinho.
+- **Visual novo:** `novo-visual.css` (prefixo `html.novo`) + trechos no `index.html`. Saída de emergência: `?visual=antigo`.
+- **Pendências (precisam de decisão do usuário):** gênero na busca de Listas (exige coluna nova no banco), pontos de posição/legenda das Cenas,
+  modo claro (adiado de propósito).
+- **Como testar:** Playwright com Chromium em `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` e mocks de Supabase/TMDB (ver scripts
+  `teste-*.js` e `*-check.js` na pasta de rascunho da sessão anterior; se sumiram, recriar mocks pelo padrão descrito nas seções acima).
+- **Preferências do usuário:** fala português (BR), não é desenvolvedor; gosta de aprovar protótipo antes de mudar o app; visual minimalista,
+  estilo de app moderno (parecido com streaming, mas **sem** destaque grande e sem botões de gênero); pede ajustes pequenos um de cada vez.

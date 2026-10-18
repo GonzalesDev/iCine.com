@@ -198,11 +198,11 @@ html.novo .short-gradient { background: linear-gradient(to top, rgba(0, 0, 0, 0.
 /* cartão do filme: linha limpa, sem caixa */
 html.novo .short-bottom-card { background: none; border: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0; gap: 12px; }
 html.novo .short-bottom-card:active { background: none; opacity: 0.85; }
-html.novo .short-big-cover { width: 46px; height: auto; aspect-ratio: 2 / 3; border-radius: 8px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6); }
-html.novo .short-card-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-html.novo .short-card-meta { font-size: 0.78rem; font-weight: 600; color: #d4d4de; margin-bottom: 4px; }
+html.novo .short-big-cover { width: 92px; height: auto; aspect-ratio: 2 / 3; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6); }
+html.novo .short-card-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 6px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+html.novo .short-card-meta { font-size: 0.92rem; font-weight: 600; color: #d4d4de; margin-bottom: 6px; }
 html.novo .short-rating { color: var(--gold); font-weight: 700; }
-html.novo .short-card-genres { font-size: 0.68rem; font-weight: 600; text-transform: none; letter-spacing: 0; color: #c8c8d4; }
+html.novo .short-card-genres { font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0; color: #c8c8d4; }
 
 /* ==========================================================================
    ROLETA

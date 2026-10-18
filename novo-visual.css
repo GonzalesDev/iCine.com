@@ -352,5 +352,5 @@ html.novo .chat-input-area input { background: var(--card-bg); border: 1px solid
 html.novo .chat-input-area button { background: var(--purple); border-radius: 50%; }
 
 /* Minha nota nos Assistidos: selo roxo */
-html.novo .movie-rating:has(.minha-nota) { background: var(--purple); }
-html.novo .imdb-score.minha-nota { color: #fff; }
+html.novo .movie-rating:has(.minha-nota) { flex-direction: row; align-items: center; gap: 4px; }
+html.novo .imdb-score.minha-nota { color: #fff; background: var(--purple); padding: 0 5px; border-radius: 4px; }

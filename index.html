@@ -795,7 +795,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=19">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=20">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1390,7 +1390,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.14';
+        const VERSAO_APP = '2026-10-18.15';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1615,7 +1615,7 @@
         }
         function renderScoreBadgeAssistido(f) {
             const minha = minhasNotasAval.get(String(chaveDaLinha(f)));
-            return minha !== undefined ? `<span class="imdb-score minha-nota">★ ${minha}</span>` : renderScoreBadge(f);
+            return minha !== undefined ? `${renderScoreBadge(f)}<span class="imdb-score minha-nota">★ ${minha}</span>` : renderScoreBadge(f);
         }
         function renderScoreBadge(filme) {
             const notaReal = filme.notaTmdb || filme.nota || '0.0';

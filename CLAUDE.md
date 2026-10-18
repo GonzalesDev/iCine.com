@@ -138,7 +138,7 @@ como trabalhamos e as decisões tomadas desde então.
 ## Listas (saudação/busca/"Ver tudo") e botão Girar — 18/10
 - Topo de Listas: "Olá, @usuario" (`atualizarSaudacao`, usa `meuPerfil` ou o cache `icine_meu_perfil`), título "Suas listas" e UMA busca
   (`#busca-listas`) que filtra "Quero Assistir" e "Assistidos" **só por título** (a tabela `meus_filmes` não guarda gênero).
-- "Ver tudo / Ver menos" fica no topo de cada lista (`#ver-tudo-quero`, `#ver-tudo-ja`, visível só com mais de 15 itens); o cartão do fim da fila foi removido.
+- "Ver tudo / Ver menos" fica no topo de cada lista (`#ver-tudo-quero`, `#ver-tudo-ja`, visível só com mais de 6 itens: `LIMITE_CAPAS_LISTA`); o cartão do fim da fila foi removido.
 - Roleta: o botão Girar é um círculo branco posicionado pelo JS no miolo da roda (canto inferior direito); o miolo (`rc`) agora é R*0.26.
 - Botão "Assistir Online (Legendado)": contorno rosado (opção C aprovada: fundo rgba(251,113,133,.14), borda .7, texto #ff9aab).
 

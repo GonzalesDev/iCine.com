@@ -1386,7 +1386,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.10';
+        const VERSAO_APP = '2026-10-18.11';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1436,6 +1436,7 @@
         let filmeSelecionadoTemporario = null;
         let paginaAtual = 1;
         let filmesExplorarAcumulados = [];
+        const LIMITE_CAPAS_LISTA = 6; // capas por lista antes de apertar "Ver tudo"
         let mostrarTodosQueroAssistir = false;
         let mostrarTodosJaAssisti = false;
         let playlistSendoEditadaId = null;
@@ -1891,7 +1892,7 @@
             atualizarSaudacao(meuPerfil);
             const termoBusca = (document.getElementById('busca-listas')?.value || '').toLowerCase().trim();
             const _filtrar = (lista) => termoBusca ? lista.filter(f => (f.titulo || '').toLowerCase().includes(termoBusca)) : lista;
-            const _botaoVerTudo = (id, total, aberto) => { const b = document.getElementById(id); if (!b) return; b.hidden = total <= 15; b.innerHTML = aberto ? 'Ver menos <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>' : 'Ver tudo <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'; };
+            const _botaoVerTudo = (id, total, aberto) => { const b = document.getElementById(id); if (!b) return; b.hidden = total <= LIMITE_CAPAS_LISTA; b.innerHTML = aberto ? 'Ver menos <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>' : 'Ver tudo <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'; };
             _c('cont-quero', listaQueroAssistir.length); _c('cont-ja', listaJaAssisti.length); _c('cont-pl', minhasPlaylists.length);
             const cWatch = document.getElementById('watchlist-grid');
             const queroFiltrados = _filtrar(listaQueroAssistir);
@@ -1899,7 +1900,7 @@
             if (listaQueroAssistir.length === 0) { cWatch.innerHTML = `<p class="empty-msg">Sua Watchlist está vazia.</p>`; } 
             else if (queroFiltrados.length === 0) { cWatch.innerHTML = `<p class="empty-msg">Nada com esse nome em "Quero Assistir".</p>`; } 
             else {
-                const listaQueroRender = mostrarTodosQueroAssistir ? queroFiltrados : queroFiltrados.slice(0, 15);
+                const listaQueroRender = mostrarTodosQueroAssistir ? queroFiltrados : queroFiltrados.slice(0, LIMITE_CAPAS_LISTA);
                 const htmlQuero = listaQueroRender.map(f => `
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">${_tagSerie(f)}
@@ -1922,7 +1923,7 @@
             if (listaJaAssisti.length === 0) { cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido recentemente.</p>`; } 
             else if (filmesFiltrados.length === 0) { cJa.innerHTML = `<p class="empty-msg">Nada com esse nome em "Assistidos".</p>`; } 
             else {
-                const listaJaRender = mostrarTodosJaAssisti ? filmesFiltrados : filmesFiltrados.slice(0, 15);
+                const listaJaRender = mostrarTodosJaAssisti ? filmesFiltrados : filmesFiltrados.slice(0, LIMITE_CAPAS_LISTA);
                 const htmlJa = listaJaRender.map(f => `
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">${_tagSerie(f)}

@@ -7,6 +7,7 @@ como trabalhamos e as decisões tomadas desde então.
 - O app roda no **Replit**, ligado a este repositório (`GonzalesDev/iCine.com`, privado). O repositório
   `GonzalesDev/iCine` é uma cópia antiga e parcial: não usar.
 - Fluxo: editar → testar localmente (`python -m http.server 5000`) → commit + push em `main`.
+  **Permissão permanente (18/10):** ao terminar uma atualização, enviar direto para o `main` (juntando com o `main` antes, sem forçar), sem perguntar.
   O usuário acumula várias mudanças e faz **Pull → Run → Republicar** no Replit de uma vez.
 - Commits "Published your App" são marcadores de publicação do Replit (não mudam arquivos).
 - SQL do Supabase fica em `migrations/`; avisar o usuário quando houver SQL a rodar **antes** de publicar.

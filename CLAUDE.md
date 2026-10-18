@@ -134,3 +134,10 @@ como trabalhamos e as decisões tomadas desde então.
 - **Feed**: cartão por avaliação (`.aval-item`: usuário, filme com pílula de nota + barra de 10 segmentos, comentário, rodapé com ❤️);
   suas avaliações têm menu "⋯" (`.aval-mais`) que abre folha com Editar/Excluir (`.aval-item.aberto`); cartão de playlist `.plf` com capa grande.
   Cuidado: `.aval-acoes-dono`/`.aval-acao` também são usados na aba Avaliações dos detalhes (escopar sempre com `.aval-item`).
+
+## Listas (saudação/busca/"Ver tudo") e botão Girar — 18/10
+- Topo de Listas: "Olá, @usuario" (`atualizarSaudacao`, usa `meuPerfil` ou o cache `icine_meu_perfil`), título "Suas listas" e UMA busca
+  (`#busca-listas`) que filtra "Quero Assistir" e "Assistidos" **só por título** (a tabela `meus_filmes` não guarda gênero).
+- "Ver tudo / Ver menos" fica no topo de cada lista (`#ver-tudo-quero`, `#ver-tudo-ja`, visível só com mais de 15 itens); o cartão do fim da fila foi removido.
+- Roleta: o botão Girar é um círculo branco posicionado pelo JS no miolo da roda (canto inferior direito); o miolo (`rc`) agora é R*0.26.
+- PENDENTE de aprovação: cor do botão "Assistir Online (Legendado)" (hoje vidro cinza; prévia A/B/C em rosa coral enviada ao usuário).

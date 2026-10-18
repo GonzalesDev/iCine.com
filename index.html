@@ -686,6 +686,21 @@
         .plf-like.on { color: #f43f5e; }
         .plf-like.on svg { fill: #f43f5e; stroke: #f43f5e; }
 
+        /* Listas: saudação, busca única e "Ver tudo" no topo de cada lista */
+        .lista-intro { margin: 0.4rem 0 1.4rem; }
+        .lista-ola { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 4px; }
+        .lista-titulo { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem; }
+        .busca-listas { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); background: var(--card-bg); color: var(--text-muted); }
+        .busca-listas:focus-within { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+        .busca-listas svg { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+        .busca-listas input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: #fff; font-size: 0.95rem; }
+        .lista-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 0.9rem; }
+        .lista-cab h2 { margin: 0.5rem 0 0; }
+        .lista-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+        .ver-tudo { display: inline-flex; align-items: center; gap: 2px; padding: 6px 4px 6px 10px; border: none; background: none; color: #c4b5fd; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .ver-tudo[hidden] { display: none; }
+        .ver-tudo svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .ver-tudo:active { opacity: 0.6; }
         /* "Ver todos" no fim das listas: botão redondo discreto */
         .card-ver-todos { flex: 0 0 auto; align-self: flex-start; width: calc((100% - 1rem) / 2.15 * 0.55); aspect-ratio: 11 / 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0; border: none; background: none; color: var(--text-muted); cursor: pointer; font-family: inherit; }
         .card-ver-todos .cvt-icone { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); transition: background 0.2s, transform 0.15s; }
@@ -774,7 +789,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=13">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=14">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -816,19 +831,42 @@
 
     <main>
         <div id="aba-inicio" class="aba ativa">
-            <h2><div class="h2-detail" style="background-color: var(--pink);"></div> Quero Assistir <span class="cont-lista" id="cont-quero"></span></h2>
+            <div class="lista-intro">
+                <p class="lista-ola" id="lista-ola">Olá!</p>
+                <h1 class="lista-titulo">Suas listas</h1>
+                <label class="busca-listas">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input type="text" id="busca-listas" placeholder="Buscar nas suas listas" autocomplete="off" enterkeyhint="search">
+                </label>
+            </div>
+
+            <div class="lista-cab">
+                <div>
+                    <h2><div class="h2-detail" style="background-color: var(--pink);"></div> Quero Assistir <span class="cont-lista" id="cont-quero"></span></h2>
+                    <p class="lista-sub">Para ver depois</p>
+                </div>
+                <button type="button" class="ver-tudo" id="ver-tudo-quero" hidden></button>
+            </div>
             <div class="movies-slider" id="watchlist-grid"></div>
 
-            <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+            <hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Assistidos <span class="cont-lista" id="cont-ja"></span></h2>
-                <input type="text" id="pesquisa-ja-assisti" placeholder="Procurar..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 140px; max-width: 45%;">
+            <div class="lista-cab">
+                <div>
+                    <h2><div class="h2-detail"></div> Assistidos <span class="cont-lista" id="cont-ja"></span></h2>
+                    <p class="lista-sub">O que você já viu</p>
+                </div>
+                <button type="button" class="ver-tudo" id="ver-tudo-ja" hidden></button>
             </div>
             <div class="movies-slider" id="ja-assisti-grid"></div>
 
-            <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
-            <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Minhas Playlists <span class="cont-lista" id="cont-pl"></span></h2>
+            <hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+            <div class="lista-cab">
+                <div>
+                    <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Minhas Playlists <span class="cont-lista" id="cont-pl"></span></h2>
+                    <p class="lista-sub">Suas coleções</p>
+                </div>
+            </div>
             <div class="playlist-slider" id="playlists-grid">
                 <div class="btn-criar-playlist" id="btn-abrir-criar-playlist">+</div>
             </div>
@@ -1346,7 +1384,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.7';
+        const VERSAO_APP = '2026-10-18.8';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1834,16 +1872,33 @@
             }
         }
 
-        document.getElementById('pesquisa-ja-assisti').addEventListener('input', () => { mostrarTodosJaAssisti = false; renderizarMinhasListas(); });
+        document.getElementById('busca-listas').addEventListener('input', () => { mostrarTodosQueroAssistir = false; mostrarTodosJaAssisti = false; renderizarMinhasListas(); });
+        document.getElementById('ver-tudo-quero').addEventListener('click', () => { mostrarTodosQueroAssistir = !mostrarTodosQueroAssistir; renderizarMinhasListas(); });
+        document.getElementById('ver-tudo-ja').addEventListener('click', () => { mostrarTodosJaAssisti = !mostrarTodosJaAssisti; renderizarMinhasListas(); });
+
+        // "Olá, @usuario": usa o perfil carregado (ou o último conhecido no aparelho)
+        function atualizarSaudacao(perfil) {
+            const el = document.getElementById('lista-ola'); if (!el) return;
+            let nome = perfil && perfil.username;
+            if (!nome) { try { nome = (typeof lerPerfilCache === 'function' && lerPerfilCache() || {}).username; } catch (e) {} }
+            el.textContent = nome ? `Olá, ${nome}` : 'Olá!';
+        }
 
         function renderizarMinhasListas() {
             const _c = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n; };
+            atualizarSaudacao(meuPerfil);
+            const termoBusca = (document.getElementById('busca-listas')?.value || '').toLowerCase().trim();
+            const _filtrar = (lista) => termoBusca ? lista.filter(f => (f.titulo || '').toLowerCase().includes(termoBusca)) : lista;
+            const _botaoVerTudo = (id, total, aberto) => { const b = document.getElementById(id); if (!b) return; b.hidden = total <= 15; b.innerHTML = aberto ? 'Ver menos <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>' : 'Ver tudo <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'; };
             _c('cont-quero', listaQueroAssistir.length); _c('cont-ja', listaJaAssisti.length); _c('cont-pl', minhasPlaylists.length);
             const cWatch = document.getElementById('watchlist-grid');
+            const queroFiltrados = _filtrar(listaQueroAssistir);
+            _botaoVerTudo('ver-tudo-quero', queroFiltrados.length, mostrarTodosQueroAssistir);
             if (listaQueroAssistir.length === 0) { cWatch.innerHTML = `<p class="empty-msg">Sua Watchlist está vazia.</p>`; } 
+            else if (queroFiltrados.length === 0) { cWatch.innerHTML = `<p class="empty-msg">Nada com esse nome em "Quero Assistir".</p>`; } 
             else {
-                const listaQueroRender = mostrarTodosQueroAssistir ? listaQueroAssistir : listaQueroAssistir.slice(0, 15);
-                let htmlQuero = listaQueroRender.map(f => `
+                const listaQueroRender = mostrarTodosQueroAssistir ? queroFiltrados : queroFiltrados.slice(0, 15);
+                const htmlQuero = listaQueroRender.map(f => `
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">${_tagSerie(f)}
                         <div class="movie-card-overlay"><div class="sheet-topo"><img src="${f.capa}" alt=""><div><b>${f.titulo}</b><span>${f.ano || ''}${f.tipo === 'serie' ? ' · Série' : ''}</span></div></div>
@@ -1855,28 +1910,18 @@
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
 
-                // NOVO CARD DE "VER TODOS" PARA O QUERO ASSISTIR
-                if (!mostrarTodosQueroAssistir && listaQueroAssistir.length > 15) { 
-                    htmlQuero += `
-                    <button type="button" class="card-ver-todos" onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();" aria-label="Ver todos">
-                        <span class="cvt-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-                        <span class="cvt-texto">Ver todos</span>
-                        <span class="cvt-qtd">+${listaQueroAssistir.length - 15}</span>
-                    </button>`; 
-                }
                 cWatch.innerHTML = htmlQuero;
             }
 
             const cJa = document.getElementById('ja-assisti-grid');
-            const inputJaAssisti = document.getElementById('pesquisa-ja-assisti');
-            const termoFiltro = inputJaAssisti ? inputJaAssisti.value.toLowerCase().trim() : '';
-            const filmesFiltrados = termoFiltro !== '' ? listaJaAssisti.filter(f => f.titulo.toLowerCase().includes(termoFiltro)) : listaJaAssisti;
+            const filmesFiltrados = _filtrar(listaJaAssisti);
+            _botaoVerTudo('ver-tudo-ja', filmesFiltrados.length, mostrarTodosJaAssisti);
 
             if (listaJaAssisti.length === 0) { cJa.innerHTML = `<p class="empty-msg">Nenhum filme assistido recentemente.</p>`; } 
-            else if (filmesFiltrados.length === 0) { cJa.innerHTML = `<p class="empty-msg">Nenhum filme com esse nome foi encontrado.</p>`; } 
+            else if (filmesFiltrados.length === 0) { cJa.innerHTML = `<p class="empty-msg">Nada com esse nome em "Assistidos".</p>`; } 
             else {
                 const listaJaRender = mostrarTodosJaAssisti ? filmesFiltrados : filmesFiltrados.slice(0, 15);
-                let htmlJa = listaJaRender.map(f => `
+                const htmlJa = listaJaRender.map(f => `
                     <div class="movie-card">
                         <img src="${f.capa}" alt="${f.titulo}">${_tagSerie(f)}
                         <div class="movie-card-overlay"><div class="sheet-topo"><img src="${f.capa}" alt=""><div><b>${f.titulo}</b><span>${f.ano || ''}${f.tipo === 'serie' ? ' · Série' : ''}</span></div></div>
@@ -1888,15 +1933,6 @@
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
 
-                // NOVO CARD DE "VER TODOS" PARA OS ASSISTIDOS
-                if (!mostrarTodosJaAssisti && filmesFiltrados.length > 15) { 
-                    htmlJa += `
-                    <button type="button" class="card-ver-todos" onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();" aria-label="Ver todos">
-                        <span class="cvt-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-                        <span class="cvt-texto">Ver todos</span>
-                        <span class="cvt-qtd">+${filmesFiltrados.length - 15}</span>
-                    </button>`; 
-                }
                 cJa.innerHTML = htmlJa;
             }
 
@@ -3062,6 +3098,7 @@
         function lerPerfilCache() { try { return JSON.parse(localStorage.getItem(CHAVE_PERFIL_CACHE) || 'null'); } catch (e) { return null; } }
 
         function atualizarAvatarHeader(perfil = meuPerfil) {
+            if (typeof atualizarSaudacao === 'function') atualizarSaudacao(perfil);
             const btn = document.getElementById('btn-amigos');
             if (!btn) return;
             const usuario = perfil?.username;
@@ -4051,8 +4088,11 @@
                     ? Math.max(200, Math.min(cy - topoFim - 10, W * 0.58))
                     : Math.max(120, Math.min(W - 14, cy - topoFim - 30));
                 Object.assign(roda.style, { width: `${2 * R}px`, height: `${2 * R}px`, left: `${cx - R}px`, top: `${cy - R}px` });
-                const rc = R * 0.2;
+                const rc = R * 0.26;
                 Object.assign(centro.style, { width: `${2 * rc}px`, height: `${2 * rc}px`, left: `${cx - rc}px`, top: `${cy - rc}px` });
+                // Botão Girar no miolo da roda (canto inferior direito): círculo dentro do quarto visível do miolo
+                { const d = Math.max(64, Math.round(rc * 0.95)), c = rc * 0.5;
+                  Object.assign(btnGirar.style, { width: `${d}px`, height: `${d}px`, left: `${cx - c - d / 2}px`, top: `${cy - c - d / 2}px`, right: 'auto', bottom: 'auto' }); }
                 ajustarCanvasRoda();
                 // Ponteiro na borda, na diagonal: a ponta do SVG aponta para baixo (180°); girando 315° aponta para o centro
                 const rad = (ANGULO_PONTEIRO - 90) * Math.PI / 180, rp = R + 14;

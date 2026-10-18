@@ -43,11 +43,11 @@ html.novo .tipo-conteudo-btn { flex: 0 1 auto; padding: 0.55rem 1.1rem; border-r
 html.novo .tipo-conteudo-btn.ativo { background: #fff; color: #000; border-color: #fff; box-shadow: none; }
 
 /* ---------- Busca e filtros ---------- */
-html.novo .filter-input, html.novo .login-input, html.novo #pesquisa-ja-assisti {
+html.novo .filter-input, html.novo .login-input {
   background-color: var(--card-bg) !important; border: 1px solid var(--line) !important; border-radius: var(--r-md) !important; color: #fff !important;
 }
 html.novo .filter-input { height: 46px; padding: 0 1rem; font-size: 0.9rem; }
-html.novo .filter-input:focus, html.novo .login-input:focus, html.novo #pesquisa-ja-assisti:focus { border-color: var(--purple) !important; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+html.novo .filter-input:focus, html.novo .login-input:focus { border-color: var(--purple) !important; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
 html.novo select.filter-input { appearance: none; -webkit-appearance: none; padding: 0 1.9rem 0 0.8rem; font-size: 0.86rem; text-overflow: ellipsis; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23a3a3b2' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; }
 
 /* ---------- Streamings ---------- */
@@ -160,15 +160,6 @@ html.novo .tag-tipo { top: 6px; left: 6px; backdrop-filter: blur(6px); -webkit-b
 /* Contador nos títulos */
 html.novo .cont-lista { background: var(--surface-2); }
 
-/* Pesquisa de "Assistidos": só uma lupa; abre ao tocar */
-html.novo #pesquisa-ja-assisti {
-  width: 38px !important; max-width: none !important; height: 38px; padding: 0 !important; border-radius: 50% !important; color: transparent !important; cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: center; background-size: 18px; transition: width 0.25s;
-}
-html.novo #pesquisa-ja-assisti::placeholder { color: transparent; }
-html.novo #pesquisa-ja-assisti:focus, html.novo #pesquisa-ja-assisti:not(:placeholder-shown) { width: 180px !important; padding: 0 14px 0 40px !important; border-radius: 999px !important; color: #fff !important; cursor: text; background-position: 13px center; }
-html.novo #pesquisa-ja-assisti:focus::placeholder { color: var(--text-muted); }
 
 /* Playlists: foto da galeria em cartão, nome e quantidade por cima */
 html.novo .playlist-card { border: none; border-radius: 16px; width: 150px; min-width: 150px; flex: 0 0 150px; height: 150px; justify-content: flex-end; align-items: flex-start; }
@@ -265,3 +256,10 @@ html.novo #aba-roleta .v-detalhes { white-space: nowrap; padding: 11px 8px; }
 html.novo #toggle-feed { margin-bottom: 14px; }
 html.novo .aval-item { border-color: var(--line); }
 html.novo .aval-compor { border-color: var(--line); }
+
+/* Botão Girar: círculo branco no miolo da roda (a posição e o tamanho vêm do JS) */
+html.novo #aba-roleta .btn-girar { padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; letter-spacing: 0; }
+/* Listas */
+html.novo .lista-titulo { font-weight: 800; }
+html.novo .busca-listas { border-color: var(--line); }
+html.novo .ver-tudo { color: #c4b5fd; }

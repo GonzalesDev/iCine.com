@@ -115,7 +115,7 @@ como trabalhamos e as decisões tomadas desde então.
 - Linguagem: fonte Inter, cabeçalho de vidro, barra inferior de vidro com ícones de linha (máscara SVG sobre `.nav-btn .icon`),
   chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa (celular) / na frente (600px+),
   grade `minmax(0,1fr)` (títulos longos não esticam colunas), detalhes com abas sublinhadas e botões de 12px.
-- Falta ajustar: gêneros na busca de Listas (precisa guardar o gênero no banco), pontos de posição e legenda da Cenas, modo claro.
+- Descartado por enquanto (18/10, decisão do usuário): gêneros na busca de Listas, pontos de posição e legenda da Cenas, modo claro.
 
 ## "Ver todos" no fim das listas (Listas)
 - Os blocos tracejados viraram `.card-ver-todos`: botão redondo com seta + "Ver todos" e "+N" pequenos (CSS no `index.html`, antes do bloco
@@ -128,7 +128,7 @@ como trabalhamos e as decisões tomadas desde então.
 - **Listas**: contadores nos títulos (`#cont-quero/#cont-ja/#cont-pl`, atualizados em `renderizarMinhasListas`), busca de Assistidos vira lupa
   que abre ao focar (só CSS), cartão de playlist com nome + "N títulos · Pública/Privada" (`.qtd-pl`), botão "Nova playlist".
 - **Cenas**: ícones de linha (coração/balão/salvar) no lugar dos emojis; `curtirCena` NÃO mexe mais no texto do botão (só na classe `liked`).
-  Não foram portados: barra de progresso do vídeo, pontos de posição, legenda e botão Enviar do protótipo.
+  Pontos de posição e legenda: descartados por enquanto (ver "Visual novo" acima).
 - **Roleta**: só CSS/ícones: fundo degradê animado, funil com chips/cartões, aro de vidro com brilho, miolo escuro, ponteiro branco minimalista
   (SVG em `#rol-ponteiro`), botão Girar branco. A lógica da roda, o arrastar com impulso e as pipocas NÃO mudaram.
 - **Feed**: cartão por avaliação (`.aval-item`: usuário, filme com pílula de nota + barra de 10 segmentos, comentário, rodapé com ❤️);
@@ -164,8 +164,7 @@ como trabalhamos e as decisões tomadas desde então.
   O usuário publica no Replit com Pull → Run → Republicar (não existe SQL pendente). Toda mudança no app exige subir `VERSAO_APP` (index.html) e
   `version.json` (mesmo valor) e o `?v=` do link do `novo-visual.css`; assim o app instalado se atualiza sozinho.
 - **Visual novo:** `novo-visual.css` (prefixo `html.novo`) + trechos no `index.html`. Saída de emergência: `?visual=antigo`.
-- **Pendências (precisam de decisão do usuário):** gênero na busca de Listas (exige coluna nova no banco), pontos de posição/legenda das Cenas,
-  modo claro (adiado de propósito).
+- **Pendências:** nenhuma. Gênero na busca de Listas, pontos de posição/legenda das Cenas e modo claro foram descartados por enquanto (18/10).
 - **Como testar:** Playwright com Chromium em `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` e mocks de Supabase/TMDB (ver scripts
   `teste-*.js` e `*-check.js` na pasta de rascunho da sessão anterior; se sumiram, recriar mocks pelo padrão descrito nas seções acima).
 - **Preferências do usuário:** fala português (BR), não é desenvolvedor; gosta de aprovar protótipo antes de mudar o app; visual minimalista,

@@ -806,7 +806,7 @@
     <div id="tela-login">
         <div class="login-box">
             <h1 class="logo" style="margin-bottom: 0.5rem; font-size: 3rem;">iCine</h1>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Seu diário de filmes pessoal e sincronizado na nuvem.</p>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Seu diário de filmes e séries.</p>
             <input type="email" id="email-login" class="login-input" placeholder="Seu e-mail" autocomplete="email">
             <input type="password" id="senha-login" class="login-input" placeholder="Sua senha">
             <button id="btn-entrar-acao" class="btn-action btn-add" style="margin-bottom: 0.75rem; padding: 0.85rem; font-size: 1rem;">Entrar</button>
@@ -1390,7 +1390,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.17';
+        const VERSAO_APP = '2026-10-18.18';
         (function atualizarSozinho() {
             async function conferir() {
                 try {

@@ -141,3 +141,8 @@ como trabalhamos e as decisões tomadas desde então.
 - "Ver tudo / Ver menos" fica no topo de cada lista (`#ver-tudo-quero`, `#ver-tudo-ja`, visível só com mais de 15 itens); o cartão do fim da fila foi removido.
 - Roleta: o botão Girar é um círculo branco posicionado pelo JS no miolo da roda (canto inferior direito); o miolo (`rc`) agora é R*0.26.
 - Botão "Assistir Online (Legendado)": contorno rosado (opção C aprovada: fundo rgba(251,113,133,.14), borda .7, texto #ff9aab).
+
+## Ícone Explorar e botão da IA — 18/10
+- Explorar usa uma bússola (círculo + agulha em losango) na barra inferior (máscara SVG em `#btn-explorar`).
+- `#btn-chat-fab` virou pílula lilás (#a678ff) com ícone de faíscas + texto "IA do iCine" (`.fab-ico`, `.fab-txt`; no visual antigo continua o ✨ redondo).
+  Continua arrastável (usa transform) e escondido na aba Cenas.

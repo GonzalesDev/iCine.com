@@ -115,7 +115,7 @@ como trabalhamos e as decisões tomadas desde então.
 - Linguagem: fonte Inter, cabeçalho de vidro, barra inferior de vidro com ícones de linha (máscara SVG sobre `.nav-btn .icon`),
   chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa (celular) / na frente (600px+),
   grade `minmax(0,1fr)` (títulos longos não esticam colunas), detalhes com abas sublinhadas e botões de 12px.
-- Falta ajustar: Amigos, modais, tela de login.
+- Falta ajustar: gêneros na busca de Listas (precisa guardar o gênero no banco), pontos de posição e legenda da Cenas, modo claro.
 
 ## "Ver todos" no fim das listas (Listas)
 - Os blocos tracejados viraram `.card-ver-todos`: botão redondo com seta + "Ver todos" e "+N" pequenos (CSS no `index.html`, antes do bloco
@@ -151,3 +151,10 @@ como trabalhamos e as decisões tomadas desde então.
 - Folhas de ações dos cards (`.movie-card-overlay`) ficam `visibility: hidden` quando fechadas; dentro de janelas (`.modal`) o `backdrop-filter`
   prendia o `position: fixed` à janela (a folha aparecia no meio da playlist). No visual novo `.modal` não usa backdrop-filter.
 - Chat da IA: `--vvh` (JS `acompanharTeclado`, usa `visualViewport`) limita `.chat-window` à altura visível quando o teclado abre.
+
+## Pendências do visual novo resolvidas — 18/10
+- Janelas (`.modal-content`): folha escura com alça, botões em linhas, campos planos, arquivo com botão lilás; o botão da IA some com janela aberta
+  (`body:has(.modal[style*="display: flex"])`). Login com degradê animado. Amigos/chat/playlist aberta restilizados (só CSS + emojis trocados por SVG).
+- Cenas: botão **Enviar** (`enviarCena`, abre a mesma janela de recomendar) e barra de progresso (`.short-prog`, atualizada pelo `timeupdate` do player único).
+- Assistidos mostram a **sua nota** (`minhasNotasAval`, carregada por `carregarMinhasNotas`; selo roxo) e caem na nota do TMDB se não avaliou.
+  Recarrega ao publicar/excluir avaliação e ao carregar os filmes; limpa ao sair.

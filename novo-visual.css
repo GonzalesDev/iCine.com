@@ -350,3 +350,7 @@ html.novo .msg-user, html.novo .chat-msg.msg-user { background: var(--purple); b
 html.novo .chat-input-area { background: transparent; border-top: 1px solid var(--line); }
 html.novo .chat-input-area input { background: var(--card-bg); border: 1px solid var(--line); border-radius: 999px; color: #fff; padding: 0 16px; }
 html.novo .chat-input-area button { background: var(--purple); border-radius: 50%; }
+
+/* Minha nota nos Assistidos: selo roxo */
+html.novo .movie-rating:has(.minha-nota) { background: var(--purple); }
+html.novo .imdb-score.minha-nota { color: #fff; }

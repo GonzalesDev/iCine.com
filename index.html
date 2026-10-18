@@ -626,6 +626,66 @@
         .aval-escolha-grid img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; background: #1f2937; }
         .aval-escolha-grid span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+        .cont-lista { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); background: rgba(255, 255, 255, 0.08); padding: 3px 8px; border-radius: 999px; }
+        .cont-lista:empty { display: none; }
+        .tag-tipo { position: absolute; left: 6px; top: 6px; z-index: 2; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.65); color: #fff; pointer-events: none; }
+        .ico-acao { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .sheet-topo { display: none; }
+        .qtd-pl { display: none; }
+        /* === Feed (visual novo): cartões de avaliação e de playlist === */
+        .aval-lista { display: flex; flex-direction: column; gap: 12px; }
+        .aval-item { display: block; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; background: var(--card-bg); position: relative; }
+        .aval-item.minha { border-color: rgba(139, 92, 246, 0.45); background: linear-gradient(180deg, rgba(139, 92, 246, 0.08), var(--card-bg) 60%); }
+        .aval-item .aval-usuario { margin-bottom: 12px; }
+        .aval-amigo { display: inline-flex; align-items: center; gap: 3px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; color: #22c55e; background: rgba(34, 197, 94, 0.14); padding: 2px 7px; border-radius: 999px; line-height: 1.3; }
+        .aval-amigo b { font-weight: 700; }
+        .aval-eu { font-size: 0.62rem; font-weight: 700; color: #c4b5fd; background: rgba(139, 92, 246, 0.18); padding: 2px 7px; border-radius: 999px; }
+        .aval-mais { margin-left: auto; width: 32px; height: 32px; display: grid; place-items: center; border: none; border-radius: 50%; background: none; color: var(--text-muted); cursor: pointer; }
+        .aval-mais svg { width: 20px; height: 20px; fill: currentColor; }
+        .aval-filme { display: flex; gap: 12px; }
+        .aval-filme .aval-poster { width: 62px; flex-shrink: 0; border-radius: 10px; }
+        .aval-info { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+        .aval-info .aval-titulo { color: #fff; font-weight: 700; font-size: 0.98rem; letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .aval-ano { font-size: 0.76rem; color: var(--text-muted); }
+        .aval-pilula { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; background: rgba(251, 191, 36, 0.12); color: #fbbf24; font-weight: 800; font-size: 0.85rem; padding: 4px 10px; border-radius: 999px; }
+        .aval-pilula svg { width: 13px; height: 13px; fill: currentColor; }
+        .aval-pilula small { font-weight: 600; opacity: 0.7; font-size: 0.72rem; }
+        .aval-barra { display: flex; gap: 2px; margin-top: 2px; }
+        .aval-barra i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); }
+        .aval-barra i.on { background: #fbbf24; }
+        .aval-item > .aval-comentario { margin-top: 12px; font-size: 0.9rem; line-height: 1.5; }
+        .aval-rodape { display: flex; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+        .aval-rodape .aval-like { padding: 6px 10px 6px 4px; }
+        .aval-rodape .aval-like svg { width: 20px; height: 20px; }
+        .aval-item .aval-acoes-dono { display: none; }
+        .aval-item .aval-acao span { display: none; }
+        .aval-item.aberto .aval-acoes-dono { display: flex; flex-direction: column; position: fixed; left: 0; right: 0; bottom: 0; z-index: 400; max-width: 560px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); background: #14141c; border-radius: 24px 24px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+        .aval-item.aberto::before { content: ''; position: fixed; inset: 0; z-index: 399; background: rgba(0, 0, 0, 0.6); }
+        .aval-item.aberto .aval-acao { width: 100%; height: auto; justify-content: flex-start; gap: 14px; padding: 15px 4px; border-radius: 0; color: #fff; font-size: 0.95rem; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .aval-item.aberto .aval-acao:last-child { border-bottom: none; }
+        .aval-item.aberto .aval-acao svg { width: 22px; height: 22px; }
+        .aval-item.aberto .aval-acao span { display: inline; }
+        .aval-item.aberto .aval-acao.excluir { color: #f87171; }
+        .aval-compor { border: 1px solid rgba(255, 255, 255, 0.08); border-style: solid; background: var(--card-bg); border-radius: 14px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem; }
+        .aval-compor-mais { background: rgba(139, 92, 246, 0.18); color: #c4b5fd; font-weight: 400; font-size: 1.1rem; }
+        .aval-compor-txt { flex: 1; text-align: left; }
+        .aval-compor-pilula { background: var(--purple); color: #fff; font-weight: 700; font-size: 0.78rem; padding: 7px 14px; border-radius: 999px; }
+        .comunidade-grid { gap: 12px; }
+        .plf { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; overflow: hidden; }
+        .plf-capa { position: relative; aspect-ratio: 16 / 9; cursor: pointer; background: #1d1d28; }
+        .plf-capa img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .plf-capa::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 10, 15, 0.92) 4%, rgba(10, 10, 15, 0.1) 65%); }
+        .plf-capa h3 { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); color: #fff; }
+        .plf-qtd { position: absolute; top: 12px; right: 12px; z-index: 2; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .plf-rod { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+        .plf-rod .amigo-avatar { width: 30px; height: 30px; font-size: 0.78rem; }
+        .plf-nm { font-size: 0.84rem; font-weight: 600; min-width: 0; }
+        .plf-nm span { display: block; font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+        .plf-like { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: none; border-radius: 999px; background: rgba(255, 255, 255, 0.06); color: var(--text-muted); font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+        .plf-like svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .plf-like.on { color: #f43f5e; }
+        .plf-like.on svg { fill: #f43f5e; stroke: #f43f5e; }
+
         /* "Ver todos" no fim das listas: botão redondo discreto */
         .card-ver-todos { flex: 0 0 auto; align-self: flex-start; width: calc((100% - 1rem) / 2.15 * 0.55); aspect-ratio: 11 / 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0; border: none; background: none; color: var(--text-muted); cursor: pointer; font-family: inherit; }
         .card-ver-todos .cvt-icone { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); transition: background 0.2s, transform 0.15s; }
@@ -714,7 +774,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=8">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=12">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -756,19 +816,19 @@
 
     <main>
         <div id="aba-inicio" class="aba ativa">
-            <h2><div class="h2-detail" style="background-color: var(--pink);"></div> Quero Assistir</h2>
+            <h2><div class="h2-detail" style="background-color: var(--pink);"></div> Quero Assistir <span class="cont-lista" id="cont-quero"></span></h2>
             <div class="movies-slider" id="watchlist-grid"></div>
 
             <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Assistidos Recentemente</h2>
-                <input type="text" id="pesquisa-ja-assisti" placeholder="🔍 Procurar..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 140px; max-width: 45%;">
+                <h2 style="margin-bottom: 0; margin-top: 0;"><div class="h2-detail"></div> Assistidos <span class="cont-lista" id="cont-ja"></span></h2>
+                <input type="text" id="pesquisa-ja-assisti" placeholder="Procurar..." style="padding: 0.5rem 0.8rem; border-radius: 20px; border: 1px solid #374151; background-color: #1f2937; color: white; font-size: 0.85rem; outline: none; width: 140px; max-width: 45%;">
             </div>
             <div class="movies-slider" id="ja-assisti-grid"></div>
 
             <br><hr style="border: 1px solid #1f2937; margin-top: 0.5rem; margin-bottom: 1.5rem;">
-            <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Minhas Playlists</h2>
+            <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Minhas Playlists <span class="cont-lista" id="cont-pl"></span></h2>
             <div class="playlist-slider" id="playlists-grid">
                 <div class="btn-criar-playlist" id="btn-abrir-criar-playlist">+</div>
             </div>
@@ -824,15 +884,15 @@
         <div id="aba-comunidade" class="aba">
             <h2><div class="h2-detail" style="background-color: var(--blue);"></div> Comunidade iCine</h2>
             <div class="tipo-conteudo-toggle" id="toggle-feed" role="group" aria-label="Tipo de feed">
-                <button type="button" class="tipo-conteudo-btn" data-feed="playlists" aria-pressed="false">🎞️ Playlists</button>
-                <button type="button" class="tipo-conteudo-btn ativo" data-feed="avaliacoes" aria-pressed="true">⭐ Avaliações</button>
+                <button type="button" class="tipo-conteudo-btn" data-feed="playlists" aria-pressed="false">Playlists</button>
+                <button type="button" class="tipo-conteudo-btn ativo" data-feed="avaliacoes" aria-pressed="true">Avaliações</button>
             </div>
             <div id="feed-playlists" hidden>
                 <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom: 1.5rem;">Descobre as playlists mais populares partilhadas pelos cinéfilos de todo o mundo.</p>
                 <div id="comunidade-grid" class="comunidade-grid"></div>
             </div>
             <div id="feed-avaliacoes">
-                <button type="button" class="aval-compor" id="btn-aval-compor"><span class="aval-compor-mais">+</span> Avaliar um filme que vi</button>
+                <button type="button" class="aval-compor" id="btn-aval-compor"><span class="aval-compor-mais">+</span> <span class="aval-compor-txt">Assistiu algo? Conte o que achou</span><span class="aval-compor-pilula">Avaliar</span></button>
                 <div id="lista-avaliacoes" class="aval-lista"></div>
             </div>
         </div>
@@ -851,8 +911,8 @@
                         <div class="f-etapa ativa" data-etapa="1">
                             <h2>O que vamos ver hoje?</h2>
                             <div class="f-tipos">
-                                <button class="f-tipo" type="button" data-tipo="movie"><span class="emoji">🎬</span><span class="nome">Filme</span><span class="qtd" id="rol-qtd-movie"></span></button>
-                                <button class="f-tipo" type="button" data-tipo="tv"><span class="emoji">📺</span><span class="nome">Série</span><span class="qtd" id="rol-qtd-tv"></span></button>
+                                <button class="f-tipo" type="button" data-tipo="movie"><svg class="ico-tipo" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5l-2 4M13 5l-2 4M18 5l-2 4"/></svg><span class="nome">Filme</span><span class="qtd" id="rol-qtd-movie"></span></button>
+                                <button class="f-tipo" type="button" data-tipo="tv"><svg class="ico-tipo" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="m9 3 3 3 3-3M8 21h8"/></svg><span class="nome">Série</span><span class="qtd" id="rol-qtd-tv"></span></button>
                             </div>
                         </div>
                         <div class="f-etapa" data-etapa="2">
@@ -884,13 +944,13 @@
                 <div class="centro so-roleta" id="rol-centro"></div>
                 <!-- Pipocas estourando quando a roda para (desenhadas em canvas, não bloqueia toques) -->
                 <canvas class="rol-pipocas so-roleta" id="rol-pipocas" aria-hidden="true"></canvas>
-                <div class="ponteiro so-roleta" id="rol-ponteiro"><svg viewBox="0 0 34 40" aria-hidden="true"><defs><linearGradient id="rol-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><path d="M17 40 L2 8 A15 15 0 0 1 32 8 Z" fill="url(#rol-grad)" stroke="#fff" stroke-width="2"/><circle cx="17" cy="11" r="4" fill="#fff"/></svg></div>
+                <div class="ponteiro so-roleta" id="rol-ponteiro"><svg viewBox="0 0 34 40" aria-hidden="true"><path d="M9 10 H25 L17 25 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg></div>
                 <button class="btn-girar so-roleta" id="rol-girar" type="button">Girar</button>
                 <!-- Fundo: capa do sorteado desfocada, preenchendo a parte de cima -->
                 <div class="rol-fundo so-roleta" id="rol-fundo" aria-hidden="true"></div>
                 <!-- Antes do primeiro giro, o espaço do sorteado mostra um convite -->
                 <div class="vencedor-vazio so-roleta" id="rol-vazio">
-                    <span class="vv-icone" aria-hidden="true">🎬</span>
+                    <svg class="ico-tipo vv-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5l-2 4M13 5l-2 4M18 5l-2 4"/></svg>
                     <span class="vv-titulo">Seu próximo filme aparece aqui</span>
                     <span class="vv-texto">Toque em Girar ou arraste a roleta</span>
                 </div>
@@ -1286,7 +1346,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.5';
+        const VERSAO_APP = '2026-10-18.6';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1660,15 +1720,27 @@
             } catch (err) { if (pedidoAtual === contadorPedidoTop10) grid.innerHTML = '<p class="empty-msg">Erro ao carregar o ranking. Tente novamente.</p>'; }
         }
 
+        // Ícones de linha das ações dos cards (substituem os emojis)
+        const _svg = (d) => `<svg class="ico-acao" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+        const ICO = {
+            info: _svg('M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v5M12 8h.01'),
+            mais: _svg('M12 5v14M5 12h14'),
+            lixo: _svg('M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3'),
+            check: _svg('M5 12l5 5L20 7'),
+            volta: _svg('M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3'),
+            playlist: _svg('M4 6h12M4 12h8M4 18h8M18 14v6M15 17h6')
+        };
+        const _tagSerie = (f) => f && f.tipo === 'serie' ? '<span class="tag-tipo">Série</span>' : '';
+
         function gerarCardTop10HTML(filme, numeroPosicao) {
             return `
                 <div class="top10-card">
                     <div class="top10-number">${numeroPosicao}</div>
                     <div class="movie-card">
                         <img src="${filme.capa}" alt="${filme.titulo}">
-                        <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${filme.id}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">➕ Lista</button>
+                        <div class="movie-card-overlay"><div class="sheet-topo"><img src="${filme.capa}" alt=""><div><b>${filme.titulo}</b><span>${filme.ano || ''}${filme.tipo === 'serie' ? ' · Série' : ''}</span></div></div>
+                            <button class="btn-action btn-info" data-id="${filme.id}" data-action="sinopse">${ICO.info}Ver sinopse</button>
+                            <button class="btn-action btn-add" data-id="${filme.id}" data-action="organizar">${ICO.mais}Adicionar à lista</button>
                         </div>
                     </div>
                 </div>`;
@@ -1691,16 +1763,16 @@
         function gerarCartaoFilmeHTML(f, context = 'explorar') {
             let acoesHtml = '';
             if (context === 'explorar' || context === 'comunidade' || context === 'playlist-amigo') {
-                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
-                acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">➕ Lista</button>`;
+                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">${ICO.info}Ver sinopse</button>`;
+                acoesHtml += `<button class="btn-action btn-add" data-id="${f.id || f.tmdb_id}" data-action="organizar">${ICO.mais}Adicionar à lista</button>`;
             } else if (context === 'minha-playlist') {
-                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">ℹ️ Sinopse</button>`;
-                acoesHtml += `<button class="btn-action btn-delete" data-id="${f.id || f.tmdb_id}" data-action="remover-playlist">🗑️ Remover</button>`;
+                acoesHtml += `<button class="btn-action btn-info" data-id="${f.id || f.tmdb_id}" data-action="sinopse">${ICO.info}Ver sinopse</button>`;
+                acoesHtml += `<button class="btn-action btn-delete" data-id="${f.id || f.tmdb_id}" data-action="remover-playlist">${ICO.lixo}Remover</button>`;
             }
             return `
                 <div class="movie-card">
                     <img src="${f.capa}" alt="${f.titulo}">
-                    <div class="movie-card-overlay">${acoesHtml}</div>
+                    <div class="movie-card-overlay"><div class="sheet-topo"><img src="${f.capa}" alt=""><div><b>${f.titulo}</b><span>${f.ano || ''}${f.tipo === 'serie' ? ' · Série' : ''}</span></div></div>${acoesHtml}</div>
                     <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                 </div>`;
         }
@@ -1765,18 +1837,20 @@
         document.getElementById('pesquisa-ja-assisti').addEventListener('input', () => { mostrarTodosJaAssisti = false; renderizarMinhasListas(); });
 
         function renderizarMinhasListas() {
+            const _c = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n; };
+            _c('cont-quero', listaQueroAssistir.length); _c('cont-ja', listaJaAssisti.length); _c('cont-pl', minhasPlaylists.length);
             const cWatch = document.getElementById('watchlist-grid');
             if (listaQueroAssistir.length === 0) { cWatch.innerHTML = `<p class="empty-msg">Sua Watchlist está vazia.</p>`; } 
             else {
                 const listaQueroRender = mostrarTodosQueroAssistir ? listaQueroAssistir : listaQueroAssistir.slice(0, 15);
                 let htmlQuero = listaQueroRender.map(f => `
                     <div class="movie-card">
-                        <img src="${f.capa}" alt="${f.titulo}">
-                        <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${chaveDaLinha(f)}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-watched" data-id="${chaveDaLinha(f)}" data-action="mover-ja">⬇ Assistido</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${chaveDaLinha(f)}" data-action="add-playlist">➕ Playlist</button>
-                            <button class="btn-action btn-delete" data-id="${chaveDaLinha(f)}" data-action="remover">🗑️ Remover</button>
+                        <img src="${f.capa}" alt="${f.titulo}">${_tagSerie(f)}
+                        <div class="movie-card-overlay"><div class="sheet-topo"><img src="${f.capa}" alt=""><div><b>${f.titulo}</b><span>${f.ano || ''}${f.tipo === 'serie' ? ' · Série' : ''}</span></div></div>
+                            <button class="btn-action btn-info" data-id="${chaveDaLinha(f)}" data-action="sinopse">${ICO.info}Ver sinopse</button>
+                            <button class="btn-action btn-watched" data-id="${chaveDaLinha(f)}" data-action="mover-ja">${ICO.check}Marcar como assistido</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${chaveDaLinha(f)}" data-action="add-playlist">${ICO.playlist}Adicionar a uma playlist</button>
+                            <button class="btn-action btn-delete" data-id="${chaveDaLinha(f)}" data-action="remover">${ICO.lixo}Remover</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
@@ -1804,12 +1878,12 @@
                 const listaJaRender = mostrarTodosJaAssisti ? filmesFiltrados : filmesFiltrados.slice(0, 15);
                 let htmlJa = listaJaRender.map(f => `
                     <div class="movie-card">
-                        <img src="${f.capa}" alt="${f.titulo}">
-                        <div class="movie-card-overlay">
-                            <button class="btn-action btn-info" data-id="${chaveDaLinha(f)}" data-action="sinopse">ℹ️ Sinopse</button>
-                            <button class="btn-action btn-add" data-id="${chaveDaLinha(f)}" data-action="mover-quero">⬆ Watchlist</button>
-                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${chaveDaLinha(f)}" data-action="add-playlist">➕ Playlist</button>
-                            <button class="btn-action btn-delete" data-id="${chaveDaLinha(f)}" data-action="remover">🗑️ Remover</button>
+                        <img src="${f.capa}" alt="${f.titulo}">${_tagSerie(f)}
+                        <div class="movie-card-overlay"><div class="sheet-topo"><img src="${f.capa}" alt=""><div><b>${f.titulo}</b><span>${f.ano || ''}${f.tipo === 'serie' ? ' · Série' : ''}</span></div></div>
+                            <button class="btn-action btn-info" data-id="${chaveDaLinha(f)}" data-action="sinopse">${ICO.info}Ver sinopse</button>
+                            <button class="btn-action btn-add" data-id="${chaveDaLinha(f)}" data-action="mover-quero">${ICO.volta}Voltar para Quero Assistir</button>
+                            <button class="btn-action" style="background-color: var(--blue); color: white;" data-id="${chaveDaLinha(f)}" data-action="add-playlist">${ICO.playlist}Adicionar a uma playlist</button>
+                            <button class="btn-action btn-delete" data-id="${chaveDaLinha(f)}" data-action="remover">${ICO.lixo}Remover</button>
                         </div>
                         <div class="movie-info"><div class="movie-title">${f.titulo}</div><div class="movie-meta"><span>${f.ano}</span><div class="movie-rating">${renderScoreBadge(f)}</div></div></div>
                     </div>`).join('');
@@ -1831,7 +1905,7 @@
             minhasPlaylists.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'playlist-card'; div.onclick = () => abrirVerPlaylist(p.id, false);
-                div.innerHTML = `<img src="${p.capa_url}" alt="${p.nome}"><div class="title">${p.nome}</div>`;
+                div.innerHTML = `<img src="${p.capa_url}" alt="${p.nome}"><div class="title">${p.nome}</div><div class="qtd-pl"><span class="ponto-pl ${p.publica ? '' : 'priv'}"></span>${(p.filmes || []).length} títulos · ${p.publica ? 'Pública' : 'Privada'}</div>`;
                 pGrid.appendChild(div);
             });
             mapearBotoesGrid();
@@ -2669,17 +2743,17 @@
                             <div class="short-side-actions">
                                 <div class="action-group">
                                     <button class="btn-side-action ${isLiked ? 'liked' : ''}" onclick="curtirCena(event, '${cena.id}', this)">
-                                        ${isLiked ? '❤️' : '🤍'}
+                                        <svg class="ico-cena" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-8-4.9-8-11A4.5 4.5 0 0 1 12 6.7 4.5 4.5 0 0 1 20 9.5c0 6.1-8 11-8 11z"/></svg>
                                     </button>
                                     <span class="action-label">${likesCount}</span>
                                 </div>
                                 <div class="action-group">
-                                    <button class="btn-side-action" onclick="abrirComentarios(event, '${cena.id}')">💬</button>
+                                    <button class="btn-side-action" onclick="abrirComentarios(event, '${cena.id}')" aria-label="Comentários"><svg class="ico-cena" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.2-4.4A8 8 0 1 1 21 12z"/></svg></button>
                                     <span class="action-label" id="count-comentarios-${cena.id}">${comentariosCount}</span>
                                 </div>
                                 <div class="action-group">
-                                    <button class="btn-side-action" onclick="abrirModal(${cena.tmdb_id}, 'explorar')">➕</button>
-                                    <span class="action-label">Lista</span>
+                                    <button class="btn-side-action" onclick="abrirModal(${cena.tmdb_id}, 'explorar')" aria-label="Adicionar à lista"><svg class="ico-cena" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></button>
+                                    <span class="action-label">Salvar</span>
                                 </div>
                             </div>
 
@@ -2842,11 +2916,9 @@
 
             if (jaEstavaCurtido) {
                 btnElement.classList.remove('liked');
-                btnElement.innerText = '🤍';
                 spanCount.innerText = countAtual - 1;
             } else {
                 btnElement.classList.add('liked');
-                btnElement.innerText = '❤️';
                 spanCount.innerText = countAtual + 1;
             }
 
@@ -3127,18 +3199,16 @@
                 const iconeLike = jaCurtiu ? '❤️' : '🤍';
 
                 return `
-                <div style="background:var(--card-bg); border:1px solid #374151; border-radius:16px; overflow:hidden; display:flex; flex-direction:column;">
-                    <div style="position:relative; aspect-ratio:16/9; cursor:pointer;" onclick="abrirVerPlaylistGlobal('${p.id}')">
-                        <img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.75; transition:0.2s;">
-                        <div style="position:absolute;inset:0;background:linear-gradient(to top, #030712, transparent);"></div>
-                        <h3 style="position:absolute;bottom:12px;left:15px;margin:0;font-size:1.15rem;text-shadow:0 2px 4px rgba(0,0,0,0.9);z-index:2;color:white;">${p.nome}</h3>
+                <div class="plf">
+                    <div class="plf-capa" onclick="abrirVerPlaylistGlobal('${p.id}')">
+                        <img src="${p.capa_url}" alt="${p.nome}">
+                        <span class="plf-qtd">${(p.filmes || []).length} filmes</span>
+                        <h3>${p.nome}</h3>
                     </div>
-                    <div style="padding:12px 15px; display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-size:0.85rem; color:var(--text-muted);">👤 @${p.username_criador}<br><span style="font-size:0.75rem;">${(p.filmes || []).length} filmes na lista</span></div>
-                        <button onclick="alternarLikePlaylist(event, '${p.id}')" style="background:rgba(255,255,255,0.05); border:1px solid #374151; padding:6px 14px; border-radius:20px; display:flex; align-items:center; gap:6px; cursor:pointer; color:${corLike}; transition:0.2s; z-index:10;">
-                            <span style="font-size:1.1rem;">${iconeLike}</span> 
-                            <span style="font-weight:bold;">${likes}</span>
-                        </button>
+                    <div class="plf-rod">
+                        ${avatarHTML(p.username_criador || 'cinefilo', fotosPerfis.get(p.user_id))}
+                        <div class="plf-nm">@${p.username_criador}<span>criou esta playlist</span></div>
+                        <button type="button" class="plf-like${jaCurtiu ? ' on' : ''}" onclick="alternarLikePlaylist(event, '${p.id}')" aria-label="Curtir playlist"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg><span>${likes}</span></button>
                     </div>
                 </div>`;
             }).join('');
@@ -3387,29 +3457,34 @@
                 const ehAmigo = amigos.has(a.user_id);
                 const ehMinha = a.user_id === usuarioAtual.id;
                 const cur = curtidasAval.get(a.id) || { total: 0, eu: false };
-                return `<article class="aval-item" data-id="${a.id}">
-                    <button type="button" class="aval-poster" data-chave="${chave}" aria-label="Abrir ${escaparHTML(a.titulo)}">
-                        ${a.capa ? `<img src="${escaparHTML(a.capa)}" alt="" loading="lazy">` : ''}
-                        ${a.tipo === 'serie' ? '<span class="aval-selo">Série</span>' : ''}
-                    </button>
-                    <div class="aval-corpo">
-                        <div class="aval-usuario">
-                            ${avatarHTML(nome, fotosPerfis.get(a.user_id))}
-                            <div>
-                                <div class="aval-nome">@${escaparHTML(nome)}${ehAmigo ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo">★</span>' : ''}</div>
-                                <div class="aval-quando">${tempoRelativo(a.created_at)}</div>
-                            </div>
-                            ${ehMinha ? `<div class="aval-acoes-dono">
-                                <button type="button" class="aval-acao editar" data-chave="${chave}" aria-label="Editar minha avaliação" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
-                                <button type="button" class="aval-acao excluir" data-id="${a.id}" aria-label="Excluir minha avaliação" title="Excluir"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button>
-                            </div>` : ''}
+                const barra = Array.from({ length: 10 }, (_, k) => `<i class="${k < a.nota ? 'on' : ''}"></i>`).join('');
+                return `<article class="aval-item${ehMinha ? ' minha' : ''}" data-id="${a.id}">
+                    <div class="aval-usuario">
+                        ${avatarHTML(nome, fotosPerfis.get(a.user_id))}
+                        <div>
+                            <div class="aval-nome">@${escaparHTML(nome)}${ehAmigo ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo"><b>★</b> Amigo</span>' : ''}${ehMinha ? '<span class="aval-eu">Você</span>' : ''}</div>
+                            <div class="aval-quando">${tempoRelativo(a.created_at)}</div>
                         </div>
-                        <div class="aval-titulo">${escaparHTML(a.titulo)}${a.ano ? ` · ${escaparHTML(a.ano)}` : ''}</div>
-                        ${a.comentario ? `<div class="aval-comentario">${escaparHTML(a.comentario)}</div>` : ''}
-                        <div class="aval-nota">
-                            <div class="aval-nota-esq"><div class="aval-estrelas" aria-label="Nota ${a.nota} de 10">${estrelasHTML(a.nota)}</div><b>${a.nota}/10</b></div>
-                            <button type="button" class="aval-like${cur.eu ? ' curtiu' : ''}" data-id="${a.id}" aria-pressed="${cur.eu}" aria-label="Curtir avaliação"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg><span class="aval-like-n">${cur.total}</span></button>
+                        ${ehMinha ? `<button type="button" class="aval-mais" aria-label="Opções da minha avaliação"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+                        <div class="aval-acoes-dono">
+                            <button type="button" class="aval-acao editar" data-chave="${chave}" aria-label="Editar minha avaliação" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg><span>Editar minha avaliação</span></button>
+                            <button type="button" class="aval-acao excluir" data-id="${a.id}" aria-label="Excluir minha avaliação" title="Excluir"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg><span>Excluir avaliação</span></button>
+                        </div>` : ''}
+                    </div>
+                    <div class="aval-filme">
+                        <button type="button" class="aval-poster" data-chave="${chave}" aria-label="Abrir ${escaparHTML(a.titulo)}">
+                            ${a.capa ? `<img src="${escaparHTML(a.capa)}" alt="" loading="lazy">` : ''}
+                        </button>
+                        <div class="aval-info">
+                            <div class="aval-titulo">${escaparHTML(a.titulo)}</div>
+                            <div class="aval-ano">${a.ano ? `${escaparHTML(a.ano)} · ` : ''}${a.tipo === 'serie' ? 'Série' : 'Filme'}</div>
+                            <span class="aval-pilula" aria-label="Nota ${a.nota} de 10"><svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>${a.nota}<small>/10</small></span>
+                            <div class="aval-barra" aria-hidden="true">${barra}</div>
                         </div>
+                    </div>
+                    ${a.comentario ? `<div class="aval-comentario">${escaparHTML(a.comentario)}</div>` : ''}
+                    <div class="aval-rodape">
+                        <button type="button" class="aval-like${cur.eu ? ' curtiu' : ''}" data-id="${a.id}" aria-pressed="${cur.eu}" aria-label="Curtir avaliação"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg><span class="aval-like-n">${cur.total}</span></button>
                     </div>
                 </article>`;
             }).join('');
@@ -3418,6 +3493,10 @@
         const curtidasAval = new Map(); // avaliacao_id -> { total, eu }
 
         document.getElementById('lista-avaliacoes').addEventListener('click', (e) => {
+            const mais = e.target.closest('.aval-mais');
+            if (mais) { const art = mais.closest('.aval-item'); const abriu = !art.classList.contains('aberto'); document.querySelectorAll('.aval-item.aberto').forEach(x => x.classList.remove('aberto')); if (abriu) art.classList.add('aberto'); return; }
+            if (e.target.classList && e.target.classList.contains('aval-item') && e.target.classList.contains('aberto')) { e.target.classList.remove('aberto'); return; }
+            document.querySelectorAll('.aval-item.aberto').forEach(x => x.classList.remove('aberto'));
             const like = e.target.closest('.aval-like'); if (like) return alternarCurtidaAvaliacao(like);
             const editar = e.target.closest('.aval-acao.editar'); if (editar) return abrirAvaliacao(normalizarChave(editar.dataset.chave), false);
             const excluir = e.target.closest('.aval-acao.excluir'); if (excluir) return excluirAvaliacao(excluir.dataset.id);

@@ -115,8 +115,22 @@ como trabalhamos e as decisões tomadas desde então.
 - Linguagem: fonte Inter, cabeçalho de vidro, barra inferior de vidro com ícones de linha (máscara SVG sobre `.nav-btn .icon`),
   chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa (celular) / na frente (600px+),
   grade `minmax(0,1fr)` (títulos longos não esticam colunas), detalhes com abas sublinhadas e botões de 12px.
-- Falta ajustar: Feed, Amigos, modais, Roleta (ajustes finos), tela de login.
+- Falta ajustar: Amigos, modais, tela de login.
 
 ## "Ver todos" no fim das listas (Listas)
 - Os blocos tracejados viraram `.card-ver-todos`: botão redondo com seta + "Ver todos" e "+N" pequenos (CSS no `index.html`, antes do bloco
   de responsividade). Gerado em `renderizarMinhasListas`; ao clicar mostra a lista inteira. No computador (600px+) ocupa uma célula da grade.
+
+## Visual novo: Listas, Cenas, Roleta e Feed (18/10)
+- **Folha de ações dos cards** (Listas, Explorar, Top 10, playlists): o painel que aparecia sobre a capa agora é uma folha que sobe de baixo
+  (`.movie-card-overlay` com `position: fixed` + fundo escuro via `.movie-card.aberto::before`). O cabeçalho da folha é `.sheet-topo` (capa,
+  título, ano), preenchido nos templates; os ícones das ações vêm de `ICO` (JS, perto de `gerarCardTop10HTML`). Etiqueta "Série" = `_tagSerie(f)`.
+- **Listas**: contadores nos títulos (`#cont-quero/#cont-ja/#cont-pl`, atualizados em `renderizarMinhasListas`), busca de Assistidos vira lupa
+  que abre ao focar (só CSS), cartão de playlist com nome + "N títulos · Pública/Privada" (`.qtd-pl`), botão "Nova playlist".
+- **Cenas**: ícones de linha (coração/balão/salvar) no lugar dos emojis; `curtirCena` NÃO mexe mais no texto do botão (só na classe `liked`).
+  Não foram portados: barra de progresso do vídeo, pontos de posição, legenda e botão Enviar do protótipo.
+- **Roleta**: só CSS/ícones: fundo degradê animado, funil com chips/cartões, aro de vidro com brilho, miolo escuro, ponteiro branco minimalista
+  (SVG em `#rol-ponteiro`), botão Girar branco. A lógica da roda, o arrastar com impulso e as pipocas NÃO mudaram.
+- **Feed**: cartão por avaliação (`.aval-item`: usuário, filme com pílula de nota + barra de 10 segmentos, comentário, rodapé com ❤️);
+  suas avaliações têm menu "⋯" (`.aval-mais`) que abre folha com Editar/Excluir (`.aval-item.aberto`); cartão de playlist `.plf` com capa grande.
+  Cuidado: `.aval-acoes-dono`/`.aval-acao` também são usados na aba Avaliações dos detalhes (escopar sempre com `.aval-item`).

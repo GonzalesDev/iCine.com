@@ -362,6 +362,7 @@ html.novo .imdb-score.minha-nota { color: #fff; background: var(--purple); paddi
 html.novo body {
   background: radial-gradient(95% 42% at 50% 0%, rgba(139, 92, 246, 0.42), rgba(139, 92, 246, 0) 70%), var(--bg-color);
   background-color: var(--bg-color);
+  background-repeat: no-repeat; /* sem repetir: em tela curta a luz não pode voltar mais para baixo */
 }
 html.novo .h2-detail { background-color: var(--purple) !important; }
 html.novo .cont-lista { background: rgba(139, 92, 246, 0.22); color: #ddd6fe; }
@@ -374,4 +375,5 @@ html.novo .busca-listas { border-color: rgba(139, 92, 246, 0.35); }
 html.novo body:has(#aba-explorar.ativa) {
   background: radial-gradient(90% 520px at 50% 0%, rgba(139, 92, 246, 0.42), rgba(139, 92, 246, 0) 100%), var(--bg-color);
   background-color: var(--bg-color);
+  background-repeat: no-repeat;
 }

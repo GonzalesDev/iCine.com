@@ -66,7 +66,8 @@ html.novo .movie-meta { font-size: 0.72rem; margin-top: 0.15rem; }
 html.novo .movie-rating { position: absolute; top: 6px; right: 6px; z-index: 3; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 0.68rem; }
 html.novo .imdb-score { font-weight: 700; color: var(--gold); white-space: nowrap; }
 html.novo .movies-slider, html.novo .playlist-slider { gap: 0.7rem; }
-html.novo .movies-grid { gap: 1rem 0.7rem; }
+html.novo .movies-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 0.7rem; }
+html.novo .movies-grid .movie-card { min-width: 0; }
 
 /* ---------- Top 10: número grande vazado, atrás da capa ---------- */
 html.novo .top10-slider { gap: 1.2rem; padding-left: 22px; }
@@ -109,3 +110,17 @@ html.novo .det-abas button.ativo { background: transparent; color: #fff; box-sha
 html.novo .detalhe-sinopse { background: transparent; border: none; padding: 0; color: #c8c8d4; line-height: 1.6; }
 html.novo .da-item { border-bottom-color: var(--line); }
 html.novo .da-btn { border-radius: var(--r-md); }
+
+/* Busca com lupa dentro do campo */
+html.novo #input-pesquisa { padding-left: 42px; background-repeat: no-repeat; background-position: 14px center; background-size: 18px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a3b2' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E"); }
+/* Computador: mantém as colunas do layout original (3 e depois 5) */
+@media (min-width: 600px) {
+  html.novo .movies-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html.novo .top10-slider { padding-left: 0; gap: 1rem; }
+  html.novo .top10-card { margin-left: 0; }
+  html.novo .top10-number { z-index: 2; font-size: 3.6rem; left: -6px; bottom: -4px; -webkit-text-stroke: 2px #fff; filter: drop-shadow(0 2px 6px rgba(0,0,0,.8)); }
+}
+@media (min-width: 900px) {
+  html.novo .movies-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem; }
+  html.novo .top10-slider { gap: 1.2rem; }
+}

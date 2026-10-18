@@ -107,11 +107,12 @@ como trabalhamos e as decisões tomadas desde então.
   recarrega em `?v=<versão>`. **A CADA PUSH que muda o app: trocar o valor nos DOIS lugares (mesmo valor)**, ex. `2026-10-15.2`.
   A primeira vez que cada aparelho abrir a versão que contém isso ainda pode precisar de um refresh manual (a versão velha não tem a checagem).
 
-## Visual novo (em prévia)
-- Modernização do visual **sem mudar a estrutura** (decisão: nada de destaque grande/estilo streaming; manter toggle Filmes/Séries e
-  filtros em selects, não em botões de gênero). Vive em `novo-visual.css`, uma camada com prefixo `html.novo`, carregada pelo
-  script no fim do `<head>` só quando `?visual=novo` (grava `localStorage.icine_visual`; `?visual=antigo` desliga). Quando aprovado,
-  vira padrão (remover o script condicional e o prefixo). Ao mudar o CSS, subir `?v=` do link e o `VERSAO_APP`/`version.json`.
-- Feito (linguagem do protótipo streaming, mesma estrutura): Inter, cabeçalho flutuante, barra inferior de vidro com ícones de linha, chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa, detalhes com abas sublinhadas, botões de 12px e ações em ícones limpos.
-  títulos sem barrinha colorida, toggle segmentado, campos/selects planos, cards sem caixa (capa arredondada + texto embaixo), Top 10 vazado.
-- Falta: tela de detalhes, Feed, Amigos, modais, Roleta (ajustes finos), telas de login.
+## Visual novo (já é o PADRÃO desde 18/10)
+- Modernização do visual **sem mudar a estrutura** (decisão: nada de destaque grande/estilo streaming, nada de botões de gênero, sem lupa
+  no cabeçalho; manter toggle Filmes/Séries, logos de streaming que filtram o Top 10, busca e selects). Vive em `novo-visual.css`
+  (camada com prefixo `html.novo`), carregado por um script no fim do `<head>`. Saída de emergência: `?visual=antigo` (grava
+  `localStorage.icine_visual`); `?visual=novo` religa. Ao mudar o CSS, subir o `?v=` do link e o `VERSAO_APP`/`version.json`.
+- Linguagem: fonte Inter, cabeçalho de vidro, barra inferior de vidro com ícones de linha (máscara SVG sobre `.nav-btn .icon`),
+  chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa (celular) / na frente (600px+),
+  grade `minmax(0,1fr)` (títulos longos não esticam colunas), detalhes com abas sublinhadas e botões de 12px.
+- Falta ajustar: Feed, Amigos, modais, Roleta (ajustes finos), tela de login.

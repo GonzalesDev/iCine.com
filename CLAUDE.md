@@ -170,3 +170,18 @@ como trabalhamos e as decisões tomadas desde então.
   `teste-*.js` e `*-check.js` na pasta de rascunho da sessão anterior; se sumiram, recriar mocks pelo padrão descrito nas seções acima).
 - **Preferências do usuário:** fala português (BR), não é desenvolvedor; gosta de aprovar protótipo antes de mudar o app; visual minimalista,
   estilo de app moderno (parecido com streaming, mas **sem** destaque grande e sem botões de gênero); pede ajustes pequenos um de cada vez.
+
+## Fatos técnicos e armadilhas (para não redescobrir)
+- **Arquitetura:** app de um arquivo só (`index.html`, JS puro) + `novo-visual.css`; Supabase (auth, tabelas, RLS, Edge Function `enviar-push`) e TMDB.
+  Publicação = Replit (site estático servindo a pasta raiz). Não há build.
+- **Acesso ao Supabase:** o Claude NÃO tem acesso ao painel do Supabase nem ao Replit. SQL fica em `migrations/` e o usuário roda no SQL Editor;
+  segredos (VAPID privada, WEBHOOK_SECRET) ficam só nos Secrets do Supabase — nunca no repositório nem no chat.
+- **Atualização do app instalado:** `VERSAO_APP` + `version.json` (sempre o mesmo valor) e `novo-visual.css?v=N`. Esquecer = app instalado não atualiza.
+- **Cache antigo:** `limparCopiaAntiga()` apaga service workers/caches antigos (só `sw-push.js` fica). Não reintroduzir cache de app no service worker.
+- **`position: fixed` dentro de janelas:** `backdrop-filter`/`transform`/`filter` em um ancestral prende o `fixed` a ele (já causou folhas aparecendo
+  no meio da playlist). Por isso `.modal` não usa backdrop-filter no visual novo e as folhas fechadas ficam `visibility: hidden`.
+- **Classes compartilhadas:** `.aval-acoes-dono`/`.aval-acao` existem no Feed e na aba Avaliações dos detalhes — sempre escopar com `.aval-item`.
+  `.movie-card` e seu overlay são usados em Listas, Explorar, Top 10 e playlists.
+- **Teclado do celular:** `--vvh` (visualViewport) limita o chat da IA; qualquer janela nova com campo de texto deve usar a mesma ideia.
+- **Emojis:** foram trocados por ícones SVG de linha nas telas redesenhadas; manter esse padrão em telas novas (emoji só em texto de conteúdo).
+- **Testes:** conferir sempre no tamanho 375×812 e 1366×768; rodar os testes de regressão (aba de avaliações, busca em playlist, amigos, roleta, feed).

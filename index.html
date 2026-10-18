@@ -570,6 +570,72 @@
         .perfil-amigo-tabs { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
         .perfil-amigo-tab { flex: 1; padding: 0.6rem; text-align: center; border-radius: 8px; border: 1px solid #374151; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--text-muted); background: none; }
         .perfil-amigo-tab.ativo { background: var(--purple); color: white; border-color: var(--purple); }
+        /* === PERFIL DO USUÁRIO (#modal-perfil): banner roxo, foto com anel, números, Top 4, Cinéfilo em números e abas === */
+        #modal-perfil { padding: 0; align-items: stretch; justify-content: center; }
+        .pf-tela { width: 100%; max-width: 600px; height: 100%; overflow-y: auto; overflow-x: hidden; background: var(--bg-color); position: relative; padding-bottom: 32px; scrollbar-width: none; }
+        .pf-tela::-webkit-scrollbar { display: none; }
+        .pf-banner { height: 190px; position: relative; overflow: hidden; background: linear-gradient(160deg, #2d1b4e, #120a24 70%); background-size: cover; background-position: center 25%; clip-path: ellipse(120% 100% at 50% 0%); }
+        .pf-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(91, 33, 182, 0.55), rgba(46, 16, 101, 0.72) 65%, rgba(10, 10, 15, 0.95)); }
+        .pf-barra { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 16px; font-weight: 800; font-size: 1.15rem; }
+        .pf-redondo { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(10, 10, 15, 0.3); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+        .pf-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .pf-cabeca { display: flex; flex-direction: column; align-items: center; margin-top: -62px; position: relative; z-index: 4; padding: 0 18px; text-align: center; }
+        .pf-anel { width: 112px; height: 112px; border-radius: 50%; padding: 4px; background: conic-gradient(#a678ff, #ec4899, #a678ff); }
+        .pf-foto { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--bg-color); background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 2.3rem; font-weight: 800; color: #fff; position: relative; overflow: hidden; }
+        .pf-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .pf-nome { font-size: 1.35rem; font-weight: 800; margin-top: 10px; word-break: break-word; }
+        .pf-arroba { color: var(--text-muted); font-size: 0.82rem; margin-top: 2px; }
+        .pf-amigo-tag { font-size: 0.72rem; font-weight: 700; color: #4ade80; display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+        .pf-numeros { display: flex; justify-content: space-around; width: 100%; margin: 16px 0 14px; }
+        .pf-num { text-align: center; background: none; border: none; color: inherit; padding: 4px 6px; font: inherit; position: relative; }
+        .pf-num b { display: block; font-size: 1.15rem; font-weight: 800; }
+        .pf-num span { font-size: 0.7rem; color: var(--text-muted); }
+        button.pf-num { cursor: pointer; }
+        .pf-num .pf-badge { position: absolute; top: 0; right: -2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--pink); color: #fff; font-size: 0.62rem; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .pf-acoes { display: flex; gap: 10px; width: 100%; }
+        .pf-btn { flex: 1; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: none; color: #fff; font-family: inherit; }
+        .pf-btn.roxo { background: var(--purple); box-shadow: 0 8px 22px rgba(139, 92, 246, 0.35); }
+        .pf-btn.contorno { border: 1px solid rgba(167, 139, 250, 0.45); color: #ddd6fe; background: rgba(139, 92, 246, 0.08); }
+        .pf-btn:disabled { opacity: 0.7; cursor: default; }
+        .pf-compat { margin: 14px 18px 0; padding: 12px 14px; border-radius: 14px; background: linear-gradient(90deg, rgba(139, 92, 246, 0.25), rgba(236, 72, 153, 0.12)); border: 1px solid rgba(167, 139, 250, 0.25); display: flex; align-items: center; gap: 12px; }
+        .pf-compat .pct { font-size: 1.35rem; font-weight: 800; }
+        .pf-compat span { font-size: 0.75rem; color: #ddd6fe; line-height: 1.35; }
+        .pf-bloco { padding: 0 18px; margin-top: 22px; }
+        .pf-bloco h3 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .pf-bloco h3::before { content: ""; width: 4px; height: 16px; border-radius: 4px; background: linear-gradient(#a678ff, #7c3aed); }
+        .pf-top4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+        .pf-capa { border-radius: 10px; aspect-ratio: 2 / 3; position: relative; overflow: hidden; background: #1d1d28; cursor: pointer; border: none; padding: 0; width: 100%; display: block; }
+        .pf-capa img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pf-selo { position: absolute; top: 5px; right: 5px; font-size: 0.62rem; font-weight: 800; padding: 1px 5px; border-radius: 5px; background: var(--purple); color: #fff; }
+        .pf-selo.ouro { background: rgba(0, 0, 0, 0.65); color: #fbbf24; }
+        .pf-destaques { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .pf-dest { border-radius: 16px; padding: 12px; background: linear-gradient(145deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(167, 139, 250, 0.18); min-width: 0; }
+        .pf-dest .ic { width: 30px; height: 30px; border-radius: 9px; background: rgba(139, 92, 246, 0.25); display: grid; place-items: center; color: #ddd6fe; margin-bottom: 8px; }
+        .pf-dest .ic .pf-ico { width: 17px; height: 17px; }
+        .pf-dest b { display: block; font-size: 0.88rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pf-dest span { font-size: 0.7rem; color: var(--text-muted); }
+        .pf-dest.rosa { background: linear-gradient(145deg, rgba(236, 72, 153, 0.18), rgba(236, 72, 153, 0.04)); border-color: rgba(244, 114, 182, 0.18); }
+        .pf-dest.rosa .ic { background: rgba(236, 72, 153, 0.22); color: #fbcfe8; }
+        .pf-generos { display: flex; flex-wrap: wrap; gap: 6px; }
+        .pf-generos span { font-size: 0.75rem; font-weight: 600; padding: 6px 11px; border-radius: 999px; background: #1d1d28; color: #d4d4de; }
+        .pf-generos span.forte { background: rgba(139, 92, 246, 0.22); color: #ddd6fe; }
+        .pf-carregando { color: var(--text-muted); font-size: 0.8rem; }
+        .pf-abas { display: flex; gap: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin: 24px 18px 12px; overflow-x: auto; scrollbar-width: none; }
+        .pf-abas::-webkit-scrollbar { display: none; }
+        .pf-abas button { padding: 10px 0; font-size: 0.82rem; font-weight: 600; color: #8a8a99; white-space: nowrap; border: none; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; cursor: pointer; font-family: inherit; }
+        .pf-abas button.on { color: #fff; border-bottom-color: var(--purple); }
+        .pf-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 18px; }
+        .pf-vazio { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem 18px; }
+        .pf-aval { margin: 0 18px 10px; padding: 12px; border-radius: 14px; background: var(--card-bg, #14141c); border: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 10px; cursor: pointer; }
+        .pf-aval .pf-capa { width: 44px; flex: 0 0 44px; }
+        .pf-aval b { font-size: 0.82rem; }
+        .pf-aval p { margin: 4px 0 0; font-size: 0.75rem; color: #c8c8d4; line-height: 1.35; word-break: break-word; }
+        .pf-pill { display: inline-block; font-size: 0.68rem; font-weight: 800; padding: 1px 6px; border-radius: 5px; background: var(--purple); margin-left: 6px; color: #fff; }
+        .pf-playlist { border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 1 / 1; background: #1d1d28; cursor: pointer; border: none; padding: 0; width: 100%; color: #fff; font-family: inherit; }
+        .pf-playlist img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .pf-playlist span { position: absolute; left: 0; right: 0; bottom: 0; padding: 0.4rem; font-size: 0.72rem; font-weight: 700; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+        [data-perfil] .amigo-avatar, [data-perfil] .aval-nome { cursor: pointer; }
+
         .meu-perfil-card { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
         .btn-add-amigo { margin-left: auto; background: var(--purple); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
@@ -795,7 +861,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=25">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=26">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1290,18 +1356,9 @@
         </div>
     </div>
 
-    <div id="modal-perfil-amigo" class="modal" style="z-index: 2400; display:none;">
-        <div class="modal-content modal-detalhes-content">
-            <div id="perfil-amigo-foto"></div>
-            <h3 id="perfil-amigo-titulo" style="margin-bottom: 1rem; background: linear-gradient(to right, var(--purple), var(--pink)); -webkit-background-clip: text; color: transparent;">@amigo</h3>
-            <div class="perfil-amigo-tabs">
-                <button class="perfil-amigo-tab ativo" id="tab-amigo-assisti">🍿 Assistidos</button>
-                <button class="perfil-amigo-tab" id="tab-amigo-quero">✨ Quer Assistir</button>
-                <button class="perfil-amigo-tab" id="tab-amigo-playlists">📂 Playlists</button>
-            </div>
-            <div id="perfil-amigo-conteudo"></div>
-            <button id="btn-fechar-perfil-amigo" class="btn-modal btn-modal-cancel" style="margin-top: 1rem;">Fechar</button>
-        </div>
+    <div id="modal-perfil" class="modal" style="z-index: 2400; display:none;">
+        <div class="pf-tela" id="pf-tela"></div>
+    </div>
     </div>
 
     <!-- Modal Instruções Stremio -->
@@ -1390,7 +1447,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.21';
+        const VERSAO_APP = '2026-10-18.22';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1423,6 +1480,7 @@
         })();
         // Aba pedida pelo link (tocar no aviso com o app fechado abre ./?aba=amigos). Lida aqui porque o load limpa a URL.
         const abaDoLink = new URLSearchParams(window.location.search).get('aba');
+        const perfilDoLink = new URLSearchParams(window.location.search).get('perfil'); // link de "Compartilhar" no perfil
 
         // =========================================
         // === BLOCO: CONFIGURAÇÕES E ESTADO GLOBAL ===
@@ -1505,6 +1563,7 @@
                     verificarPerfil();
                     sincronizarPush();
                     if (abaDoLink && !abaDoLinkUsada) { abaDoLinkUsada = true; if (document.getElementById(`aba-${abaDoLink}`)) mudarAba(abaDoLink); }
+                    if (perfilDoLink && !abaDoLinkUsada) { abaDoLinkUsada = true; abrirPerfilPorUsername(perfilDoLink); }
                 } else {
                     document.getElementById('tela-login').style.display = 'flex';
                 }
@@ -1550,7 +1609,7 @@
         document.getElementById('btn-explorar').addEventListener('click', () => mudarAba('explorar'));
         document.getElementById('btn-cenas').addEventListener('click', () => mudarAba('cenas'));
         document.getElementById('btn-comunidade').addEventListener('click', () => mudarAba('comunidade'));
-        document.getElementById('btn-amigos').addEventListener('click', () => mudarAba('amigos'));
+        document.getElementById('btn-amigos').addEventListener('click', () => { if (usuarioAtual && (meuPerfil || lerPerfilCache())?.username) abrirPerfil(usuarioAtual.id); else mudarAba('amigos'); });
         document.getElementById('btn-roleta').addEventListener('click', () => mudarAba('roleta'));
 
         function mudarAba(abaId) {
@@ -3198,7 +3257,7 @@
 
             const listaEl = document.getElementById('lista-amigos');
             if (listaAmigos.length === 0) listaEl.innerHTML = '<p class="empty-msg">Ainda não tens amigos no iCine.</p>';
-            else { listaEl.innerHTML = listaAmigos.map(a => `<div class="amigo-item" onclick="abrirPerfilAmigo('${a.user_id}', '${a.username}')">${avatarHTML(a.username, a.foto_url)}<div class="amigo-info"><div class="amigo-username">@${a.username}</div></div></div>`).join(''); }
+            else { listaEl.innerHTML = listaAmigos.map(a => `<div class="amigo-item" onclick="abrirPerfil('${a.user_id}')">${avatarHTML(a.username, a.foto_url)}<div class="amigo-info"><div class="amigo-username">@${a.username}</div></div></div>`).join(''); }
         }
 
         document.getElementById('btn-salvar-username').addEventListener('click', async () => {
@@ -3224,51 +3283,307 @@
             if (!jaAmigo) document.getElementById('btn-enviar-pedido-resultado').addEventListener('click', () => enviarPedido(data.user_id));
         }
 
-        async function enviarPedido(destinatario_id) {
-            const resultado = document.getElementById('resultado-busca-amigo');
-            // Já existe algo entre vocês dois, em qualquer direção?
+        // Pede amizade, ou aceita o pedido que a pessoa já tinha mandado. Diz o que aconteceu:
+        // 'amigos' (já eram), 'aceito' (aceitou o pedido dela), 'enviado' ou 'ja_enviado'
+        async function pedirAmizade(destinatario_id) {
             const { data: existentes } = await supabaseClient.from('amizades').select('id, solicitante_id, status')
                 .or(`and(solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${destinatario_id}),and(solicitante_id.eq.${destinatario_id},destinatario_id.eq.${usuarioAtual.id})`);
-            if ((existentes || []).some(x => x.status === 'aceite')) { resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Vocês já são amigos.</p>'; carregarAmigos(); return; }
+            if ((existentes || []).some(x => x.status === 'aceite')) { carregarAmigos(); return 'amigos'; }
             const dela = (existentes || []).find(x => x.solicitante_id === destinatario_id); // a pessoa já tinha te adicionado: aceita o pedido dela
-            if (dela) { await aceitarPedido(dela.id); resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido aceito, vocês já são amigos!</p>'; return; }
-            if ((existentes || []).length) { resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>'; return; }
+            if (dela) { await aceitarPedido(dela.id); return 'aceito'; }
+            if ((existentes || []).length) return 'ja_enviado';
             const { error } = await supabaseClient.from('amizades').insert([{ solicitante_id: usuarioAtual.id, destinatario_id, status: 'pendente' }]);
-            if (error) resultado.innerHTML = '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>'; else resultado.innerHTML = '<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">✓ Pedido enviado com sucesso!</p>';
+            return error ? 'ja_enviado' : 'enviado';
+        }
+
+        async function enviarPedido(destinatario_id) {
+            const resultado = document.getElementById('resultado-busca-amigo');
+            const r = await pedirAmizade(destinatario_id);
+            const ok = (t) => `<p style="color:var(--purple);font-weight:bold;text-align:center;padding:0.5rem">${t}</p>`;
+            resultado.innerHTML = r === 'amigos' ? ok('✓ Vocês já são amigos.')
+                : r === 'aceito' ? ok('✓ Pedido aceito, vocês já são amigos!')
+                : r === 'enviado' ? ok('✓ Pedido enviado com sucesso!')
+                : '<p style="color:var(--red);font-size:0.85rem;text-align:center;">Já enviaste um pedido a este utilizador.</p>';
         }
 
         async function aceitarPedido(id) { await supabaseClient.from('amizades').update({ status: 'aceite' }).eq('id', id); carregarAmigos(); }
         async function rejeitarPedido(id) { await supabaseClient.from('amizades').delete().eq('id', id); carregarAmigos(); }
 
-        async function abrirPerfilAmigo(userId, username) {
-            abrirModalSeguro('modal-perfil-amigo'); document.getElementById('perfil-amigo-titulo').innerText = '@' + username; document.getElementById('perfil-amigo-foto').innerHTML = avatarHTML(username, fotosPerfis.get(userId), 'perfil-amigo-foto'); document.getElementById('perfil-amigo-conteudo').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem">A carregar...</p>';
-            document.getElementById('tab-amigo-assisti').classList.add('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo');
-            const { data: fData } = await supabaseClient.from('meus_filmes').select('*').eq('user_id', userId); const filmesAmigo = fData || [];
-            const { data: pData } = await supabaseClient.from('playlists').select('*').eq('user_id', userId); playlistsAmigoAtual = pData || [];
-            renderizarFilmesAmigo(filmesAmigo, 'ja');
-            document.getElementById('tab-amigo-assisti').onclick = () => { document.getElementById('tab-amigo-assisti').classList.add('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo'); renderizarFilmesAmigo(filmesAmigo, 'ja'); };
-            document.getElementById('tab-amigo-quero').onclick = () => { document.getElementById('tab-amigo-quero').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo'); document.getElementById('tab-amigo-playlists').classList.remove('ativo'); renderizarFilmesAmigo(filmesAmigo, 'quero'); };
-            document.getElementById('tab-amigo-playlists').onclick = () => { document.getElementById('tab-amigo-playlists').classList.add('ativo'); document.getElementById('tab-amigo-assisti').classList.remove('ativo'); document.getElementById('tab-amigo-quero').classList.remove('ativo'); renderizarPlaylistsAmigo(); };
+        // =========================================
+        // === BLOCO: JS PERFIL DO USUÁRIO ===
+        // =========================================
+        // Tela de perfil (#modal-perfil). Abre ao tocar na própria foto no cabeçalho, num amigo da lista de Amigos
+        // ou no nome/foto de quem avaliou no Feed. Qualquer usuário logado vê o perfil de qualquer outro
+        // (migrations/2026-10-18_perfil_publico.sql libera a leitura de meus_filmes e cria contar_amigos()).
+        // Os outros só veem as playlists públicas. "Cinéfilo em números" busca gêneros, diretor e duração no TMDB.
+        const LIMITE_ESTAT_PERFIL = 60;   // títulos assistidos consultados no TMDB para as estatísticas
+        const cacheEstatTmdb = new Map(); // chave do título -> { generos, diretores, minutos, fundo }
+        let perfilAberto = null;          // { userId, ehMeu, carregado, perfil, filmes, avaliacoes, playlists, amigos, amizade, aba, ... }
+
+        const PF_ICO = {
+            voltar: '<svg class="pf-ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+            foto: '<svg class="pf-ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>',
+            compartilhar: '<svg class="pf-ico" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>',
+            addAmigo: '<svg class="pf-ico" viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 21c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5M19 8v6M16 11h6"/></svg>',
+            check: '<svg class="pf-ico" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>',
+            genero: '<svg class="pf-ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M8 6l2-3M14 6l2-3"/></svg>',
+            estrela: '<svg class="pf-ico" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>',
+            pessoa: '<svg class="pf-ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+            relogio: '<svg class="pf-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+        };
+
+        async function abrirPerfil(userId) {
+            if (!userId || !usuarioAtual) return;
+            const ehMeu = userId === usuarioAtual.id;
+            const p = { userId, ehMeu, carregado: false, perfil: ehMeu ? meuPerfil : null, filmes: [], avaliacoes: [], playlists: [], amigos: null, amizade: null, aba: 'ja' };
+            perfilAberto = p;
+            if (document.getElementById('modal-perfil').style.display !== 'flex') abrirModalSeguro('modal-perfil');
+            document.getElementById('pf-tela').scrollTop = 0;
+            renderizarPerfil();
+
+            const entre = `and(solicitante_id.eq.${usuarioAtual.id},destinatario_id.eq.${userId}),and(solicitante_id.eq.${userId},destinatario_id.eq.${usuarioAtual.id})`;
+            const playlistsQuery = supabaseClient.from('playlists').select('*').eq('user_id', userId);
+            const [perf, filmes, avals, pls, amigos, amizade] = await Promise.all([
+                supabaseClient.from('perfis').select('user_id, username, foto_url, created_at').eq('user_id', userId).maybeSingle(),
+                supabaseClient.from('meus_filmes').select('*').eq('user_id', userId),
+                supabaseClient.from('avaliacoes').select('tmdb_id, tipo, titulo, ano, capa, sinopse, nota, comentario, created_at').eq('user_id', userId).order('created_at', { ascending: false }),
+                ehMeu ? playlistsQuery : playlistsQuery.eq('publica', true),
+                ehMeu ? Promise.resolve({ data: null }) : supabaseClient.rpc('contar_amigos', { alvo: userId }),
+                ehMeu ? Promise.resolve({ data: [] }) : supabaseClient.from('amizades').select('id, solicitante_id, status').or(entre)
+            ]);
+            if (perfilAberto !== p) return; // outro perfil foi aberto no meio do caminho
+
+            p.perfil = perf.data || p.perfil || { username: '' };
+            if (p.perfil.foto_url) fotosPerfis.set(userId, p.perfil.foto_url);
+            p.filmes = filmes.data || [];
+            p.avaliacoes = avals.data || [];
+            p.playlists = pls.data || [];
+            p.amigos = ehMeu ? listaAmigos.length : (amigos.error ? null : amigos.data); // sem o SQL novo, o número some
+            p.amizade = ehMeu ? null : estadoAmizade(amizade.data || [], userId);
+            p.carregado = true;
+            renderizarPerfil();
+            carregarBannerPerfil(p);
+            calcularCinefiloEmNumeros(p);
         }
 
-        function renderizarFilmesAmigo(filmes, grupo) {
-            const lista = filmes.filter(f => f.grupo === grupo); const container = document.getElementById('perfil-amigo-conteudo');
-            if (lista.length === 0) return container.innerHTML = `<p class="empty-msg">${grupo === 'ja' ? 'Nenhum filme assistido recentemente.' : 'Watchlist vazia.'}</p>`;
-            // Coloca os filmes do amigo no cache para o modal de detalhes (não mexe nas listas pessoais)
-            lista.forEach(f => { const c = conteudoDaLinha(f); bancoDeFilmesLocal.set(c.id, c); });
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${lista.map(f => `<div class="card-filme-amigo" data-id="${chaveDaLinha(f)}" role="button" tabindex="0" style="background:#111827;border-radius:10px;overflow:hidden;cursor:pointer;"><img src="${f.capa}" alt="${f.titulo}" style="width:100%;aspect-ratio:2/3;object-fit:cover;"><div style="padding:0.4rem;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.titulo}</div></div>`).join('')}</div>`;
-            container.querySelectorAll('.card-filme-amigo').forEach(card => {
-                const abrir = () => abrirDetalhes(normalizarChave(card.getAttribute('data-id')));
-                card.addEventListener('click', abrir);
-                card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } });
-            });
+        async function abrirPerfilPorUsername(username) {
+            const nome = String(username || '').toLowerCase().replace('@', '');
+            if (!nome) return;
+            const { data } = await supabaseClient.from('perfis').select('user_id').eq('username', nome).maybeSingle();
+            if (data) abrirPerfil(data.user_id);
         }
 
-        function renderizarPlaylistsAmigo() {
-            const container = document.getElementById('perfil-amigo-conteudo'); if (playlistsAmigoAtual.length === 0) return container.innerHTML = `<p class="empty-msg">Nenhuma playlist criada.</p>`;
-            container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">${playlistsAmigoAtual.map(p => `<div style="background:#111827;border-radius:10px;overflow:hidden; cursor:pointer; position:relative; aspect-ratio:1/1;" onclick="abrirVerPlaylist('${p.id}', true)"><img src="${p.capa_url}" alt="${p.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.6;"><div style="position:absolute;bottom:0;left:0;right:0;padding:0.4rem;font-size:0.75rem;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9); z-index:2;">${p.nome}</div></div>`).join('')}</div>`;
+        function estadoAmizade(linhas, outroId) {
+            if (linhas.some(x => x.status === 'aceite')) return 'amigos';
+            if (linhas.some(x => x.solicitante_id === outroId)) return 'pediu_voce'; // a pessoa já te mandou pedido
+            return linhas.length ? 'enviado' : 'nenhum';
         }
-        document.getElementById('btn-fechar-perfil-amigo').addEventListener('click', () => { fecharModalSeguro('modal-perfil-amigo'); });
+
+        function ordenarPorNota(avaliacoes) {
+            return [...avaliacoes].sort((a, b) => b.nota - a.nota || new Date(b.created_at) - new Date(a.created_at));
+        }
+
+        // Coloca o título no cache dos detalhes (sem trocar o que já está lá) e devolve a chave
+        function guardarTituloDoPerfil(linha) {
+            const c = conteudoDaLinha(linha);
+            // nas avaliações, "nota" é a nota da pessoa, não a do TMDB
+            if (!bancoDeFilmesLocal.has(c.id)) bancoDeFilmesLocal.set(c.id, linha.grupo ? c : { ...c, notaTmdb: undefined });
+            return c.id;
+        }
+
+        function capaDoPerfil(linha, selo = '') {
+            const chave = guardarTituloDoPerfil(linha);
+            const img = linha.capa ? `<img src="${escaparHTML(linha.capa)}" alt="${escaparHTML(linha.titulo)}" loading="lazy">` : '';
+            return `<button type="button" class="pf-capa" data-chave="${chave}" aria-label="${escaparHTML(linha.titulo)}">${img}${selo}</button>`;
+        }
+
+        function botoesPerfil(p) {
+            const compartilhar = `<button type="button" class="pf-btn contorno" id="pf-compartilhar">${PF_ICO.compartilhar}<span>Compartilhar</span></button>`;
+            if (p.ehMeu) return `<button type="button" class="pf-btn roxo" id="pf-trocar-foto">${PF_ICO.foto}<span>Trocar foto</span></button>${compartilhar}`;
+            const estados = {
+                amigos: `<button type="button" class="pf-btn contorno" id="pf-amizade" disabled>${PF_ICO.check}<span>Amigos</span></button>`,
+                enviado: `<button type="button" class="pf-btn contorno" id="pf-amizade" disabled>${PF_ICO.check}<span>Pedido enviado</span></button>`,
+                pediu_voce: `<button type="button" class="pf-btn roxo" id="pf-amizade">${PF_ICO.addAmigo}<span>Aceitar pedido</span></button>`,
+                nenhum: `<button type="button" class="pf-btn roxo" id="pf-amizade">${PF_ICO.addAmigo}<span>Adicionar amigo</span></button>`
+            };
+            return (estados[p.amizade] || '') + compartilhar;
+        }
+
+        function compatibilidadeHTML(p) {
+            if (p.ehMeu) return '';
+            const diffs = [];
+            p.avaliacoes.forEach(a => { const minha = minhasNotasAval.get(String(chaveDaLinha(a))); if (minha !== undefined) diffs.push(Math.abs(minha - a.nota)); });
+            const meusAssistidos = new Set(listaJaAssisti.map(f => String(chaveDaLinha(f))));
+            const emComum = p.filmes.filter(f => f.grupo === 'ja' && meusAssistidos.has(String(chaveDaLinha(f)))).length;
+            const pct = diffs.length >= 2 ? Math.max(0, Math.min(100, Math.round(100 - (diffs.reduce((s, d) => s + d, 0) / diffs.length) * 10))) : null;
+            if (pct === null && !emComum) return '';
+            const titulos = `${emComum} ${emComum === 1 ? 'título' : 'títulos'} que vocês dois assistiram`;
+            return `<div class="pf-compat">${pct !== null ? `<div class="pct">${pct}%</div><span>de gosto em comum com você<br>${titulos}</span>` : `<span>${titulos}</span>`}</div>`;
+        }
+
+        function renderizarPerfil() {
+            const p = perfilAberto; const tela = document.getElementById('pf-tela'); if (!p || !tela) return;
+            const nome = p.perfil?.username || '';
+            const foto = p.perfil?.foto_url || fotosPerfis.get(p.userId);
+            const cabecalho = `
+                <div class="pf-banner" id="pf-banner"${p.bannerUrl ? ` style="background-image:url('${p.bannerUrl}')"` : ''}></div>
+                <div class="pf-barra"><button type="button" class="pf-redondo" id="pf-voltar" aria-label="Voltar">${PF_ICO.voltar}</button>Perfil</div>`;
+            const fotoHTML = `<div class="pf-anel"><div class="pf-foto">${avatarConteudo(nome, foto)}</div></div><div class="pf-nome">${escaparHTML(nome)}</div>`;
+            if (!p.carregado) { tela.innerHTML = `${cabecalho}<div class="pf-cabeca">${fotoHTML}<p class="pf-carregando" style="margin-top:14px">Carregando perfil...</p></div>`; return; }
+
+            const assistidos = p.filmes.filter(f => f.grupo === 'ja').length;
+            const quero = p.filmes.filter(f => f.grupo === 'quero').length;
+            const desde = p.perfil.created_at ? new Date(p.perfil.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).replace('.', '').replace(' de ', '/') : '';
+            let amigosHTML = '';
+            if (p.amigos !== null && p.amigos !== undefined) {
+                amigosHTML = p.ehMeu
+                    ? `<button type="button" class="pf-num" id="pf-ver-amigos"><b>${p.amigos}</b><span>Amigos</span>${pedidosPendentes.length ? `<i class="pf-badge">${pedidosPendentes.length}</i>` : ''}</button>`
+                    : `<div class="pf-num"><b>${p.amigos}</b><span>Amigos</span></div>`;
+            }
+            const top4 = ordenarPorNota(p.avaliacoes).slice(0, 4);
+            tela.innerHTML = `${cabecalho}
+                <div class="pf-cabeca">
+                    ${fotoHTML}
+                    <div class="pf-arroba">@${escaparHTML(nome)}${desde ? ` · desde ${desde}` : ''}</div>
+                    ${p.amizade === 'amigos' ? `<div class="pf-amigo-tag">${PF_ICO.check.replace('pf-ico', 'pf-ico" style="width:14px;height:14px')}Vocês são amigos</div>` : ''}
+                    <div class="pf-numeros">
+                        <div class="pf-num"><b>${assistidos}</b><span>Assistidos</span></div>
+                        <div class="pf-num"><b>${quero}</b><span>Quero ver</span></div>
+                        <div class="pf-num"><b>${p.avaliacoes.length}</b><span>Avaliações</span></div>
+                        ${amigosHTML}
+                    </div>
+                    <div class="pf-acoes">${botoesPerfil(p)}</div>
+                </div>
+                ${compatibilidadeHTML(p)}
+                ${top4.length ? `<div class="pf-bloco"><h3>Top ${top4.length}</h3><div class="pf-top4">${top4.map(a => capaDoPerfil(a, `<span class="pf-selo">★ ${a.nota}</span>`)).join('')}</div></div>` : ''}
+                <div class="pf-bloco"><h3>Cinéfilo em números</h3><div id="pf-numeros-cinefilo">${p.estatHTML || '<p class="pf-carregando">Calculando...</p>'}</div></div>
+                <div class="pf-bloco" id="pf-bloco-generos"${p.generosHTML ? '' : ' hidden'}><h3>Gêneros que mais assiste</h3><div class="pf-generos" id="pf-generos">${p.generosHTML || ''}</div></div>
+                <div class="pf-abas" role="tablist">
+                    <button type="button" data-aba="ja">Assistidos</button>
+                    <button type="button" data-aba="aval">Avaliações</button>
+                    <button type="button" data-aba="playlists">Playlists</button>
+                    <button type="button" data-aba="quero">Quero ver</button>
+                </div>
+                <div id="pf-conteudo"></div>`;
+            renderizarAbaPerfil();
+        }
+
+        function renderizarAbaPerfil() {
+            const p = perfilAberto; const el = document.getElementById('pf-conteudo'); if (!p || !el) return;
+            document.querySelectorAll('#pf-tela .pf-abas button').forEach(b => b.classList.toggle('on', b.dataset.aba === p.aba));
+            const vazio = (t) => `<p class="pf-vazio">${t}</p>`;
+            if (p.aba === 'aval') {
+                el.innerHTML = p.avaliacoes.length ? p.avaliacoes.map(a => `<div class="pf-aval" data-chave="${guardarTituloDoPerfil(a)}">${capaDoPerfil(a)}<div><b>${escaparHTML(a.titulo)}</b><span class="pf-pill">★ ${a.nota}</span>${a.comentario ? `<p>${escaparHTML(a.comentario)}</p>` : ''}</div></div>`).join('') : vazio('Nenhuma avaliação ainda.');
+                return;
+            }
+            if (p.aba === 'playlists') {
+                el.innerHTML = p.playlists.length
+                    ? `<div class="pf-grade">${p.playlists.map(pl => `<button type="button" class="pf-playlist" data-pl="${escaparHTML(pl.id)}">${pl.capa_url ? `<img src="${escaparHTML(pl.capa_url)}" alt="" loading="lazy">` : ''}<span>${escaparHTML(pl.nome)}</span></button>`).join('')}</div>`
+                    : vazio(p.ehMeu ? 'Nenhuma playlist criada.' : 'Nenhuma playlist pública.');
+                return;
+            }
+            const lista = p.filmes.filter(f => f.grupo === p.aba).reverse(); // mais recentes primeiro
+            if (!lista.length) { el.innerHTML = vazio(p.aba === 'ja' ? 'Nenhum título assistido ainda.' : 'Nada na lista Quero ver.'); return; }
+            const notasDono = new Map(p.avaliacoes.map(a => [String(chaveDaLinha(a)), a.nota]));
+            el.innerHTML = `<div class="pf-grade">${lista.map(f => {
+                const dele = p.aba === 'ja' ? notasDono.get(String(chaveDaLinha(f))) : undefined;
+                const selo = dele !== undefined ? `<span class="pf-selo">★ ${dele}</span>` : (f.nota ? `<span class="pf-selo ouro">⭐ ${escaparHTML(f.nota)}</span>` : '');
+                return capaDoPerfil(f, selo);
+            }).join('')}</div>`;
+        }
+
+        // Gêneros, diretor e duração vêm do TMDB (meus_filmes não guarda isso)
+        async function dadosTmdbDoTitulo(linha) {
+            const chave = String(chaveDaLinha(linha));
+            if (cacheEstatTmdb.has(chave)) return cacheEstatTmdb.get(chave);
+            const ehSerie = linha.tipo === 'serie';
+            const url = ehSerie
+                ? `${URL_BASE}/tv/${linha.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`
+                : `${URL_BASE}/movie/${linha.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits`;
+            try {
+                const d = await fetch(url).then(r => r.ok ? r.json() : null);
+                if (!d) return null;
+                const info = {
+                    generos: (d.genres || []).map(g => g.name),
+                    diretores: ehSerie ? (d.created_by || []).map(c => c.name) : ((d.credits && d.credits.crew) || []).filter(c => c.job === 'Director').map(c => c.name),
+                    minutos: ehSerie ? 0 : (d.runtime || 0),
+                    fundo: d.backdrop_path || null
+                };
+                cacheEstatTmdb.set(chave, info);
+                return info;
+            } catch (e) { return null; }
+        }
+
+        async function emLotes(itens, tamanho, fn) {
+            const saida = [];
+            for (let i = 0; i < itens.length; i += tamanho) saida.push(...await Promise.all(itens.slice(i, i + tamanho).map(fn)));
+            return saida;
+        }
+
+        async function carregarBannerPerfil(p) {
+            const melhor = ordenarPorNota(p.avaliacoes)[0] || p.filmes.filter(f => f.grupo === 'ja').slice(-1)[0];
+            if (!melhor) return;
+            const info = await dadosTmdbDoTitulo(melhor);
+            if (perfilAberto !== p || !info || !info.fundo) return;
+            p.bannerUrl = `https://image.tmdb.org/t/p/w780${info.fundo}`;
+            const banner = document.getElementById('pf-banner'); if (banner) banner.style.backgroundImage = `url('${p.bannerUrl}')`;
+        }
+
+        async function calcularCinefiloEmNumeros(p) {
+            const assistidos = p.filmes.filter(f => f.grupo === 'ja');
+            const amostra = assistidos.slice(-LIMITE_ESTAT_PERFIL);
+            const infos = (await emLotes(amostra, 8, dadosTmdbDoTitulo)).filter(Boolean);
+            if (perfilAberto !== p) return;
+            const ranking = (listas) => { const m = new Map(); listas.forEach(l => l.forEach(n => m.set(n, (m.get(n) || 0) + 1))); return [...m.entries()].sort((a, b) => b[1] - a[1]); };
+            const generos = ranking(infos.map(i => i.generos));
+            const diretores = ranking(infos.map(i => i.diretores));
+            const minutos = infos.reduce((s, i) => s + i.minutos, 0);
+            const notas = p.avaliacoes.map(a => a.nota);
+            const card = (ico, cor, valor, rotulo) => `<div class="pf-dest${cor ? ' ' + cor : ''}"><div class="ic">${PF_ICO[ico]}</div><b title="${escaparHTML(valor)}">${escaparHTML(valor)}</b><span>${rotulo}</span></div>`;
+            const cards = [];
+            if (generos.length) cards.push(card('genero', '', generos[0][0], 'Gênero mais visto'));
+            if (notas.length) cards.push(card('estrela', 'rosa', (notas.reduce((s, n) => s + n, 0) / notas.length).toFixed(1), p.ehMeu ? 'Sua nota média' : 'Nota média'));
+            if (diretores.length && diretores[0][1] >= 2) cards.push(card('pessoa', 'rosa', diretores[0][0], 'Diretor mais visto')); // com 1 título só, qualquer um seria o "mais visto"
+            if (minutos > 0) cards.push(card('relogio', '', `${Math.round(minutos / 60)}${assistidos.length > amostra.length ? '+' : ''} h`, 'Em filmes assistidos'));
+            p.estatHTML = cards.length ? `<div class="pf-destaques">${cards.join('')}</div>` : `<p class="pf-carregando">${p.ehMeu ? 'Marque títulos como assistidos para ver seus números.' : 'Ainda sem números para mostrar.'}</p>`;
+            p.generosHTML = generos.slice(0, 5).map(([g], i) => `<span${i < 2 ? ' class="forte"' : ''}>${escaparHTML(g)}</span>`).join('');
+            const alvo = document.getElementById('pf-numeros-cinefilo'); if (alvo) alvo.innerHTML = p.estatHTML;
+            const blocoGen = document.getElementById('pf-bloco-generos');
+            if (blocoGen) { document.getElementById('pf-generos').innerHTML = p.generosHTML; blocoGen.hidden = !p.generosHTML; }
+        }
+
+        async function compartilharPerfil(btn) {
+            const nome = perfilAberto?.perfil?.username; if (!nome) return;
+            const url = `${location.origin}${location.pathname}?perfil=${encodeURIComponent(nome)}`;
+            try {
+                if (navigator.share) { await navigator.share({ title: 'iCine', text: `Perfil de @${nome} no iCine`, url }); return; }
+                await navigator.clipboard.writeText(url);
+                const txt = btn.querySelector('span'); txt.textContent = 'Link copiado!'; setTimeout(() => { txt.textContent = 'Compartilhar'; }, 2000);
+            } catch (e) { /* compartilhamento cancelado */ }
+        }
+
+        async function acaoAmizadePerfil(btn) {
+            const p = perfilAberto; if (!p || p.ehMeu || btn.disabled) return;
+            btn.disabled = true;
+            const r = await pedirAmizade(p.userId);
+            if (perfilAberto !== p) return;
+            p.amizade = (r === 'amigos' || r === 'aceito') ? 'amigos' : 'enviado';
+            if (p.amizade === 'amigos' && p.amigos !== null) p.amigos += r === 'aceito' ? 1 : 0;
+            renderizarPerfil();
+        }
+
+        document.getElementById('pf-tela').addEventListener('click', (e) => {
+            const p = perfilAberto; if (!p) return;
+            if (e.target.closest('#pf-voltar')) return fecharModalSeguro('modal-perfil');
+            if (e.target.closest('#pf-ver-amigos')) { fecharModalSeguro('modal-perfil'); return mudarAba('amigos'); }
+            const aba = e.target.closest('.pf-abas button'); if (aba) { p.aba = aba.dataset.aba; return renderizarAbaPerfil(); }
+            if (e.target.closest('#pf-trocar-foto')) return document.getElementById('input-foto-perfil').click();
+            const comp = e.target.closest('#pf-compartilhar'); if (comp) return compartilharPerfil(comp);
+            const amz = e.target.closest('#pf-amizade'); if (amz) return acaoAmizadePerfil(amz);
+            const pl = e.target.closest('[data-pl]');
+            if (pl) { if (p.ehMeu) return abrirVerPlaylist(pl.dataset.pl); playlistsAmigoAtual = p.playlists; return abrirVerPlaylist(pl.dataset.pl, true); }
+            const capa = e.target.closest('[data-chave]'); if (capa) return abrirDetalhes(normalizarChave(capa.dataset.chave));
+        });
 
         // =========================================
         // === BLOCO: JS COMUNIDADE (FEED PÚBLICO) ===
@@ -3482,6 +3797,7 @@
                 if (erroPerfil) throw erroPerfil;
                 meuPerfil.foto_url = fotoUrl; fotosPerfis.set(usuarioAtual.id, fotoUrl); atualizarAvatarHeader();
                 document.getElementById('meu-avatar').innerHTML = avatarConteudo(meuPerfil.username, fotoUrl);
+                if (perfilAberto?.ehMeu) { perfilAberto.perfil = { ...perfilAberto.perfil, foto_url: fotoUrl }; const f = document.querySelector('#pf-tela .pf-foto'); if (f) f.innerHTML = avatarConteudo(meuPerfil.username, fotoUrl); }
                 dica.innerText = 'Foto atualizada!';
             } catch (err) {
                 console.error('Erro ao trocar foto de perfil:', err);
@@ -3557,7 +3873,7 @@
                 const cur = curtidasAval.get(a.id) || { total: 0, eu: false };
                 const barra = Array.from({ length: 10 }, (_, k) => `<i class="${k < a.nota ? 'on' : ''}"></i>`).join('');
                 return `<article class="aval-item${ehMinha ? ' minha' : ''}" data-id="${a.id}">
-                    <div class="aval-usuario">
+                    <div class="aval-usuario" data-perfil="${a.user_id}">
                         ${avatarHTML(nome, fotosPerfis.get(a.user_id))}
                         <div>
                             <div class="aval-nome">@${escaparHTML(nome)}${ehAmigo ? '<span class="aval-amigo" title="Seu amigo" aria-label="Seu amigo"><b>★</b> Amigo</span>' : ''}${ehMinha ? '<span class="aval-eu">Você</span>' : ''}</div>
@@ -3595,6 +3911,7 @@
             if (mais) { const art = mais.closest('.aval-item'); const abriu = !art.classList.contains('aberto'); document.querySelectorAll('.aval-item.aberto').forEach(x => x.classList.remove('aberto')); if (abriu) art.classList.add('aberto'); return; }
             if (e.target.classList && e.target.classList.contains('aval-item') && e.target.classList.contains('aberto')) { e.target.classList.remove('aberto'); return; }
             document.querySelectorAll('.aval-item.aberto').forEach(x => x.classList.remove('aberto'));
+            const autor = e.target.closest('[data-perfil] .amigo-avatar, [data-perfil] .aval-nome'); if (autor) return abrirPerfil(autor.closest('[data-perfil]').dataset.perfil);
             const like = e.target.closest('.aval-like'); if (like) return alternarCurtidaAvaliacao(like);
             const editar = e.target.closest('.aval-acao.editar'); if (editar) return abrirAvaliacao(normalizarChave(editar.dataset.chave), false);
             const excluir = e.target.closest('.aval-acao.excluir'); if (excluir) return excluirAvaliacao(excluir.dataset.id);

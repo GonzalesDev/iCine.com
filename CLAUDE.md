@@ -81,6 +81,7 @@ como trabalhamos e as decisões tomadas desde então.
 
 ## Ícone de Amigos no cabeçalho
 - O botão `#btn-amigos` (ao lado da logo) mostra a foto de perfil do próprio usuário (ou a inicial, se não houver foto).
+  Desde 18/10 ele abre o **meu perfil** (`abrirPerfil`); sem @username ainda, vai para a aba Amigos criar.
   Atualizado por `atualizarAvatarHeader()`: chamada em `verificarPerfil`, ao criar o @username e ao trocar a foto.
 - Consistência do cartão: se o banco recusar a gravação do aparelho (`gravarOuDesfazerPush`), a inscrição do
   navegador é desfeita; o cartão só mostra "ativado" quando o servidor conhece o aparelho.
@@ -160,9 +161,24 @@ como trabalhamos e as decisões tomadas desde então.
 - Assistidos mostram a **sua nota** (`minhasNotasAval`, carregada por `carregarMinhasNotas`; selo roxo) e caem na nota do TMDB se não avaliou.
   Recarrega ao publicar/excluir avaliação e ao carregar os filmes; limpa ao sair.
 
+## Perfil do usuário (18/10) — bloco "JS PERFIL DO USUÁRIO", janela `#modal-perfil` (z-index 2400, CSS `.pf-*` no index.html)
+- Abre por: foto no cabeçalho (meu perfil), lista de Amigos e foto/nome de quem avaliou no Feed (`data-perfil` no `.aval-usuario`).
+  Link `?perfil=<username>` (botão Compartilhar) abre o perfil depois do login (`perfilDoLink`). Detalhes do filme ficam por cima (2800).
+- Conteúdo: banner = fundo (TMDB) do título com a maior nota; foto com anel; @ e "desde"; números (Assistidos, Quero ver, Avaliações,
+  Amigos — no meu, tocar em Amigos leva à aba Amigos, com contador de pedidos); botões: meu = Trocar foto + Compartilhar;
+  outros = Adicionar amigo / Aceitar pedido / Pedido enviado / Amigos (usa `pedirAmizade`, a mesma lógica do `enviarPedido`) + Compartilhar.
+  Outros também têm "% de gosto em comum" (minhas notas × as dele, só com 2+ títulos avaliados pelos dois) e nº de títulos que os dois viram.
+  Top 4 (maiores notas), **Cinéfilo em números** (gênero mais visto, nota média, diretor mais visto — só se aparecer em 2+ títulos —,
+  horas em filmes) e "Gêneros que mais assiste": vêm do TMDB por título (`dadosTmdbDoTitulo`, cache `cacheEstatTmdb`, até 60 assistidos).
+  Abas Assistidos | Avaliações | Playlists | Quero ver. Outros só veem playlists **públicas**.
+- **Qualquer usuário logado vê o perfil de qualquer um** (decisão 18/10): `migrations/2026-10-18_perfil_publico.sql` libera SELECT em
+  `meus_filmes` para todos os autenticados e cria `contar_amigos(alvo)` (SECURITY DEFINER, só o número). Sem o SQL, perfis de
+  não-amigos aparecem com listas vazias e sem o número de amigos.
+- Frase/bio do perfil: adiada pelo usuário (precisaria de coluna nova em `perfis`). A janela antiga `#modal-perfil-amigo` foi removida.
+
 ## ONDE PARAMOS (resumo para começar uma conversa nova) — 18/10/2026
 - **Estado:** todo o visual novo (Listas, Explorar, Cenas, Roleta, Feed, janelas, login, Amigos, chat da IA) está no GitHub (`main`).
-  O usuário publica no Replit com Pull → Run → Republicar (não existe SQL pendente). Toda mudança no app exige subir `VERSAO_APP` (index.html) e
+  O usuário publica no Replit com Pull → Run → Republicar. **SQL pendente (18/10):** `migrations/2026-10-18_perfil_publico.sql` (perfil público). Toda mudança no app exige subir `VERSAO_APP` (index.html) e
   `version.json` (mesmo valor) e o `?v=` do link do `novo-visual.css`; assim o app instalado se atualiza sozinho.
 - **Visual novo:** `novo-visual.css` (prefixo `html.novo`) + trechos no `index.html`. Saída de emergência: `?visual=antigo`.
 - **Pendências:** nenhuma. Gênero na busca de Listas, pontos de posição/legenda das Cenas e modo claro foram descartados por enquanto (18/10).

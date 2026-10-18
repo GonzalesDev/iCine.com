@@ -146,3 +146,8 @@ como trabalhamos e as decisões tomadas desde então.
 - Explorar usa uma bússola (círculo + agulha em losango) na barra inferior (máscara SVG em `#btn-explorar`).
 - `#btn-chat-fab` virou pílula lilás (#a678ff) com ícone de faíscas + texto "IA do iCine" (`.fab-ico`, `.fab-txt`; no visual antigo continua o ✨ redondo).
   Continua arrastável (usa transform) e escondido na aba Cenas.
+
+## Correções 18/10 (playlist e chat da IA)
+- Folhas de ações dos cards (`.movie-card-overlay`) ficam `visibility: hidden` quando fechadas; dentro de janelas (`.modal`) o `backdrop-filter`
+  prendia o `position: fixed` à janela (a folha aparecia no meio da playlist). No visual novo `.modal` não usa backdrop-filter.
+- Chat da IA: `--vvh` (JS `acompanharTeclado`, usa `visualViewport`) limita `.chat-window` à altura visível quando o teclado abre.

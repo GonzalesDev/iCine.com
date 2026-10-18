@@ -763,8 +763,8 @@
         .chat-fab:active { transform: scale(0.9); cursor: grabbing; }
         .chat-fab .fab-ico, .chat-fab .fab-txt { display: none; }
         html:not(.novo) .chat-fab::before { content: '✨'; }
-        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(100vh - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 3100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
-        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: 65vh; max-height: none; } .chat-fab { bottom: 80px; right: 15px; } }
+        .chat-window { position: fixed; bottom: 150px; right: 20px; width: 360px; height: 500px; max-height: calc(var(--vvh, 100vh) - 160px); background-color: var(--card-bg); border: 1px solid #374151; border-radius: 16px; display: none; flex-direction: column; z-index: 3100; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden; animation: fadeInChat 0.2s ease-out; }
+        @media (max-width: 600px) { .chat-window { bottom: 80px; right: 10px; width: calc(100vw - 20px); height: min(65vh, calc(var(--vvh, 100vh) - 150px)); max-height: calc(var(--vvh, 100vh) - 150px); } .chat-fab { bottom: 80px; right: 15px; } }
         @keyframes fadeInChat { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .chat-header { background-color: #1f2937; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; font-weight: bold; font-size: 0.95rem; }
         .chat-header button { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
@@ -791,7 +791,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=16">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=17">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1386,7 +1386,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.11';
+        const VERSAO_APP = '2026-10-18.12';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1405,6 +1405,17 @@
             conferir();
             document.addEventListener('visibilitychange', () => { if (!document.hidden) conferir(); });
             setInterval(() => { if (!document.hidden) conferir(); }, 5 * 60 * 1000);
+        })();
+        // Altura realmente visível (muda quando o teclado abre): o chat da IA usa --vvh para caber na parte de cima do teclado
+        (function acompanharTeclado() {
+            const vv = window.visualViewport; if (!vv) return;
+            const ajustar = () => {
+                document.documentElement.style.setProperty('--vvh', Math.round(vv.height) + 'px');
+                const msgs = document.getElementById('chat-messages');
+                const chat = document.getElementById('chat-window');
+                if (msgs && chat && chat.style.display === 'flex') msgs.scrollTop = msgs.scrollHeight;
+            };
+            vv.addEventListener('resize', ajustar); vv.addEventListener('scroll', ajustar); ajustar();
         })();
         // Aba pedida pelo link (tocar no aviso com o app fechado abre ./?aba=amigos). Lida aqui porque o load limpa a URL.
         const abaDoLink = new URLSearchParams(window.location.search).get('aba');

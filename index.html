@@ -626,6 +626,17 @@
         .aval-escolha-grid img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; background: #1f2937; }
         .aval-escolha-grid span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+        /* "Ver todos" no fim das listas: botão redondo discreto */
+        .card-ver-todos { flex: 0 0 auto; align-self: flex-start; width: calc((100% - 1rem) / 2.15 * 0.55); aspect-ratio: 11 / 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0; border: none; background: none; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+        .card-ver-todos .cvt-icone { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); transition: background 0.2s, transform 0.15s; }
+        .card-ver-todos .cvt-icone svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .card-ver-todos:hover .cvt-icone { background: rgba(139, 92, 246, 0.35); }
+        .card-ver-todos:active .cvt-icone { transform: scale(0.92); }
+        .card-ver-todos .cvt-texto { font-size: 0.78rem; font-weight: 600; color: #e5e7eb; }
+        .card-ver-todos .cvt-qtd { font-size: 0.72rem; margin-top: -4px; }
+        .card-ver-todos:focus-visible { outline: 2px solid var(--pink); outline-offset: 4px; border-radius: 12px; }
+        @media (min-width: 600px) { .card-ver-todos { width: 100%; aspect-ratio: 2 / 3; } }
+
         /* ========================================= */
         /* === BLOCO: CSS RESPONSIVIDADE (DESKTOP) === */
         /* ========================================= */
@@ -1275,7 +1286,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.3';
+        const VERSAO_APP = '2026-10-18.4';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -1773,11 +1784,11 @@
                 // NOVO CARD DE "VER TODOS" PARA O QUERO ASSISTIR
                 if (!mostrarTodosQueroAssistir && listaQueroAssistir.length > 15) { 
                     htmlQuero += `
-                    <div class="movie-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background: rgba(139, 92, 246, 0.05); border: 2px dashed rgba(139, 92, 246, 0.4); cursor: pointer; box-shadow: none; min-height: 200px;" onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();">
-                        <span style="font-size:2rem; margin-bottom:10px;">➡️</span>
-                        <span style="color: var(--purple); font-weight:bold; font-size: 0.9rem;">Ver Todos</span>
-                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">+${listaQueroAssistir.length - 15} filmes</span>
-                    </div>`; 
+                    <button type="button" class="card-ver-todos" onclick="mostrarTodosQueroAssistir = true; renderizarMinhasListas();" aria-label="Ver todos">
+                        <span class="cvt-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                        <span class="cvt-texto">Ver todos</span>
+                        <span class="cvt-qtd">+${listaQueroAssistir.length - 15}</span>
+                    </button>`; 
                 }
                 cWatch.innerHTML = htmlQuero;
             }
@@ -1806,11 +1817,11 @@
                 // NOVO CARD DE "VER TODOS" PARA OS ASSISTIDOS
                 if (!mostrarTodosJaAssisti && filmesFiltrados.length > 15) { 
                     htmlJa += `
-                    <div class="movie-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background: rgba(236, 72, 153, 0.05); border: 2px dashed rgba(236, 72, 153, 0.4); cursor: pointer; box-shadow: none; min-height: 200px;" onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();">
-                        <span style="font-size:2rem; margin-bottom:10px;">➡️</span>
-                        <span style="color: var(--pink); font-weight:bold; font-size: 0.9rem;">Ver Todos</span>
-                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">+${filmesFiltrados.length - 15} filmes</span>
-                    </div>`; 
+                    <button type="button" class="card-ver-todos" onclick="mostrarTodosJaAssisti = true; renderizarMinhasListas();" aria-label="Ver todos">
+                        <span class="cvt-icone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                        <span class="cvt-texto">Ver todos</span>
+                        <span class="cvt-qtd">+${filmesFiltrados.length - 15}</span>
+                    </button>`; 
                 }
                 cJa.innerHTML = htmlJa;
             }

@@ -116,3 +116,7 @@ como trabalhamos e as decisões tomadas desde então.
   chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa (celular) / na frente (600px+),
   grade `minmax(0,1fr)` (títulos longos não esticam colunas), detalhes com abas sublinhadas e botões de 12px.
 - Falta ajustar: Feed, Amigos, modais, Roleta (ajustes finos), tela de login.
+
+## "Ver todos" no fim das listas (Listas)
+- Os blocos tracejados viraram `.card-ver-todos`: botão redondo com seta + "Ver todos" e "+N" pequenos (CSS no `index.html`, antes do bloco
+  de responsividade). Gerado em `renderizarMinhasListas`; ao clicar mostra a lista inteira. No computador (600px+) ocupa uma célula da grade.

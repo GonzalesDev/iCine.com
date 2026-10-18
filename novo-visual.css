@@ -368,3 +368,10 @@ html.novo .cont-lista { background: rgba(139, 92, 246, 0.22); color: #ddd6fe; }
 html.novo .tipo-conteudo-btn.ativo { background: var(--purple); color: #fff; border-color: var(--purple); }
 html.novo .ver-tudo { background: rgba(139, 92, 246, 0.18); padding: 6px 12px; border-radius: 999px; }
 html.novo .busca-listas { border-color: rgba(139, 92, 246, 0.35); }
+
+/* Explorar: a luz roxa fica só no topo (streamings + Top 10). O resto da aba fica escuro. */
+html.novo #aba-explorar { position: relative; isolation: isolate; background: var(--bg-color); }
+html.novo #aba-explorar::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 520px; z-index: -1; pointer-events: none;
+  background: radial-gradient(90% 100% at 50% 0%, rgba(139, 92, 246, 0.42), rgba(139, 92, 246, 0) 75%);
+}

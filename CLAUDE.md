@@ -112,6 +112,6 @@ como trabalhamos e as decisões tomadas desde então.
   filtros em selects, não em botões de gênero). Vive em `novo-visual.css`, uma camada com prefixo `html.novo`, carregada pelo
   script no fim do `<head>` só quando `?visual=novo` (grava `localStorage.icine_visual`; `?visual=antigo` desliga). Quando aprovado,
   vira padrão (remover o script condicional e o prefixo). Ao mudar o CSS, subir `?v=` do link e o `VERSAO_APP`/`version.json`.
-- Feito: fonte Inter, cabeçalho/barra inferior translúcidos, ícones de linha na barra (máscara SVG sobre `.nav-btn .icon`),
+- Feito (linguagem do protótipo streaming, mesma estrutura): Inter, cabeçalho flutuante, barra inferior de vidro com ícones de linha, chips Filmes/Séries (ativo branco), nota em selo sobre a capa, Top 10 com número vazado atrás da capa, detalhes com abas sublinhadas, botões de 12px e ações em ícones limpos.
   títulos sem barrinha colorida, toggle segmentado, campos/selects planos, cards sem caixa (capa arredondada + texto embaixo), Top 10 vazado.
 - Falta: tela de detalhes, Feed, Amigos, modais, Roleta (ajustes finos), telas de login.

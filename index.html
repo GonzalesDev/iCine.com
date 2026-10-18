@@ -703,7 +703,7 @@
                 if (q === 'antigo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') === 'novo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=2">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=4">');
                 }
             } catch (e) {}
         })();
@@ -1275,7 +1275,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.1';
+        const VERSAO_APP = '2026-10-18.2';
         (function atualizarSozinho() {
             async function conferir() {
                 try {

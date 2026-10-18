@@ -1,76 +1,111 @@
 /* ==========================================================================
    iCine — VISUAL NOVO (prévia). Só vale com  ?visual=novo  (volta com ?visual=antigo).
-   É uma camada por cima do CSS do index.html: mesma estrutura, só modernizando.
+   Linguagem do protótipo "streaming" aplicada na MESMA estrutura do app (só CSS).
    ========================================================================== */
 html.novo {
-  --bg-color: #0a0a0f; --card-bg: #14141c; --surface-2: #1c1c27; --line: rgba(255, 255, 255, 0.08);
-  --text-main: #f4f4f8; --text-muted: #9a9aab; --purple: #8b5cf6;
-  --r-sm: 10px; --r-md: 14px; --r-lg: 20px;
+  --bg-color: #0a0a0f; --card-bg: #14141c; --surface-2: #1d1d28; --line: rgba(255, 255, 255, 0.08);
+  --text-main: #ffffff; --text-muted: #a3a3b2; --purple: #8b5cf6; --purple-2: #6d28d9; --gold: #fbbf24; --green: #22c55e;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 20px;
 }
 html.novo *, html.novo input, html.novo select, html.novo button, html.novo textarea {
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
-html.novo body { letter-spacing: -0.006em; -webkit-font-smoothing: antialiased; }
+html.novo body { -webkit-font-smoothing: antialiased; }
 
-/* ---------- Cabeçalho ---------- */
-html.novo header { background: rgba(10, 10, 15, 0.72); border-bottom: 1px solid var(--line); backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5); }
-html.novo .logo { font-weight: 800; letter-spacing: -0.04em; }
-html.novo .btn-sair { color: var(--text-muted); border: none; background: rgba(255, 255, 255, 0.07); border-radius: 999px; padding: 0.45rem 0.9rem; font-weight: 600; }
-html.novo .btn-header-amigos { border-color: var(--line); background: rgba(255, 255, 255, 0.06); }
+/* ---------- Cabeçalho: flutuante, sem caixa ---------- */
+html.novo header { background: linear-gradient(to bottom, rgba(10, 10, 15, 0.92), rgba(10, 10, 15, 0.55)); border-bottom: none; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+html.novo .logo { font-weight: 800; font-size: 1.55rem; letter-spacing: -0.04em; }
+html.novo .btn-sair { color: #fff; border: none; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 999px; padding: 0.5rem 0.95rem; font-weight: 600; }
+html.novo .btn-header-amigos { border: 2px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.1); }
 
-/* ---------- Barra inferior: ícones de linha no lugar dos emojis ---------- */
-html.novo nav { height: 68px; background: rgba(10, 10, 15, 0.8); border-top: 1px solid var(--line); backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5); }
-html.novo .nav-btn { font-size: 0.68rem; font-weight: 600; gap: 3px; color: #7c7c8f; letter-spacing: 0; }
+/* ---------- Barra inferior: vidro + ícones de linha ---------- */
+html.novo nav { height: 68px; background: rgba(10, 10, 15, 0.82); border-top: 1px solid var(--line); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); }
+html.novo .nav-btn { font-size: 0.66rem; font-weight: 600; gap: 4px; color: #7c7c8f; }
 html.novo .nav-btn.active { color: #fff; }
 html.novo .nav-btn .icon { font-size: 0; width: 24px; height: 24px; display: block; }
 html.novo .nav-btn .icon::before { content: ''; display: block; width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
 html.novo .nav-btn.active .icon::before { background: var(--purple); }
-html.novo #btn-inicio  { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z'/%3E%3C/svg%3E"); }
-html.novo #btn-explorar { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E"); }
-html.novo #btn-cenas   { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='3'/%3E%3Cpath d='m10 9 5 3-5 3z'/%3E%3C/svg%3E"); }
-html.novo #btn-roleta  { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Cpath d='M12 3v7M12 14v7M3 12h7M14 12h7'/%3E%3C/svg%3E"); }
-html.novo #btn-comunidade { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.2-4.4A8 8 0 1 1 21 12z'/%3E%3C/svg%3E"); }
+html.novo #btn-inicio  { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h10'/%3E%3C/svg%3E"); }
+html.novo #btn-explorar { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'/%3E%3C/svg%3E"); }
+html.novo #btn-cenas   { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='3'/%3E%3Cpath d='m10 8 6 4-6 4z'/%3E%3C/svg%3E"); }
+html.novo #btn-roleta  { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m12 12 5-3M12 12V6M12 12l-4 4'/%3E%3C/svg%3E"); }
+html.novo #btn-comunidade { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z'/%3E%3C/svg%3E"); }
 
 /* ---------- Títulos de seção ---------- */
-html.novo h2 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.025em; margin-top: 1.1rem; margin-bottom: 0.9rem; }
+html.novo h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.015em; margin-top: 1.2rem; margin-bottom: 0.8rem; }
 html.novo .h2-detail { display: none; }
 html.novo main hr { border: 0 !important; border-top: 1px solid var(--line) !important; margin-top: 0.5rem !important; }
 html.novo .empty-msg { font-style: normal; }
 
-/* ---------- Toggle Filmes / Séries (segmentado) ---------- */
-html.novo .tipo-conteudo-toggle { padding: 3px; border-radius: var(--r-md); background: var(--card-bg); border: 1px solid var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
-html.novo .tipo-conteudo-btn { border-radius: 11px; padding: 0.6rem 1rem; font-size: 0.88rem; font-weight: 600; }
-html.novo .tipo-conteudo-btn.ativo { background: var(--purple); color: #fff; box-shadow: 0 2px 10px rgba(139, 92, 246, 0.35); }
+/* ---------- Toggle Filmes / Séries: chips de contorno, ativo branco ---------- */
+html.novo .tipo-conteudo-toggle { gap: 8px; padding: 0; border: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+html.novo .tipo-conteudo-btn { flex: 0 1 auto; padding: 0.55rem 1.1rem; border-radius: 999px; border: 1px solid var(--line); color: #fff; font-size: 0.85rem; font-weight: 600; }
+html.novo .tipo-conteudo-btn.ativo { background: #fff; color: #000; border-color: #fff; box-shadow: none; }
 
 /* ---------- Busca e filtros ---------- */
 html.novo .filter-input, html.novo .login-input, html.novo #pesquisa-ja-assisti {
-  background-color: var(--card-bg) !important; border: 1px solid var(--line) !important; border-radius: var(--r-md) !important; color: var(--text-main) !important;
+  background-color: var(--card-bg) !important; border: 1px solid var(--line) !important; border-radius: var(--r-md) !important; color: #fff !important;
 }
-html.novo .filter-input { height: 46px; padding: 0 1rem; font-size: 0.92rem; }
-html.novo .filter-input:focus, html.novo .login-input:focus, html.novo #pesquisa-ja-assisti:focus { border-color: var(--purple) !important; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18); }
-html.novo select.filter-input { appearance: none; -webkit-appearance: none; padding: 0 1.9rem 0 0.8rem; font-size: 0.86rem; text-overflow: ellipsis; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%239a9aab' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; }
+html.novo .filter-input { height: 46px; padding: 0 1rem; font-size: 0.9rem; }
+html.novo .filter-input:focus, html.novo .login-input:focus, html.novo #pesquisa-ja-assisti:focus { border-color: var(--purple) !important; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+html.novo select.filter-input { appearance: none; -webkit-appearance: none; padding: 0 1.9rem 0 0.8rem; font-size: 0.86rem; text-overflow: ellipsis; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23a3a3b2' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.9rem center; }
 
 /* ---------- Streamings ---------- */
 html.novo .streaming-row { gap: 12px; padding: 6px 4px 8px; }
-html.novo .streaming-pill { width: 52px; height: 52px; border-radius: 15px; border: 1px solid var(--line); background-color: var(--card-bg); transition: 0.2s; }
-html.novo .streaming-pill.active { transform: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.28); }
+html.novo .streaming-pill { width: 52px; height: 52px; border-radius: 14px; border: 1px solid var(--line); background-color: var(--card-bg); transition: 0.2s; }
+html.novo .streaming-pill.active { transform: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3); }
 
-/* ---------- Cards de filmes/séries ---------- */
+/* ---------- Cards: capa arredondada, nota em selo sobre a capa ---------- */
 html.novo .movie-card { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; transition: transform 0.15s; }
-html.novo .movie-card:active { transform: scale(0.98); }
-html.novo .movie-card > img { border-radius: var(--r-md); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05); background: var(--card-bg); }
+html.novo .movie-card:active { transform: scale(0.97); }
+html.novo .movie-card > img { border-radius: var(--r-md); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45); background: linear-gradient(160deg, #2a2a3a, #14141c); }
 html.novo .movie-card-overlay { bottom: auto; aspect-ratio: 2 / 3; border-radius: var(--r-md); background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-html.novo .movie-info { padding: 0.55rem 0.15rem 0; }
-html.novo .movie-title { font-size: 0.84rem; font-weight: 600; letter-spacing: -0.01em; }
-html.novo .movie-meta { font-size: 0.74rem; margin-top: 0.2rem; }
-html.novo .imdb-score { font-weight: 700; color: #fbbf24; }
-html.novo .movies-slider, html.novo .playlist-slider { gap: 0.8rem; }
-html.novo .movies-grid { gap: 1.1rem 0.8rem; }
+html.novo .movie-info { padding: 0.5rem 0.1rem 0; }
+html.novo .movie-title { font-size: 0.82rem; font-weight: 600; }
+html.novo .movie-meta { font-size: 0.72rem; margin-top: 0.15rem; }
+html.novo .movie-rating { position: absolute; top: 6px; right: 6px; z-index: 3; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 0.68rem; }
+html.novo .imdb-score { font-weight: 700; color: var(--gold); white-space: nowrap; }
+html.novo .movies-slider, html.novo .playlist-slider { gap: 0.7rem; }
+html.novo .movies-grid { gap: 1rem 0.7rem; }
 
-/* ---------- Top 10: número vazado ---------- */
-html.novo .top10-number { font-style: normal; font-weight: 800; letter-spacing: -0.06em; color: transparent; -webkit-text-stroke: 2px #fff; text-shadow: none; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7)); }
+/* ---------- Top 10: número grande vazado, atrás da capa ---------- */
+html.novo .top10-slider { gap: 1.2rem; padding-left: 22px; }
+html.novo .top10-card { margin-left: 34px; }
+html.novo .top10-card .movie-card { position: relative; z-index: 1; }
+html.novo .top10-number { z-index: 0; left: -46px; bottom: -4px; font-size: 6.2rem; font-style: normal; font-weight: 800; letter-spacing: -0.08em; line-height: 0.8; color: transparent; -webkit-text-stroke: 2.5px #70708a; text-shadow: none; }
+
+/* ---------- Playlists ---------- */
+html.novo .playlist-card { border: 1px solid var(--line); border-radius: var(--r-md); }
+html.novo .btn-criar-playlist { border-radius: var(--r-md); border-width: 1.5px; }
 
 /* ---------- Botões ---------- */
-html.novo .btn-carregar-mais { border: 1px solid var(--line); background: var(--card-bg); backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: var(--r-md); font-weight: 600; }
+html.novo .btn-carregar-mais { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.06); backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: var(--r-md); font-weight: 600; }
 html.novo .btn-carregar-mais:hover { background: var(--surface-2); border-color: rgba(139, 92, 246, 0.5); box-shadow: none; }
 html.novo .chat-fab { width: 52px; height: 52px; font-size: 1.4rem; box-shadow: 0 8px 22px rgba(139, 92, 246, 0.4); }
+html.novo .btn-modal, html.novo .btn-action { border-radius: var(--r-md); font-weight: 700; }
+
+/* ---------- Detalhes do filme/série ---------- */
+html.novo .modal-content.immersive-modal { border-radius: 24px 24px 0 0; }
+html.novo .detalhe-hero-gradient { background: linear-gradient(to bottom, rgba(10, 10, 15, 0.5) 0%, rgba(10, 10, 15, 0) 28%, rgba(10, 10, 15, 0.35) 62%, var(--bg-color) 100%); }
+html.novo .btn-close-floating, html.novo .btn-som-trailer { background: rgba(255, 255, 255, 0.12); border: none; }
+html.novo .hero-title { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.08; }
+html.novo .hero-meta { color: var(--text-muted); font-weight: 500; }
+html.novo .detalhe-chip-tipo { background: rgba(139, 92, 246, 0.18); color: #c4b5fd; letter-spacing: 0.12em; }
+html.novo .detalhe-genero { background: var(--surface-2); border: none; color: #d4d4de; padding: 5px 11px; font-weight: 600; }
+html.novo .detalhe-tagline { color: var(--text-muted); }
+/* botões principais: cantos de 12px em vez de pílula inteira; legendado vira vidro */
+html.novo #btn-assistir-agora, html.novo #btn-assistir-web, html.novo .btn-hero-primary, html.novo .btn-hero-secondary { border-radius: var(--r-md) !important; padding-top: 14px !important; padding-bottom: 14px !important; font-weight: 700 !important; }
+html.novo #btn-assistir-agora, html.novo .btn-hero-primary { background: var(--purple) !important; box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4) !important; }
+html.novo #btn-assistir-web, html.novo .btn-hero-secondary { background: rgba(255, 255, 255, 0.12) !important; box-shadow: none !important; border: none !important; backdrop-filter: blur(10px); }
+/* ações em ícones: sem círculo colorido, ícone limpo com rótulo */
+html.novo .acoes-detalhe { padding: 12px 0 6px; border-bottom: 1px solid var(--line); margin-bottom: 0; }
+html.novo .acao-detalhe { color: #d4d4de; font-weight: 600; }
+html.novo .acao-icone { width: auto; height: auto; border: none; background: transparent !important; box-shadow: none !important; color: #e4e4ec; }
+html.novo .acao-icone svg { width: 24px; height: 24px; }
+/* abas Sinopse | Avaliações: sublinhado roxo */
+html.novo .det-abas { gap: 26px; padding: 0; margin-top: 1rem; border: none; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; width: 100%; }
+html.novo .det-abas button { flex: 0 0 auto; padding: 10px 0 12px; border-radius: 0; background: transparent; border-bottom: 3px solid transparent; margin-bottom: -1px; font-size: 0.92rem; color: var(--text-muted); }
+html.novo .det-abas button.ativo { background: transparent; color: #fff; box-shadow: none; border-bottom-color: var(--purple); }
+html.novo .detalhe-sinopse { background: transparent; border: none; padding: 0; color: #c8c8d4; line-height: 1.6; }
+html.novo .da-item { border-bottom-color: var(--line); }
+html.novo .da-btn { border-radius: var(--r-md); }

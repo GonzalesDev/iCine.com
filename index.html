@@ -795,7 +795,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=20">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=21">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1390,7 +1390,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-18.15';
+        const VERSAO_APP = '2026-10-18.16';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -4561,72 +4561,74 @@
             });
         }
         // ==========================================
-        // CÓDIGO PARA TORNAR O ÍCONE DO CHAT ARRASTÁVEL
+        // BOTÃO DA IA: etiqueta na borda direita. Só sobe e desce (sem sair da borda),
+        // no máximo até a metade da tela. A altura escolhida fica salva no aparelho.
         // ==========================================
-        const dragItem = document.getElementById("btn-chat-fab"); 
+        const dragItem = document.getElementById("btn-chat-fab");
 
         if (dragItem) {
-            let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-            let xOffset = 0;
-            let yOffset = 0;
+            const ALTURA_FAB = 50;
+            const BOTTOM_PADRAO = 84;
+            const BOTTOM_MINIMO = 70;
+            let arrastando = false;
+            let arrastou = false;
+            let inicioY = 0;
+            let inicioBottom = 0;
 
-            // Eventos para PC (Mouse)
-            dragItem.addEventListener("mousedown", dragStart);
-            document.addEventListener("mouseup", dragEnd);
-            document.addEventListener("mousemove", drag);
-
-            // Eventos para Mobile (Toque)
-            dragItem.addEventListener("touchstart", dragStart, { passive: false });
-            document.addEventListener("touchend", dragEnd);
-            document.addEventListener("touchmove", drag, { passive: false });
-
-            function dragStart(e) {
-                if (e.type === "touchstart") {
-                    initialX = e.touches[0].clientX - xOffset;
-                    initialY = e.touches[0].clientY - yOffset;
-                } else {
-                    initialX = e.clientX - xOffset;
-                    initialY = e.clientY - yOffset;
-                }
-
-                // Verifica se o clique foi mesmo no ícone antes de começar a arrastar
-                if (e.target === dragItem || dragItem.contains(e.target)) {
-                    isDragging = true;
-                }
+            function limitarBottom(valor) {
+                const bottomMaximo = window.innerHeight / 2 - ALTURA_FAB;
+                return Math.min(Math.max(valor, BOTTOM_MINIMO), bottomMaximo);
             }
 
-            function dragEnd(e) {
-                initialX = currentX;
-                initialY = currentY;
-                isDragging = false;
+            function aplicarBottom(valor) {
+                dragItem.style.bottom = limitarBottom(valor) + 'px';
             }
 
-            function drag(e) {
-                if (isDragging) {
-                    e.preventDefault(); 
+            try {
+                const salvo = parseFloat(localStorage.getItem('icine_fab_bottom'));
+                if (!isNaN(salvo)) aplicarBottom(salvo);
+            } catch (e) { /* sem localStorage: usa a posição padrão */ }
 
-                    if (e.type === "touchmove") {
-                        currentX = e.touches[0].clientX - initialX;
-                        currentY = e.touches[0].clientY - initialY;
-                    } else {
-                        currentX = e.clientX - initialX;
-                        currentY = e.clientY - initialY;
-                    }
+            function iniciarArraste(e) {
+                const ponto = e.touches ? e.touches[0] : e;
+                arrastando = true;
+                arrastou = false;
+                inicioY = ponto.clientY;
+                inicioBottom = parseFloat(getComputedStyle(dragItem).bottom) || BOTTOM_PADRAO;
+            }
 
-                    xOffset = currentX;
-                    yOffset = currentY;
+            function mover(e) {
+                if (!arrastando) return;
+                const ponto = e.touches ? e.touches[0] : e;
+                const deslocamento = inicioY - ponto.clientY; // subir = positivo
+                if (Math.abs(deslocamento) > 5) arrastou = true;
+                if (!arrastou) return;
+                if (e.cancelable) e.preventDefault();
+                aplicarBottom(inicioBottom + deslocamento);
+            }
 
-                    setTranslate(currentX, currentY, dragItem);
+            function soltar() {
+                if (!arrastando) return;
+                arrastando = false;
+                if (arrastou) {
+                    try { localStorage.setItem('icine_fab_bottom', parseFloat(dragItem.style.bottom)); } catch (e) { /* ignora */ }
                 }
             }
 
-            function setTranslate(xPos, yPos, el) {
-                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-            }
+            dragItem.addEventListener('mousedown', iniciarArraste);
+            dragItem.addEventListener('touchstart', iniciarArraste, { passive: true });
+            document.addEventListener('mousemove', mover);
+            document.addEventListener('touchmove', mover, { passive: false });
+            document.addEventListener('mouseup', soltar);
+            document.addEventListener('touchend', soltar);
+
+            // Depois de arrastar, soltar o botão não deve abrir o chat
+            dragItem.addEventListener('click', (e) => {
+                if (arrastou) { e.stopImmediatePropagation(); e.preventDefault(); }
+                arrastou = false;
+            }, true);
+
+            window.addEventListener('resize', () => aplicarBottom(parseFloat(dragItem.style.bottom) || BOTTOM_PADRAO));
         }
     </script>
 </body>

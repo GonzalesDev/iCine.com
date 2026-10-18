@@ -285,3 +285,68 @@ html.novo .chat-fab:active { transform: scale(0.96); }
 
 /* Dentro de janelas (ex.: playlist aberta) o desfoque do fundo da janela prende o "fixed" dos cards: sem ele a folha fica presa à tela */
 html.novo .modal { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(3, 3, 8, 0.92); }
+
+/* ==========================================================================
+   JANELAS (modais), LOGIN, AMIGOS, PLAYLIST ABERTA, CHAT DA IA
+   ========================================================================== */
+/* o botão da IA some quando há uma janela aberta (antes ficava por cima dos botões) */
+html.novo body:has(.modal[style*="display: flex"]) .chat-fab { opacity: 0; pointer-events: none; }
+
+/* folha base das janelas */
+html.novo .modal-content:not(.immersive-modal) { background: #14141c; border-top: 1px solid var(--line); border-radius: 24px 24px 0 0; padding: 1.4rem 1.25rem max(1.5rem, env(safe-area-inset-bottom)); position: relative; text-align: left; }
+html.novo .modal-content:not(.immersive-modal)::before { content: ''; display: block; width: 40px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.2); margin: -0.4rem auto 1rem; }
+html.novo .modal-content:not(.immersive-modal) h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; text-align: left; margin-bottom: 0.4rem; }
+html.novo .modal-movie-title { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; text-align: left; margin-bottom: 1rem; }
+html.novo .modal-buttons { display: flex; flex-direction: column; gap: 10px; }
+html.novo .btn-modal { border-radius: var(--r-md); padding: 0.95rem 1rem; font-weight: 600; font-size: 0.95rem; text-align: left; }
+html.novo .btn-modal-quero { background: var(--purple); color: #fff; font-weight: 700; text-align: center; }
+html.novo .btn-modal-ja, html.novo #btn-toggle-playlists { background: var(--surface-2) !important; color: #fff !important; border: 1px solid var(--line); }
+html.novo .btn-modal-cancel { background: transparent; color: var(--text-muted); text-align: center; }
+html.novo .btn-modal-shorts { border-radius: var(--r-md); }
+html.novo #lista-playlists-escolha { border-top-color: var(--line) !important; }
+/* campos de formulário das janelas */
+html.novo .modal-content input[type="text"], html.novo .modal-content input[type="email"], html.novo .modal-content input[type="password"], html.novo .modal-content textarea, html.novo .modal-content select {
+  background: var(--card-bg); border: 1px solid var(--line); border-radius: var(--r-md); color: #fff; padding: 0.85rem 1rem; font-size: 0.95rem; outline: none; width: 100%;
+}
+html.novo .modal-content input:focus, html.novo .modal-content textarea:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+html.novo .modal-content input[type="file"] { width: 100%; padding: 0.6rem; border: 1px dashed rgba(255, 255, 255, 0.18); border-radius: var(--r-md); background: var(--card-bg); color: var(--text-muted); font-size: 0.85rem; }
+html.novo .modal-content input[type="file"]::file-selector-button { margin-right: 12px; padding: 8px 14px; border: none; border-radius: 10px; background: rgba(139, 92, 246, 0.2); color: #c4b5fd; font-weight: 600; cursor: pointer; }
+html.novo .modal-content label:has(input[type="checkbox"]) { background: transparent !important; border: none !important; }
+
+/* janela de avaliar */
+html.novo .aval-folha-topo b { font-size: 1.1rem; letter-spacing: -0.01em; }
+html.novo .aval-acoes button { border-radius: var(--r-md); border-color: var(--line); font-weight: 700; }
+html.novo .aval-acoes .aval-publicar { background: var(--purple); }
+html.novo .aval-estrelas-input button.on { color: var(--gold); }
+
+/* login */
+html.novo #tela-login { background: linear-gradient(160deg, #241a5e 0%, #12101f 42%, #0a0a0f 60%, #3a0f3a 100%); overflow: hidden; }
+html.novo #tela-login::before { content: ''; position: absolute; inset: -20%; pointer-events: none; background: radial-gradient(55% 42% at 15% 8%, rgba(139, 92, 246, 0.7), transparent 72%), radial-gradient(55% 45% at 95% 92%, rgba(236, 72, 153, 0.5), transparent 72%), radial-gradient(48% 36% at 0% 60%, rgba(37, 99, 235, 0.45), transparent 72%); animation: rolFlutua 14s ease-in-out infinite alternate; }
+html.novo .login-box { position: relative; text-align: left; padding: 2rem 1.5rem; }
+html.novo .login-box .logo { font-size: 3.4rem !important; letter-spacing: -0.05em; }
+html.novo .login-box p { font-size: 0.95rem !important; line-height: 1.5; }
+html.novo .login-box .login-input { height: 52px; padding: 0 1rem; margin-bottom: 0.85rem; }
+html.novo .login-box .btn-action { height: 52px; border-radius: var(--r-md); font-weight: 700; justify-content: center; }
+html.novo #btn-entrar-acao { background: var(--purple); color: #fff; box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4); border: none; }
+html.novo #btn-registrar-acao { background: rgba(255, 255, 255, 0.08) !important; color: #fff !important; border: 1px solid var(--line); }
+
+/* Amigos */
+html.novo .perfil-setup-card, html.novo #aba-amigos .perfil-card { border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(180deg, rgba(139, 92, 246, 0.1), var(--card-bg) 70%); }
+html.novo .secao-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin: 1.4rem 0 0.8rem; }
+html.novo .amigo-item { border: 1px solid var(--line); border-radius: 16px; padding: 0.8rem 0.9rem; }
+html.novo .btn-add-amigo { border-radius: 999px; font-weight: 700; padding: 8px 16px; }
+html.novo #push-box, html.novo .push-box { border: 1px solid var(--line); border-radius: 16px; background: var(--card-bg); }
+
+/* Playlist aberta */
+html.novo #modal-ver-playlist h2#titulo-ver-playlist { font-weight: 800; letter-spacing: -0.03em; }
+html.novo #btn-fechar-ver-playlist, html.novo #btn-editar-ver-playlist { background: rgba(255, 255, 255, 0.14) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* Chat da IA */
+html.novo .chat-window { background: #14141c; border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); }
+html.novo .chat-header { background: transparent; border-bottom: 1px solid var(--line); font-weight: 700; letter-spacing: -0.01em; }
+html.novo .chat-messages { background: transparent; }
+html.novo .msg-bot { background: var(--surface-2); border: none; border-radius: 16px 16px 16px 4px; }
+html.novo .msg-user, html.novo .chat-msg.msg-user { background: var(--purple); border-radius: 16px 16px 4px 16px; }
+html.novo .chat-input-area { background: transparent; border-top: 1px solid var(--line); }
+html.novo .chat-input-area input { background: var(--card-bg); border: 1px solid var(--line); border-radius: 999px; color: #fff; padding: 0 16px; }
+html.novo .chat-input-area button { background: var(--purple); border-radius: 50%; }

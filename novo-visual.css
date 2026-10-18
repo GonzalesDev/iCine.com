@@ -263,3 +263,10 @@ html.novo #aba-roleta .btn-girar { padding: 0; border-radius: 50%; display: flex
 html.novo .lista-titulo { font-weight: 800; }
 html.novo .busca-listas { border-color: var(--line); }
 html.novo .ver-tudo { color: #c4b5fd; }
+
+/* Botão "Assistir Online (Legendado)": contorno rosado (opção C aprovada) */
+html.novo #btn-assistir-web {
+  background: rgba(251, 113, 133, 0.14) !important; border: 1.5px solid rgba(251, 113, 133, 0.7) !important;
+  color: #ff9aab !important; box-shadow: none !important; backdrop-filter: none;
+}
+html.novo #btn-assistir-web:active { background: rgba(251, 113, 133, 0.24) !important; }

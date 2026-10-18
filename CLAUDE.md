@@ -140,4 +140,4 @@ como trabalhamos e as decisões tomadas desde então.
   (`#busca-listas`) que filtra "Quero Assistir" e "Assistidos" **só por título** (a tabela `meus_filmes` não guarda gênero).
 - "Ver tudo / Ver menos" fica no topo de cada lista (`#ver-tudo-quero`, `#ver-tudo-ja`, visível só com mais de 15 itens); o cartão do fim da fila foi removido.
 - Roleta: o botão Girar é um círculo branco posicionado pelo JS no miolo da roda (canto inferior direito); o miolo (`rc`) agora é R*0.26.
-- PENDENTE de aprovação: cor do botão "Assistir Online (Legendado)" (hoje vidro cinza; prévia A/B/C em rosa coral enviada ao usuário).
+- Botão "Assistir Online (Legendado)": contorno rosado (opção C aprovada: fundo rgba(251,113,133,.14), borda .7, texto #ff9aab).

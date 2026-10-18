@@ -353,3 +353,18 @@ html.novo .chat-input-area button { background: var(--purple); border-radius: 50
 /* Minha nota nos Assistidos: selo roxo */
 html.novo .movie-rating:has(.minha-nota) { flex-direction: row; align-items: center; gap: 4px; }
 html.novo .imdb-score.minha-nota { color: #fff; background: var(--purple); padding: 0 5px; border-radius: 4px; }
+
+/* ==========================================================================
+   IDENTIDADE ROXA (aprovada: acento A + luz roxa no topo)
+   Fundo preto com uma luz roxa no alto da página; roxo nos acentos (barras
+   dos títulos, chips ativos, contadores, "Ver tudo", busca).
+   ========================================================================== */
+html.novo body {
+  background: radial-gradient(95% 42% at 50% 0%, rgba(139, 92, 246, 0.42), rgba(139, 92, 246, 0) 70%), var(--bg-color);
+  background-color: var(--bg-color);
+}
+html.novo .h2-detail { background-color: var(--purple) !important; }
+html.novo .cont-lista { background: rgba(139, 92, 246, 0.22); color: #ddd6fe; }
+html.novo .tipo-conteudo-btn.ativo { background: var(--purple); color: #fff; border-color: var(--purple); }
+html.novo .ver-tudo { background: rgba(139, 92, 246, 0.18); padding: 6px 12px; border-radius: 999px; }
+html.novo .busca-listas { border-color: rgba(139, 92, 246, 0.35); }

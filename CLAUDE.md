@@ -55,8 +55,8 @@ como trabalhamos e as decisões tomadas desde então.
   uma por pessoa e avaliação; coração + contagem no canto inferior direito de cada avaliação.
 
 ## Foto de perfil (bloco "JS FOTO DE PERFIL")
-- Coluna `perfis.foto_url` (`migrations/2026-10-05_foto_perfil.sql`). Troca tocando no próprio avatar
-  na tela de Amigos; a imagem é recortada em quadrado (320px, JPEG) e vai para o bucket `capas`.
+- Coluna `perfis.foto_url` (`migrations/2026-10-05_foto_perfil.sql`). Troca pela câmera no avatar do **meu perfil**
+  (`#pf-trocar-foto` → `#input-foto-perfil`); a imagem é recortada em quadrado (320px, JPEG) e vai para o bucket `capas`.
 - Use `avatarHTML(nome, foto)` / `avatarConteudo(...)` em qualquer lugar que mostre usuário; cache
   `fotosPerfis` (user_id → url). Sem foto ou se a imagem falhar, mostra a inicial.
 
@@ -72,7 +72,7 @@ como trabalhamos e as decisões tomadas desde então.
   por isso passa por RLS) e manda `aparelhos` + `remetente` no corpo; a função só envia, sem ler o banco
   (antes ela lia e recebia lista vazia por RLS, com `{"enviados":0}`).
   SQL: `migrations/2026-10-13_push_notificacoes.sql` (tem o placeholder `COLE_AQUI_O_SEGREDO`; nunca commitar o real).
-- App: bloco "JS AVISOS NO CELULAR (WEB PUSH)"; cartão "Ativar/Desativar" na tela de Amigos; `sw-push.js` só recebe
+- App: bloco "JS AVISOS NO CELULAR (WEB PUSH)"; cartão "Ativar/Desativar" (`#push-box`) na tela de Amigos (`#modal-amigos`); `sw-push.js` só recebe
   avisos (sem cache). O app **continua apagando os service workers antigos** ao abrir (exceto `sw-push.js`).
   Tocar no aviso abre `./?aba=amigos` (`abaDoLink`) ou manda mensagem à aba aberta.
 - Chave VAPID pública fica no `index.html`; a privada e o `WEBHOOK_SECRET` só nos Secrets do Supabase.
@@ -81,7 +81,7 @@ como trabalhamos e as decisões tomadas desde então.
 
 ## Ícone de Amigos no cabeçalho
 - O botão `#btn-amigos` (ao lado da logo) mostra a foto de perfil do próprio usuário (ou a inicial, se não houver foto).
-  Desde 18/10 ele abre o **meu perfil** (`abrirPerfil`); sem @username ainda, vai para a aba Amigos criar.
+  Desde 18/10 ele abre o **meu perfil** (`abrirPerfil`); sem @username ainda, abre a tela de Amigos para criar.
   Atualizado por `atualizarAvatarHeader()`: chamada em `verificarPerfil`, ao criar o @username e ao trocar a foto.
 - Consistência do cartão: se o banco recusar a gravação do aparelho (`gravarOuDesfazerPush`), a inscrição do
   navegador é desfeita; o cartão só mostra "ativado" quando o servidor conhece o aparelho.
@@ -161,24 +161,40 @@ como trabalhamos e as decisões tomadas desde então.
 - Assistidos mostram a **sua nota** (`minhasNotasAval`, carregada por `carregarMinhasNotas`; selo roxo) e caem na nota do TMDB se não avaliou.
   Recarrega ao publicar/excluir avaliação e ao carregar os filmes; limpa ao sair.
 
-## Perfil do usuário (18/10) — bloco "JS PERFIL DO USUÁRIO", janela `#modal-perfil` (z-index 2400, CSS `.pf-*` no index.html)
-- Abre por: foto no cabeçalho (meu perfil), lista de Amigos e foto/nome de quem avaliou no Feed (`data-perfil` no `.aval-usuario`).
-  Link `?perfil=<username>` (botão Compartilhar) abre o perfil depois do login (`perfilDoLink`). Detalhes do filme ficam por cima (2800).
-- Conteúdo: banner = fundo (TMDB) do título com a maior nota; foto com anel; @ e "desde"; números (Assistidos, Quero ver, Avaliações,
-  Amigos — no meu, tocar em Amigos leva à aba Amigos, com contador de pedidos); botões: meu = Trocar foto + Compartilhar;
-  outros = Adicionar amigo / Aceitar pedido / Pedido enviado / Amigos (usa `pedirAmizade`, a mesma lógica do `enviarPedido`) + Compartilhar.
-  Outros também têm "% de gosto em comum" (minhas notas × as dele, só com 2+ títulos avaliados pelos dois) e nº de títulos que os dois viram.
-  Top 4 (maiores notas), **Cinéfilo em números** (gênero mais visto, nota média, diretor mais visto — só se aparecer em 2+ títulos —,
-  horas em filmes) e "Gêneros que mais assiste": vêm do TMDB por título (`dadosTmdbDoTitulo`, cache `cacheEstatTmdb`, até 60 assistidos).
-  Abas Assistidos | Avaliações | Playlists | Quero ver. Outros só veem playlists **públicas**.
-- **Qualquer usuário logado vê o perfil de qualquer um** (decisão 18/10): `migrations/2026-10-18_perfil_publico.sql` libera SELECT em
-  `meus_filmes` para todos os autenticados e cria `contar_amigos(alvo)` (SECURITY DEFINER, só o número). Sem o SQL, perfis de
-  não-amigos aparecem com listas vazias e sem o número de amigos.
-- Frase/bio do perfil: adiada pelo usuário (precisaria de coluna nova em `perfis`). A janela antiga `#modal-perfil-amigo` foi removida.
+## Perfil do usuário (18–19/10) — bloco "JS PERFIL DO USUÁRIO", CSS `.pf-*`/`.tf-*`/`.t5-*`/`.am-*`/`.pp-*` no index.html
+- Janelas (todas `.modal.modal-tela`, tela cheia, máx. 600px): `#modal-perfil` 2400 → `#modal-amigos` 2420 → `#modal-top5` e
+  `#modal-favorito` 2440 → `#modal-pessoa` 2460 → detalhes 2800. Para abrir um perfil a partir da tela de Amigos usa-se
+  `fecharModalEDepois` (o "voltar" do histórico é assíncrono). `historicoPerfis`: o botão voltar do perfil volta ao perfil anterior.
+- Abre por: foto no cabeçalho (meu perfil; sem @username vai para a tela de Amigos criar), amigos/pedidos/busca na tela de Amigos e
+  foto/nome de quem avaliou no Feed (`data-perfil`). Link `?perfil=<username>` (ícone compartilhar) abre o perfil depois do login.
+- Meu perfil: ícones pequenos no banner (trocar **capa** pela galeria → `#input-capa-perfil`, reduzida a 1280px, bucket `capas`,
+  `perfis.capa_url`; compartilhar) e câmera no avatar. Sem capa escolhida, o banner é o fundo (TMDB) do título com a maior nota.
+  Números: Assistidos, Quero ver, Avaliações e botão **Amigos** (com contador de pedidos) que abre `#modal-amigos`.
+  Perfil dos outros: botão Adicionar amigo / Aceitar pedido / Pedido enviado / Amigos (`pedirAmizade`) e "% de gosto em comum".
+- **Top 5 filmes** e **Top 5 séries** escolhidos pela pessoa (`perfis.top_filmes`/`top_series`, listas `{id,titulo,ano,capa,sinopse}`):
+  editor `#modal-top5` com busca no TMDB, ✕ para tirar e **segurar e arrastar** para reordenar (pointer events no `#t5-slots`,
+  `touch-action: none`). Salva a cada mudança. Nos outros perfis, Top 5 vazio não aparece.
+- **Meus favoritos do cinema**: 3 cards — Atriz, Ator e Diretor favoritos (`perfis.favoritos` = `{atriz|ator|diretor: {id,nome,foto}}`),
+  escolhidos em `#modal-favorito` (busca `/search/person`, quem combina com a categoria e o gênero vem primeiro). Tocar na foto abre
+  `#modal-pessoa`: `/person/{id}?append_to_response=combined_credits`, abas Atuou/Dirigiu (sem talk shows/aparições, sem repetidos,
+  por nº de votos), "X de N títulos que você já viu", ✓ verde nos vistos. (O "Cinéfilo em números" automático foi removido em 19/10.)
+- Abas de baixo (Assistidos | Avaliações | Playlists | Quero ver) e a tela da pessoa mostram **9** itens e "Ver tudo (N) ⌄" / "Ver menos".
+- **Notas lado a lado** (regra do usuário): capa com nota do TMDB (amarela) + nota pessoal (roxa) quando houver — `selosHTML()`.
+  No perfil, a roxa é a do dono do perfil; na tela da pessoa, a minha.
+- SQL: `migrations/2026-10-18_perfil_publico.sql` (listas visíveis a todos os logados + `contar_amigos`) e
+  `migrations/2026-10-19_perfil_personalizado.sql` (capa_url, top_filmes, top_series, favoritos). Sem o de 19/10 o perfil abre,
+  mas salvar capa/Top 5/favoritos falha (aviso na tela). Outros só veem playlists **públicas**. Frase/bio: adiada.
+
+## Tela de Amigos (19/10) — `#modal-amigos`, aberta pelo botão Amigos do perfil (a aba `#aba-amigos` antiga foi REMOVIDA)
+- Contém (mesmos IDs de antes, só mudaram de lugar): `#setup-username-card` (quem ainda não tem @), busca `#input-busca-amigo`
+  (resultado abre o perfil), `#secao-inbox` (recomendações recebidas), `#secao-pedidos` (Aceitar/Recusar), `#secao-amigos-lista`
+  e `#push-box` (avisos no celular). `mudarAba('amigos')` agora chama `abrirAmigos()` — vale para `?aba=amigos` e para o toque no aviso.
+  A janela `#modal-buscar-amigo` foi removida.
 
 ## ONDE PARAMOS (resumo para começar uma conversa nova) — 18/10/2026
 - **Estado:** todo o visual novo (Listas, Explorar, Cenas, Roleta, Feed, janelas, login, Amigos, chat da IA) está no GitHub (`main`).
-  O usuário publica no Replit com Pull → Run → Republicar. **SQL pendente (18/10):** `migrations/2026-10-18_perfil_publico.sql` (perfil público). Toda mudança no app exige subir `VERSAO_APP` (index.html) e
+  O usuário publica no Replit com Pull → Run → Republicar. **SQL pendente:** `migrations/2026-10-18_perfil_publico.sql` e
+  `migrations/2026-10-19_perfil_personalizado.sql` (rodar os dois, nessa ordem, antes de publicar). Toda mudança no app exige subir `VERSAO_APP` (index.html) e
   `version.json` (mesmo valor) e o `?v=` do link do `novo-visual.css`; assim o app instalado se atualiza sozinho.
 - **Visual novo:** `novo-visual.css` (prefixo `html.novo`) + trechos no `index.html`. Saída de emergência: `?visual=antigo`.
 - **Pendências:** nenhuma. Gênero na busca de Listas, pontos de posição/legenda das Cenas e modo claro foram descartados por enquanto (18/10).

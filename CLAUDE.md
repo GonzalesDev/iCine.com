@@ -57,6 +57,9 @@ como trabalhamos e as decisões tomadas desde então.
 ## Foto de perfil (bloco "JS FOTO DE PERFIL")
 - Coluna `perfis.foto_url` (`migrations/2026-10-05_foto_perfil.sql`). Troca pela câmera no avatar do **meu perfil**
   (`#pf-trocar-foto` → `#input-foto-perfil`); a imagem é recortada em quadrado (320px, JPEG) e vai para o bucket `capas`.
+- **Fotos prontas (19/10):** o câmera do meu perfil abre `#modal-avatares` (grade de círculos). A lista fica em `avatares.js`
+  (`AVATARES_PRONTOS = [{ nome, arquivo: 'avatares/x.png' }]`) e as imagens em `avatares/` (ver `avatares/LEIA-ME.txt`).
+  Escolher grava o caminho em `perfis.foto_url`. Imagens quebradas somem da grade. Catálogo vazio mostra "Nenhuma foto pronta ainda.".
 - Use `avatarHTML(nome, foto)` / `avatarConteudo(...)` em qualquer lugar que mostre usuário; cache
   `fotosPerfis` (user_id → url). Sem foto ou se a imagem falhar, mostra a inicial.
 

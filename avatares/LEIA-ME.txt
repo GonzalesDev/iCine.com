@@ -1,0 +1,13 @@
+PASTA DE AVATARES PRONTOS
+=========================
+
+Aqui ficam as ilustrações que aparecem na tela "Escolher foto de perfil".
+
+Como adicionar uma ilustração:
+1. Coloque a imagem nesta pasta (PNG ou JPG, quadrada, por exemplo 320 x 320 px).
+2. Abra o arquivo avatares.js (na pasta principal do projeto).
+3. Dentro de AVATARES_PRONTOS, adicione uma linha:
+   { nome: 'Nome do personagem', arquivo: 'avatares/nome-do-arquivo.png' },
+4. Salve, envie para o GitHub e publique no Replit.
+
+A ordem das linhas é a ordem em que aparecem na tela.

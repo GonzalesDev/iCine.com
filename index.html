@@ -929,7 +929,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=27">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=28">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1373,6 +1373,15 @@
         <input type="file" id="input-capa-perfil" class="pf-oculto" accept="image/*" aria-label="Trocar foto de capa" tabindex="-1">
     </div>
 
+    <div id="modal-avatares" class="modal" style="z-index: 2450; display:none;">
+        <div class="modal-content">
+            <h3>Escolher foto de perfil</h3>
+            <div class="av-grade" id="av-grade"></div>
+            <button type="button" class="btn-modal btn-modal-quero" id="av-galeria">Usar foto da galeria</button>
+            <button type="button" class="btn-modal btn-modal-cancel" id="av-fechar" style="margin-top: 0.6rem;">Fechar</button>
+        </div>
+    </div>
+
     <div id="modal-amigos" class="modal modal-tela" style="z-index: 2420; display:none;">
         <div class="pf-tela am-tela">
             <div class="tf-topo"><button type="button" class="pf-redondo" id="am-voltar" aria-label="Voltar"><svg class="pf-ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>Amigos</div>
@@ -1520,7 +1529,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-19.1';
+        const VERSAO_APP = '2026-10-19.2';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -3698,7 +3707,7 @@
             if (e.target.closest('#pf-ver-amigos')) return abrirAmigos();
             const aba = e.target.closest('.pf-abas button'); if (aba) { p.aba = aba.dataset.aba; p.verTudo = false; return renderizarAbaPerfil(); }
             if (e.target.closest('[data-ver-tudo]')) { p.verTudo = !p.verTudo; return renderizarAbaPerfil(); }
-            if (e.target.closest('#pf-trocar-foto')) return document.getElementById('input-foto-perfil').click();
+            if (e.target.closest('#pf-trocar-foto')) return abrirEscolhaAvatar();
             if (e.target.closest('#pf-trocar-capa')) return document.getElementById('input-capa-perfil').click();
             const comp = e.target.closest('#pf-compartilhar'); if (comp) return compartilharPerfil(comp);
             const amz = e.target.closest('#pf-amizade'); if (amz) return acaoAmizadePerfil(amz);
@@ -3741,6 +3750,29 @@
                 console.error('Erro ao trocar a capa:', err);
                 alert('Não foi possível trocar a capa. Tente outra imagem.');
             } finally { document.getElementById('pf-banner')?.classList.remove('enviando'); }
+        });
+
+        // ---------- Foto de perfil pronta (catálogo em avatares.js) ----------
+        function catalogoAvatares() { return typeof AVATARES_PRONTOS !== 'undefined' && Array.isArray(AVATARES_PRONTOS) ? AVATARES_PRONTOS : []; }
+        function abrirEscolhaAvatar() {
+            const lista = catalogoAvatares();
+            document.getElementById('av-grade').innerHTML = lista.length
+                ? lista.map((a, i) => `<button type="button" class="av-item${meuPerfil?.foto_url === a.arquivo ? ' atual' : ''}" data-av="${i}" aria-label="${escaparHTML(a.nome)}"><img src="${escaparHTML(a.arquivo)}" alt="" loading="lazy" onerror="this.parentElement.remove()"></button>`).join('')
+                : '<p class="pf-vazio" style="grid-column:1/-1">Nenhuma foto pronta ainda.</p>';
+            abrirModalSeguro('modal-avatares');
+        }
+        async function usarAvatarPronto(indice) {
+            const a = catalogoAvatares()[indice]; if (!a || !usuarioAtual || !meuPerfil) return;
+            const { error } = await supabaseClient.from('perfis').update({ foto_url: a.arquivo }).eq('user_id', usuarioAtual.id);
+            if (error) return alert('Não foi possível salvar a foto. Tente de novo.');
+            meuPerfil.foto_url = a.arquivo; fotosPerfis.set(usuarioAtual.id, a.arquivo); atualizarAvatarHeader();
+            if (perfilAberto?.ehMeu) { perfilAberto.perfil = { ...perfilAberto.perfil, foto_url: a.arquivo }; renderizarPerfil(); }
+            fecharModalSeguro('modal-avatares');
+        }
+        document.getElementById('modal-avatares').addEventListener('click', (e) => {
+            if (e.target.closest('#av-fechar')) return fecharModalSeguro('modal-avatares');
+            if (e.target.closest('#av-galeria')) { fecharModalSeguro('modal-avatares'); return document.getElementById('input-foto-perfil').click(); }
+            const item = e.target.closest('[data-av]'); if (item) usarAvatarPronto(Number(item.dataset.av));
         });
 
         // ---------- Amigos (aberto pelo perfil) ----------
@@ -5346,5 +5378,6 @@
             window.addEventListener('resize', () => aplicarBottom(parseFloat(dragItem.style.bottom) || BOTTOM_PADRAO));
         }
     </script>
+    <script src="avatares.js"></script>
 </body>
 </html>

@@ -929,7 +929,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=28">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=29">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1382,6 +1382,17 @@
         </div>
     </div>
 
+    <div id="modal-bio" class="modal" style="z-index: 2450; display:none;">
+        <div class="modal-content">
+            <h3>Sua frase</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.8rem;">Aparece embaixo do seu @ para quem visitar seu perfil.</p>
+            <textarea id="bio-texto" class="filter-input" maxlength="120" rows="3" placeholder="Ex.: Fã de terror e de filmes de época" style="height: auto; padding: 0.7rem 1rem; resize: none;"></textarea>
+            <div id="bio-contador" style="text-align: right; color: var(--text-muted); font-size: 0.75rem; margin: 0.4rem 0 0.8rem;">0/120</div>
+            <button type="button" class="btn-modal btn-modal-quero" id="bio-salvar">Salvar</button>
+            <button type="button" class="btn-modal btn-modal-cancel" id="bio-cancelar" style="margin-top: 0.6rem;">Cancelar</button>
+        </div>
+    </div>
+
     <div id="modal-amigos" class="modal modal-tela" style="z-index: 2420; display:none;">
         <div class="pf-tela am-tela">
             <div class="tf-topo"><button type="button" class="pf-redondo" id="am-voltar" aria-label="Voltar"><svg class="pf-ico" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>Amigos</div>
@@ -1529,7 +1540,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-19.2';
+        const VERSAO_APP = '2026-10-20.1';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -3432,7 +3443,7 @@
 
         // Sem o SQL de 19/10 as colunas novas não existem: cai para as colunas antigas
         async function buscarPerfilCompleto(userId) {
-            const r = await supabaseClient.from('perfis').select('user_id, username, foto_url, created_at, capa_url, top_filmes, top_series, favoritos').eq('user_id', userId).maybeSingle();
+            const r = await supabaseClient.from('perfis').select('user_id, username, foto_url, created_at, capa_url, top_filmes, top_series, favoritos, bio').eq('user_id', userId).maybeSingle();
             if (!r.error) return r;
             return supabaseClient.from('perfis').select('user_id, username, foto_url, created_at').eq('user_id', userId).maybeSingle();
         }
@@ -3601,6 +3612,7 @@
                 <div class="pf-cabeca">
                     ${fotoHTML}
                     <div class="pf-arroba">@${escaparHTML(nome)}${desde ? ` · desde ${desde}` : ''}</div>
+                    ${p.ehMeu ? `<button type="button" class="pf-bio${p.perfil.bio ? '' : ' vazia'}" id="pf-editar-bio">${p.perfil.bio ? escaparHTML(p.perfil.bio) : 'Escreva uma frase sobre você'}</button>` : (p.perfil.bio ? `<p class="pf-bio">${escaparHTML(p.perfil.bio)}</p>` : '')}
                     ${p.amizade === 'amigos' ? `<div class="pf-amigo-tag">${PF_ICO.check.replace('pf-ico', 'pf-ico" style="width:14px;height:14px')}Vocês são amigos</div>` : ''}
                     <div class="pf-numeros">
                         <div class="pf-num"><b>${assistidos}</b><span>Assistidos</span></div>
@@ -3708,6 +3720,7 @@
             const aba = e.target.closest('.pf-abas button'); if (aba) { p.aba = aba.dataset.aba; p.verTudo = false; return renderizarAbaPerfil(); }
             if (e.target.closest('[data-ver-tudo]')) { p.verTudo = !p.verTudo; return renderizarAbaPerfil(); }
             if (e.target.closest('#pf-trocar-foto')) return abrirEscolhaAvatar();
+            if (e.target.closest('#pf-editar-bio')) return abrirEditorBio();
             if (e.target.closest('#pf-trocar-capa')) return document.getElementById('input-capa-perfil').click();
             const comp = e.target.closest('#pf-compartilhar'); if (comp) return compartilharPerfil(comp);
             const amz = e.target.closest('#pf-amizade'); if (amz) return acaoAmizadePerfil(amz);
@@ -3773,6 +3786,24 @@
             if (e.target.closest('#av-fechar')) return fecharModalSeguro('modal-avatares');
             if (e.target.closest('#av-galeria')) { fecharModalSeguro('modal-avatares'); return document.getElementById('input-foto-perfil').click(); }
             const item = e.target.closest('[data-av]'); if (item) usarAvatarPronto(Number(item.dataset.av));
+        });
+
+        // ---------- Frase do perfil (coluna perfis.bio, até 120 caracteres) ----------
+        function abrirEditorBio() {
+            const campo = document.getElementById('bio-texto');
+            campo.value = perfilAberto?.perfil?.bio || '';
+            document.getElementById('bio-contador').textContent = `${campo.value.length}/120`;
+            abrirModalSeguro('modal-bio');
+            setTimeout(() => campo.focus(), 50);
+        }
+        document.getElementById('bio-texto').addEventListener('input', (e) => {
+            document.getElementById('bio-contador').textContent = `${e.target.value.length}/120`;
+        });
+        document.getElementById('modal-bio').addEventListener('click', async (e) => {
+            if (e.target.closest('#bio-cancelar')) return fecharModalSeguro('modal-bio');
+            if (!e.target.closest('#bio-salvar')) return;
+            const texto = document.getElementById('bio-texto').value.trim().slice(0, 120) || null;
+            if (await salvarNoMeuPerfil({ bio: texto })) { renderizarPerfil(); fecharModalSeguro('modal-bio'); }
         });
 
         // ---------- Amigos (aberto pelo perfil) ----------

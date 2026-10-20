@@ -383,3 +383,9 @@ html.novo body:has(#aba-explorar.ativa) {
 .av-item { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; border: 2px solid transparent; padding: 0; background: #1d1d28; cursor: pointer; }
 .av-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .av-item.atual, .av-item:focus-visible { border-color: var(--purple); }
+
+/* Frase do perfil: embaixo do @; no meu perfil é um botão (toque para editar) */
+.pf-bio { display: block; max-width: 300px; margin: 8px auto 0; font-size: 0.85rem; line-height: 1.35; color: #d4d4de; text-align: center; background: none; border: none; font-family: inherit; padding: 2px 6px; }
+button.pf-bio { cursor: pointer; border-radius: 8px; }
+button.pf-bio:focus-visible { outline: 2px solid var(--purple); }
+button.pf-bio.vazia { color: var(--text-muted); font-style: italic; border: 1px dashed rgba(167, 139, 250, 0.35); padding: 4px 10px; }

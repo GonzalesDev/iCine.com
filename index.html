@@ -1540,7 +1540,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-20.1';
+        const VERSAO_APP = '2026-10-23.1';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -4624,7 +4624,7 @@
 
             // ---------------- Funil ----------------
             const MAX_GENEROS = 2;   // 2 gêneros, lógica E: só títulos que têm OS DOIS gêneros ao mesmo tempo
-            const escolha = { tipo: null, generos: [], streamings: [] };   // generos: [{ id, nome }]
+            const escolha = { tipo: null, generos: [], streamings: [], lista: false };   // generos: [{ id, nome }]; lista: usar só a lista Quero Assistir
             let etapa = 1, totalAtual = null, votosUsados = null, pedidoContagem = 0, contagensIniciais = false;
             const cacheGeneros = {}, cacheStreamings = {};
             const palavra = () => escolha.tipo === 'tv' ? 'séries' : 'filmes';
@@ -4676,6 +4676,12 @@
             // Etapa 2: "Continuar" (precisa de 1 a 3 gêneros). Etapa 3: "Montar roleta" (com ou sem streaming)
             function montarRodape() {
                 const r = $('rodape'); r.innerHTML = '';
+                if (etapa === 2 && escolha.lista) {
+                    const n = itensDaLista().length;
+                    r.innerHTML = `<button class="f-btn primario" type="button" ${n ? '' : 'disabled'}>🎡 Montar roleta · ${fmt(Math.min(n, LIMITE_ROLETA))}</button>`;
+                    r.firstChild.addEventListener('click', montarRoletaDaLista);
+                    return;
+                }
                 if (etapa === 2) {
                     const qtdGen = escolha.generos.length;
                     r.innerHTML = `<button class="f-btn primario" type="button" ${qtdGen ? '' : 'disabled'}>Continuar${qtdGen ? ` · ${qtdGen} gênero${qtdGen > 1 ? 's' : ''}` : ''}</button>`;
@@ -4691,9 +4697,26 @@
                 if (semResultado) $('erro').textContent = `Nenhum ${escolha.tipo === 'tv' ? 'série' : 'filme'} com essa mistura de gêneros nesses streamings. Troque um gênero ou marque outro streaming.`;
             }
 
+            // Modo "Minha lista · Quero assistir": usa só os títulos da lista do usuário (sem TMDB e sem streaming).
+            // A capa da lista é um endereço do TMDB (.../t/p/w500/abc.jpg): a roleta precisa só do "/abc.jpg".
+            function itensDaLista() {
+                const doTipo = listaQueroAssistir.filter(f => (escolha.tipo === 'tv' ? f.tipo === 'serie' : f.tipo !== 'serie'));
+                return doTipo.map(f => {
+                    const m = (f.capa || '').match(/\/t\/p\/w\d+(\/[^/?#]+)$/);
+                    if (!m) return null;
+                    return { tmdbId: Number(f.tmdb_id), tipo: f.tipo === 'serie' ? 'serie' : 'filme', titulo: f.titulo, ano: f.ano || '', nota: f.nota || '0.0', poster: m[1], sinopse: f.sinopse || 'Sinopse não disponibilizada.' };
+                }).filter(Boolean);
+            }
+            function montarRoletaDaLista() {
+                const lista = itensDaLista();
+                if (!lista.length) { $('erro').hidden = false; $('erro').textContent = `Sua lista Quero Assistir não tem ${palavra()} com capa.`; return; }
+                filmes = embaralhar(lista.slice(0, LIMITE_ROLETA));
+                abrirRoda(0);
+            }
+
             // Etapa 1: tipo
             tela.querySelectorAll('.f-tipo').forEach(b => b.addEventListener('click', () => {
-                if (escolha.tipo !== b.dataset.tipo) { escolha.generos = []; escolha.streamings = []; totalAtual = null; }
+                if (escolha.tipo !== b.dataset.tipo) { escolha.generos = []; escolha.streamings = []; escolha.lista = false; totalAtual = null; }
                 escolha.tipo = b.dataset.tipo;
                 tela.querySelectorAll('.f-tipo').forEach(x => x.classList.toggle('sel', x === b));
                 atualizarContador();
@@ -4712,7 +4735,16 @@
                 } catch (e) { box.innerHTML = '<p class="f-erro">Erro ao carregar os gêneros. Volte e tente de novo.</p>'; return; }
                 box.innerHTML = '';
                 const sub = $('generos-sub');
-                const atualizarSub = () => { sub.textContent = escolha.generos.length === 2 ? 'Só títulos que misturam os dois' : escolha.generos.length === 1 ? 'Escolha mais 1 para misturar (opcional)' : `Escolha até ${MAX_GENEROS} para misturar`; sub.classList.remove('alerta'); };
+                const bLista = document.createElement('button');
+                bLista.type = 'button'; bLista.className = 'f-genero' + (escolha.lista ? ' sel' : '');
+                bLista.setAttribute('aria-pressed', escolha.lista);
+                bLista.innerHTML = '<span class="emoji">📋</span><span>Minha lista · Quero assistir</span>';
+                bLista.addEventListener('click', () => {
+                    escolha.lista = !escolha.lista; escolha.generos = []; totalAtual = null;
+                    carregarGeneros(); montarRodape();
+                });
+                box.appendChild(bLista);
+                const atualizarSub = () => { sub.textContent = escolha.lista ? (itensDaLista().length ? 'Usa só os títulos da sua lista Quero Assistir' : `Sua lista Quero Assistir não tem ${palavra()} ainda`) : escolha.generos.length === 2 ? 'Só títulos que misturam os dois' : escolha.generos.length === 1 ? 'Escolha mais 1 para misturar (opcional)' : `Escolha até ${MAX_GENEROS} para misturar`; sub.classList.remove('alerta'); };
                 atualizarSub();
                 cacheGeneros[escolha.tipo].forEach(g => {
                     const marcado = escolha.generos.some(x => x.id === g.id);
@@ -4722,6 +4754,7 @@
                     b.innerHTML = `<span class="emoji">${EMOJI_GENERO[g.id] || '🎞️'}</span><span></span>`;
                     b.lastChild.textContent = g.name;
                     b.addEventListener('click', () => {
+                        escolha.lista = false; bLista.classList.remove('sel'); bLista.setAttribute('aria-pressed', false);
                         const i = escolha.generos.findIndex(x => x.id === g.id);
                         if (i >= 0) escolha.generos.splice(i, 1);
                         else if (escolha.generos.length >= MAX_GENEROS) {
@@ -4799,8 +4832,8 @@
                 // 1 gênero: emoji + nome grande; vários: só os nomes, menor e em até 2 linhas
                 const varios = escolha.generos.length > 1;
                 $('titulo').classList.toggle('varios', varios);
-                $('titulo').textContent = varios ? escolha.generos.map(g => g.nome).join(' + ') : `${EMOJI_GENERO[escolha.generos[0].id] || '🎞️'} ${escolha.generos[0].nome}`;
-                const streamings = escolha.streamings.length === 0 ? 'todos os streamings'
+                $('titulo').textContent = escolha.lista ? '📋 Minha lista' : varios ? escolha.generos.map(g => g.nome).join(' + ') : `${EMOJI_GENERO[escolha.generos[0].id] || '🎞️'} ${escolha.generos[0].nome}`;
+                const streamings = escolha.lista ? 'Quero assistir' : escolha.streamings.length === 0 ? 'todos os streamings'
                     : escolha.streamings.length === 1 ? nomeStreaming(escolha.streamings[0])
                     : `${nomeStreaming(escolha.streamings[0])} +${escolha.streamings.length - 1}`;
                 $('sub').textContent = `${fmt(filmes.length)} ${filmes.length === 1 ? (escolha.tipo === 'tv' ? 'série' : 'filme') : palavra()} · ${streamings}`;

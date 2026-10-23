@@ -38,6 +38,9 @@ como trabalhamos e as decisões tomadas desde então.
   no máximo **300** títulos na roda. Títulos já marcados como Assistidos ficam de fora.
 - Roda: só **1/4 visível** (centro no canto inferior direito), desenhada em **canvas** (fluida no
   celular); capas com zoom preenchendo as fatias; "quase infinita" (posição lógica L → `filmes[L mod N]`).
+- **Minha lista · Quero assistir (23/10):** primeiro item da etapa de gêneros (`escolha.lista`). Marcado, desmarca os gêneros e
+  sorteia só os títulos de `listaQueroAssistir` do tipo escolhido (`itensDaLista()`); pula a etapa de streaming. Capa vem do TMDB
+  (`/t/p/wNNN/x.jpg`) e é convertida para `/x.jpg`. Escolher um gênero desmarca a lista.
 - Gira por arraste com impulso ou botão; para no centro de um pôster; pipocas + confete estourando
   a partir do centro quando para.
 - Sorteado ocupa o espaço vazio com capa grande e fundo desfocado; no computador (tela larga),

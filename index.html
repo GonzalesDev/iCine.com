@@ -929,7 +929,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=29">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=30">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1540,7 +1540,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-23.1';
+        const VERSAO_APP = '2026-10-24.1';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -4964,9 +4964,8 @@
                 Object.assign(roda.style, { width: `${2 * R}px`, height: `${2 * R}px`, left: `${cx - R}px`, top: `${cy - R}px` });
                 const rc = R * 0.26;
                 Object.assign(centro.style, { width: `${2 * rc}px`, height: `${2 * rc}px`, left: `${cx - rc}px`, top: `${cy - rc}px` });
-                // Botão Girar no miolo da roda (canto inferior direito): círculo dentro do quarto visível do miolo
-                { const d = Math.max(64, Math.round(rc * 0.95)), c = rc * 0.5;
-                  Object.assign(btnGirar.style, { width: `${d}px`, height: `${d}px`, left: `${cx - c - d / 2}px`, top: `${cy - c - d / 2}px`, right: 'auto', bottom: 'auto' }); }
+                // Botão Girar: mesmo tamanho e centro do miolo da roda
+                Object.assign(btnGirar.style, { width: `${2 * rc}px`, height: `${2 * rc}px`, left: `${cx - rc}px`, top: `${cy - rc}px`, right: 'auto', bottom: 'auto' });
                 ajustarCanvasRoda();
                 // Ponteiro na borda, na diagonal: a ponta do SVG aponta para baixo (180°); girando 315° aponta para o centro
                 const rad = (ANGULO_PONTEIRO - 90) * Math.PI / 180, rp = R + 14;

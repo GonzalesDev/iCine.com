@@ -929,7 +929,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=30">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=31">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1123,7 +1123,7 @@
                 <!-- Pipocas estourando quando a roda para (desenhadas em canvas, não bloqueia toques) -->
                 <canvas class="rol-pipocas so-roleta" id="rol-pipocas" aria-hidden="true"></canvas>
                 <div class="ponteiro so-roleta" id="rol-ponteiro"><svg viewBox="0 0 34 40" aria-hidden="true"><path d="M9 10 H25 L17 25 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg></div>
-                <button class="btn-girar so-roleta" id="rol-girar" type="button">Girar</button>
+                <button class="btn-girar so-roleta" id="rol-girar" type="button" aria-label="Girar"><svg class="girar-arco" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="rol-arco" d="M20,50 A30,30 0 0 1 50,20"/></defs><text><textPath href="#rol-arco" startOffset="50%" text-anchor="middle" dominant-baseline="middle">GIRAR</textPath></text></svg></button>
                 <!-- Fundo: capa do sorteado desfocada, preenchendo a parte de cima -->
                 <div class="rol-fundo so-roleta" id="rol-fundo" aria-hidden="true"></div>
                 <!-- Antes do primeiro giro, o espaço do sorteado mostra um convite -->
@@ -1540,7 +1540,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-24.1';
+        const VERSAO_APP = '2026-10-24.2';
         (function atualizarSozinho() {
             async function conferir() {
                 try {

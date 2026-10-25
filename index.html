@@ -929,7 +929,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=31">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=32">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1322,6 +1322,8 @@
 
                 <h4 id="titulo-streaming" class="detalhe-subtitulo" style="display: none;">Onde assistir oficialmente</h4>
                 <div id="detalhe-streaming" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; background: #1f2937; padding: 0.6rem; border-radius: 12px; align-items: center; width: 100%;"></div>
+                <h4 id="titulo-elenco" class="detalhe-subtitulo" style="display: none;">Elenco</h4>
+                <div id="detalhe-elenco" class="elenco-fila" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -1449,7 +1451,7 @@
         </div>
     </div>
 
-    <div id="modal-pessoa" class="modal modal-tela" style="z-index: 2460; display:none;">
+    <div id="modal-pessoa" class="modal modal-tela" style="z-index: 2850; display:none;">
         <div class="pf-tela" id="pp-tela"></div>
     </div>
     </div>
@@ -1540,7 +1542,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-24.2';
+        const VERSAO_APP = '2026-10-25.1';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -2479,6 +2481,31 @@
             if (document.getElementById('modal-detalhes').style.display === 'none' && trailerDetalhes.iframe) pararTrailerDetalhes();
         }).observe(document.getElementById('modal-detalhes'), { attributes: true, attributeFilter: ['style'] });
 
+        // Elenco nos detalhes: diretor (ou criador, em séries) sempre primeiro, depois o elenco principal.
+        // Sem destaque: cada foto tem o papel embaixo. Tocar abre a tela da pessoa (abrirPessoa).
+        async function carregarElencoDetalhes(tipoTmdb, idTmdb, token) {
+            const titulo = document.getElementById('titulo-elenco'), fila = document.getElementById('detalhe-elenco');
+            if (!titulo || !fila) return;
+            titulo.style.display = 'none'; fila.style.display = 'none'; fila.innerHTML = '';
+            const [d, info] = await Promise.all([
+                fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/credits?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.ok ? r.json() : null).catch(() => null),
+                tipoTmdb === 'tv' ? fetch(`${URL_BASE}/tv/${idTmdb}?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.ok ? r.json() : null).catch(() => null) : Promise.resolve(null)
+            ]);
+            if (!d || token !== contadorAberturaDetalhes) return;
+            const responsaveis = tipoTmdb === 'tv'
+                ? ((info && info.created_by) || []).map(p => ({ id: p.id, nome: p.name, foto: p.profile_path, papel: 'Criador' }))
+                : (d.crew || []).filter(c => c.job === 'Director').slice(0, 1).map(p => ({ id: p.id, nome: p.name, foto: p.profile_path, papel: 'Diretor' }));
+            const elenco = (d.cast || []).slice(0, 8).map(p => ({ id: p.id, nome: p.name, foto: p.profile_path, papel: p.gender === 1 ? 'Atriz' : 'Ator' }));
+            const ids = new Set();
+            const pessoas = [...responsaveis, ...elenco].filter(p => !ids.has(p.id) && ids.add(p.id));
+            if (!pessoas.length) return;
+            fila.innerHTML = pessoas.map(p => `<button type="button" class="elenco-pessoa" data-pessoa="${Number(p.id)}" aria-label="${escaparHTML(p.nome)}, ${p.papel}"><span class="elenco-foto">${escaparHTML(iniciais(p.nome))}${p.foto ? `<img src="https://image.tmdb.org/t/p/w185${escaparHTML(p.foto)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span><b>${escaparHTML(p.nome)}</b><span>${p.papel}</span></button>`).join('');
+            titulo.style.display = ''; fila.style.display = 'flex';
+        }
+        document.getElementById('detalhe-elenco').addEventListener('click', (e) => {
+            const pessoa = e.target.closest('[data-pessoa]'); if (pessoa) abrirPessoa(Number(pessoa.dataset.pessoa), null);
+        });
+
         async function abrirDetalhes(id) {
             try {
                 const idNumerico = Number(id);
@@ -2506,6 +2533,7 @@
                 const containerVideo = document.getElementById('video-background-container');
                 const tokenDetalhe = ++contadorAberturaDetalhes; // respostas de uma abertura antiga são descartadas
                 pararTrailerDetalhes();
+                carregarElencoDetalhes(tipoTmdb, idTmdb, tokenDetalhe);
                 if (detalheTitulo) detalheTitulo.innerText = filme.titulo || 'Titulo indisponivel';
                 if (detalheAno) detalheAno.innerText = filme.ano || '';
                 if (detalheNota) detalheNota.innerHTML = renderScoreBadge(filme);

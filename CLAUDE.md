@@ -184,6 +184,9 @@ como trabalhamos e as decisões tomadas desde então.
   escolhidos em `#modal-favorito` (busca `/search/person`, quem combina com a categoria e o gênero vem primeiro). Tocar na foto abre
   `#modal-pessoa`: `/person/{id}?append_to_response=combined_credits`, abas Atuou/Dirigiu (sem talk shows/aparições, sem repetidos,
   por nº de votos), "X de N títulos que você já viu", ✓ verde nos vistos. (O "Cinéfilo em números" automático foi removido em 19/10.)
+- **Elenco nos detalhes (25/10):** fila horizontal abaixo de "Onde assistir" (`#titulo-elenco`, `#detalhe-elenco`, `carregarElencoDetalhes`):
+  diretor (ou criador, em séries) sempre primeiro, depois até 8 do elenco; cada foto tem o papel embaixo (Diretor/Criador/Ator/Atriz), sem destaque.
+  Tocar abre `abrirPessoa` (`#modal-pessoa` agora z-index 2850, acima dos detalhes).
 - Abas de baixo (Assistidos | Avaliações | Playlists | Quero ver) e a tela da pessoa mostram **9** itens e "Ver tudo (N) ⌄" / "Ver menos".
 - **Notas lado a lado** (regra do usuário): capa com nota do TMDB (amarela) + nota pessoal (roxa) quando houver — `selosHTML()`.
   No perfil, a roxa é a do dono do perfil; na tela da pessoa, a minha.

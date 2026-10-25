@@ -1,960 +1,259 @@
-# Contexto consolidado do projeto iCine para continuidade por outra IA
+# iCine — documento de passagem de bastão para outra IA
 
-> Este documento é um briefing técnico e operacional para uma IA que vai continuar o desenvolvimento do iCine.  
-> Antes de editar qualquer coisa, confira o estado real dos arquivos, porque este documento pode ficar desatualizado.
-
----
-
-## 1. Instrução principal para a IA
-
-Você é uma IA de desenvolvimento responsável por continuar o projeto **iCine**. Trabalhe diretamente no código existente, preservando as funcionalidades que já estão funcionando.
-
-Regras obrigatórias:
-
-1. Leia os arquivos atuais antes de propor ou aplicar alterações.
-2. Não reescreva o projeto inteiro sem necessidade.
-3. Preserve o idioma da interface em português do Brasil, salvo pedido contrário.
-4. Não exponha, copie ou repita chaves de API, tokens, senhas ou credenciais.
-5. Não trate dados de um usuário como se fossem dados do usuário logado.
-6. Toda operação de leitura, alteração e remoção de dados privados deve respeitar `user_id` e as políticas RLS do Supabase.
-7. Nunca faça alterações destrutivas no banco sem explicar o impacto e pedir confirmação.
-8. Depois de editar, execute uma verificação prática no app usando o workflow existente.
-9. Se uma funcionalidade depender de uma tabela, coluna, bucket ou política que não está confirmada no código, diga isso explicitamente.
-10. Priorize correções funcionais, segurança e consistência dos dados antes de melhorias cosméticas.
-
-Quando receber uma nova tarefa:
-
-1. Identifique os arquivos e funções afetados.
-2. Explique brevemente o diagnóstico.
-3. Faça a menor alteração segura.
-4. Verifique o fluxo completo, incluindo recarregar a página e trocar de usuário quando isso for relevante.
-5. Informe exatamente o que foi alterado, o que foi testado e o que ainda depende de configuração externa.
+> Atualizado em **25/10/2026**. Escrito para uma IA que vai continuar o projeto sem ter visto as conversas anteriores.
+> Antes de editar qualquer coisa, **confira o estado real dos arquivos**: este documento pode ficar desatualizado.
+> O arquivo `CLAUDE.md` (mesma pasta) é o diário técnico detalhado, com um parágrafo por decisão e por armadilha. Leia os dois.
 
 ---
 
-## 2. Visão do produto
+## 0. Como começar (leia primeiro)
 
-O **iCine** é um diário de filmes social, com foco em:
+**Quem é o usuário:** fala **português do Brasil**, **não é programador**. Explique em passos simples, sem jargão.
+Ele faz o trabalho de publicação sozinho (Replit) e roda os SQLs sozinho (Supabase). Peça confirmação antes de qualquer coisa destrutiva.
 
-- registrar filmes que o usuário quer assistir;
-- registrar filmes já assistidos;
-- criar playlists pessoais;
-- explorar o catálogo de filmes;
-- ver notas, sinopse, trailer e onde assistir oficialmente;
-- abrir filmes no Stremio ou em players web de terceiros;
-- consumir um feed de cenas curtas;
-- compartilhar playlists públicas na comunidade;
-- adicionar amigos por username;
-- visualizar as listas e playlists de amigos;
-- enviar recomendações de filmes para amigos;
-- conversar com uma IA cinéfila;
-- funcionar como PWA instalável no celular.
+**Como ele gosta de trabalhar:**
+- pede **ajustes pequenos, um de cada vez**;
+- para mudanças maiores, gosta de **ver um protótipo (imagem) antes** de aprovar ("vamos planejar antes de fazer");
+- visual **minimalista**, ações com ícones, nada poluído; roxo com fundo escuro é a identidade;
+- fala sempre "faça um protótipo" ou "faça um print" quando quer ver antes.
 
-Posicionamento do produto: o iCine combina a experiência de diário e comunidade do
-Letterboxd com recursos de descoberta e acesso a serviços de streaming, Stremio e
-players web externos. A identidade principal continua sendo a organização pessoal
-de filmes e a interação entre cinéfilos.
+**Ordem de leitura sugerida para a IA:**
+1. Este arquivo (visão geral, mapa do código, regras).
+2. `CLAUDE.md` (detalhes e armadilhas por assunto).
+3. `index.html` — use a busca por `=== BLOCO:` para pular direto para o assunto (mapa na seção 4).
+4. `novo-visual.css` e a pasta `migrations/`.
 
-O estilo visual atual é dark, com fundo azul quase preto, cartões escuros, gradientes roxo/rosa e uso frequente de emojis.
-
-Principais cores:
-
-- fundo: `#030712`;
-- texto principal: `#f9fafb`;
-- texto secundário: `#9ca3af`;
-- roxo: `#8b5cf6`;
-- rosa: `#ec4899`;
-- fundo dos cartões: `#111827`;
-- azul: `#3b82f6`;
-- vermelho: `#ef4444`.
+**Fluxo de trabalho combinado:** editar → testar localmente → commit → **enviar direto para o `main`** (o usuário deu permissão permanente: juntar com o `main` antes, sem forçar, sem perguntar) → o usuário faz **Pull → Run → Republicar** no Replit.
 
 ---
 
-## 3. Estrutura atual do projeto
+## 1. O que é o produto
 
-O projeto é atualmente um site estático sem bundler ou framework:
+**iCine** é um **diário de filmes e séries social**, em formato PWA (site instalável no celular), usado no celular e no computador.
+A ambição do usuário é transformá-lo numa **rede social de filmes e séries**: pessoas mostram seu gosto, recomendam e descobrem títulos.
+
+O que já existe:
+- **Listas** pessoais: Quero Assistir, Assistidos e Playlists (públicas ou privadas); busca por título.
+- **Explorar**: catálogo TMDB com filtros, Top 10 por streaming, alternância Filmes/Séries.
+- **Cenas**: feed vertical de vídeos curtos (estilo Reels) com curtidas e comentários.
+- **Roleta**: sorteio de um filme ou série por gênero/streaming, ou **só da sua lista Quero Assistir**.
+- **Feed**: avaliações de todos (amigos primeiro), com curtidas; e playlists públicas.
+- **Perfil social completo** (tela cheia): capa, foto, frase, números, **Top 5 filmes e Top 5 séries**, **favoritos do cinema** (atriz, ator, diretor), abas Assistidos/Avaliações/Playlists/Quero ver, % de gosto em comum.
+- **Amigos**: pedido, aceitar/recusar, lista, busca por @, recomendações recebidas, **avisos no celular (Web Push)**.
+- **Detalhes** do título: trailer de fundo (prioriza dublado pt-BR), sinopse/avaliações em abas, onde assistir oficialmente, **elenco e direção** (fila de fotos clicáveis → tela da pessoa).
+- **Chat com IA** cinéfila (Groq).
+- Séries: assistir por temporada/episódio.
+
+Navegação: barra inferior **Listas, Explorar, Cenas, Roleta, Feed**. No cabeçalho, a **foto do usuário** abre o perfil dele; o botão **Amigos** fica dentro do perfil.
+
+---
+
+## 2. Estrutura do repositório
 
 ```text
 /
-├── index.html
-├── manifest.json
-├── service-worker.js
-├── icon-512.png
-├── supabase_social.sql
-├── admin/
-│   └── index.html
-├── attached_assets/
-│   ├── imagens e logos enviados pelo usuário
-│   └── arquivos de instruções colados no projeto
-├── .replit
-└── .agents/
+├── index.html            App inteiro: HTML + CSS + JS (≈ 5.500 linhas). Sem build.
+├── novo-visual.css       Camada do "visual novo" (prefixo html.novo). É o padrão desde 18/10.
+├── avatares.js           Lista de fotos de perfil prontas (AVATARES_PRONTOS). Ver seção 9.
+├── avatares/             Imagens dessa lista (LEIA-ME.txt explica o formato).
+├── version.json          {"versao": "..."}; precisa ser IGUAL ao VERSAO_APP do index.html.
+├── manifest.json         PWA (ícone icon-512.png: ver seção 11).
+├── service-worker.js     Antigo; o app apaga service workers antigos ao abrir.
+├── sw-push.js            Único service worker que fica: só recebe avisos push (sem cache).
+├── migrations/           SQLs do Supabase em ordem de data. O usuário roda no SQL Editor.
+├── supabase/functions/enviar-push/   Edge Function do Web Push (index.ts + LEIA-ME.md).
+├── supabase_social.sql   SQL inicial (perfis, amizades, políticas de meus_filmes).
+├── admin/index.html      Painel administrativo simples.
+├── testes/               Ferramentas de teste (mock do Supabase). Ver seção 8.
+├── attached_assets/      Imagens e textos colados pelo usuário em conversas antigas.
+├── CLAUDE.md             Diário técnico (para a IA anterior; vale ler).
+└── .replit               Replit: python3 -m http.server 5000; deploy estático, raiz = pasta pública.
 ```
 
-### Arquivo principal
-
-`index.html` concentra:
-
-- HTML da aplicação;
-- todo o CSS;
-- todo o JavaScript;
-- autenticação;
-- chamadas ao Supabase;
-- chamadas ao TMDB, OMDb e Groq;
-- renderização das abas, cards, modais e feed;
-- lógica de playlists, amigos, recomendações e chat.
-
-É um arquivo grande e monolítico. Não faça uma migração para framework ou divisão em vários arquivos sem uma solicitação específica ou um plano de migração seguro.
-
-### Execução local
-
-O projeto usa o Python estático:
-
-```bash
-python3 -m http.server 5000
-```
-
-O workflow configurado é **Start application**, na porta `5000`. O deploy está configurado como estático, com a raiz do projeto como diretório público.
-
-Não há `package.json`, testes automatizados ou pipeline de build confirmado no projeto.
+**Execução local:** `python3 -m http.server 5000` na raiz. **Não há** package.json, testes automáticos oficiais nem pipeline de build.
 
 ---
 
-## 4. Serviços e integrações
+## 3. Arquitetura e regras de ouro
 
-### Supabase
-
-É usado para:
-
-- autenticação por e-mail e senha;
-- persistência das listas de filmes;
-- perfis e usernames;
-- amizades;
-- playlists;
-- armazenamento de capas;
-- feed de cenas;
-- recomendações entre amigos;
-- radar de próximos lançamentos.
-
-O cliente Supabase é criado no `index.html`. As credenciais estão atualmente no código-fonte e devem ser consideradas um problema de segurança:
-
-- nunca copie os valores reais para uma resposta ou documento;
-- não solicite que o usuário cole chaves no chat;
-- planeje migrar chaves sensíveis para um backend ou mecanismo seguro de secrets;
-- a chave anon/public do Supabase não substitui RLS;
-- a chave do Groq não deve ficar exposta no navegador e precisa ser movida para um endpoint server-side;
-- se uma chave privada já foi exposta no código publicado, recomende rotação.
-
-### TMDB
-
-Usado para:
-
-- busca e catálogo;
-- filmes populares;
-- lançamentos;
-- filtro por gênero;
-- radar curado;
-- top 10 por plataforma;
-- IMDb ID;
-- provedores oficiais de streaming;
-- trailers e vídeos;
-- pôsteres.
-
-Base:
-
-```text
-https://api.themoviedb.org/3
-https://image.tmdb.org/t/p/w500
-```
-
-O código usa `language=pt-BR` e, em alguns casos, faz fallback para `en-US`.
-
-### OMDb
-
-Foi integrado anteriormente para obter notas do IMDb e Rotten Tomatoes, mas a integração deve ser conferida antes de novas alterações. O código atual trabalha principalmente com os dados do TMDB e com campos de nota armazenados no Supabase.
-
-### Groq
-
-O chat da IA faz uma chamada direta do navegador para:
-
-```text
-https://api.groq.com/openai/v1/chat/completions
-```
-
-Modelo atualmente usado no código:
-
-```text
-llama-3.3-70b-versatile
-```
-
-O prompt do chat obriga a IA a escrever filmes no formato:
-
-```text
-[Título do Filme | Ano]
-```
-
-O front-end identifica esse formato, busca o título no TMDB e injeta um card com botão para abrir os detalhes.
-
-Essa chamada direta expõe a chave do Groq ao cliente. Não aumente esse risco; a correção correta é criar um endpoint protegido.
+- **App de um arquivo só** (`index.html`, JavaScript puro, sem framework). Não divida nem migre para framework sem pedido explícito.
+- **Backend:** Supabase (login por e-mail e senha, tabelas, RLS, storage, Edge Function). **Dados de filmes:** TMDB. **IA:** Groq.
+- **Chave interna de um título:** filme = **número do TMDB**; série = **`'tv:<id>'`**. Funções: `chaveDaLinha`, `normalizarChave`, `partesDaChave`, `conteudoDaLinha`.
+- **Cache dos detalhes:** `bancoDeFilmesLocal` (Map). `abrirDetalhes(id)` só abre se o título já estiver nesse mapa; quem abre os detalhes precisa registrar o título antes.
+- **Atualização do app instalado:** a **CADA mudança do app**, troque `VERSAO_APP` (no `index.html`) **e** `version.json` para o **mesmo valor** (ex.: `2026-10-25.1`). Se mudar `novo-visual.css`, suba também o `?v=N` do link do CSS. Esquecer = o app instalado não atualiza.
+- **Visual novo:** tudo escopado em `html.novo`. Saída de emergência: `?visual=antigo` (volta com `?visual=novo`).
+- **Janelas (modais):** abrir com `abrirModalSeguro(id)`, fechar com `fecharModalSeguro(id)` (integram com o botão voltar do celular). Para abrir uma janela logo depois de fechar outra, use `fecharModalEDepois` (o "voltar" é assíncrono). Pilha de z-index: perfil 2400 → amigos 2420 → top5/favorito 2440 → avatares/bio 2450 → detalhes 2800 → **pessoa 2850** → stremio 3500 → cinema 3800.
+- **`position: fixed` dentro de janelas:** `backdrop-filter`, `transform` ou `filter` num ancestral "prendem" o `fixed` a ele. Por isso `.modal` não usa `backdrop-filter` no visual novo.
+- **Teclado do celular:** `--vvh` (visualViewport) limita o chat da IA. Qualquer janela nova com campo de texto deve usar a mesma ideia.
+- **Emojis:** nas telas redesenhadas foram trocados por ícones SVG de linha. Em telas novas, ícones SVG; emoji só em texto de conteúdo.
+- **Segurança de HTML:** muito HTML é montado com template strings. Use `escaparHTML()` em tudo que vier de usuário/TMDB antes de `innerHTML`. Não ponha texto de usuário dentro de `onclick`.
+- **Rolagem:** `mudarAba()` começa com `window.scrollTo(0, 0)`.
 
 ---
 
-## 5. Fluxos da interface
-
-### Login
-
-A tela inicial mostra:
-
-- e-mail;
-- senha;
-- botão Entrar;
-- botão Criar Conta Grátis.
-
-Funções principais:
-
-- `checarSessao()`;
-- `signInWithPassword`;
-- `signUp`;
-- `signOut`.
-
-Depois do login, o código carrega:
-
-- filmes do usuário;
-- playlists do usuário;
-- filtros da aba Explorar;
-- top 10 da Netflix;
-- perfil social e amigos.
-
-### Abas principais
-
-IDs atuais:
-
-```text
-aba-inicio
-aba-explorar
-aba-cenas
-aba-comunidade
-aba-amigos
-```
-
-Botões da navegação:
-
-```text
-btn-inicio
-btn-explorar
-btn-cenas
-btn-comunidade
-btn-amigos
-```
-
-A função central de navegação é:
-
-```text
-mudarAba(abaId)
-```
-
-Na aba Cenas, o header e o chat são escondidos para criar uma experiência de tela cheia.
-
-### Minhas Listas
-
-A aba inicial tem:
-
-1. **Quero Assistir**
-2. **Assistidos Recentemente**
-3. **Minhas Playlists**
-
-IDs:
-
-```text
-watchlist-grid
-ja-assisti-grid
-pesquisa-ja-assisti
-playlists-grid
-```
-
-Funções principais:
-
-- `carregarFilmesDaNuvem()`;
-- `renderizarMinhasListas()`;
-- `salvarNoGrupo(grupo)`;
-- `moverFilme(tmdb_id, novoGrupo)`;
-- `removerFilme(tmdb_id)`.
-
-A busca em tempo real foi adicionada à lista **Assistidos Recentemente**. Ela filtra por título e trata:
-
-- lista vazia;
-- nenhum resultado;
-- resultados filtrados;
-- limite inicial de 15 cards com opção “Ver Todos”.
-
-### Explorar
-
-A aba Explorar tem:
-
-- pills para Netflix, Prime Video, Disney+, Max e Apple TV;
-- Top 10 do provedor selecionado;
-- busca por título;
-- filtro por gênero;
-- ordenação por populares, próximos lançamentos, recém-lançados ou maior nota;
-- botão Carregar Mais.
-
-Funções principais:
-
-- `aplicarFiltros()`;
-- `carregarTop10()`;
-- `mudarProvedorStreaming()`;
-- `renderizarGridExplorar()`;
-- `gerarCartaoFilmeHTML()`;
-- `mapearBotoesGrid()`.
-
-O radar curado usa a tabela `radar_curado` e é visível no select “Próximos Lançamentos”.
-
-### Modal de detalhes
-
-ID:
-
-```text
-modal-detalhes
-```
-
-Função principal:
-
-```text
-abrirDetalhes(id)
-```
-
-O modal mostra:
-
-- capa/hero;
-- trailer do YouTube como vídeo de fundo quando disponível;
-- título;
-- ano;
-- nota;
-- sinopse;
-- provedores oficiais de streaming via TMDB Watch Providers;
-- botão Stremio;
-- player web;
-- botão Organizar;
-- botão Recomendar;
-- link de Edits/Shorts;
-- link do Trailer;
-- botão administrativo para fixar no radar.
-
-Os provedores oficiais priorizam a região BR e fazem fallback para PT. Só o bloco `flatrate` é exibido.
-
-O botão Organizar abre `modal-escolha` e permite salvar em:
-
-- Quero Assistir;
-- Assistidos Recentemente;
-- uma playlist.
-
-### Playlists
-
-O usuário pode:
-
-- criar playlist;
-- enviar capa para o bucket `capas`;
-- marcar playlist como pública;
-- editar nome, capa e visibilidade;
-- apagar playlist;
-- adicionar filmes;
-- remover filmes;
-- abrir playlists próprias;
-- abrir playlists de amigos;
-- ver playlists públicas na Comunidade.
-
-Funções principais:
-
-- `carregarPlaylistsDaNuvem()`;
-- `adicionarFilmeNaPlaylist()`;
-- `removerFilmeDaPlaylist()`;
-- `abrirVerPlaylist()`;
-- `abrirVerPlaylistGlobal()`.
-
-Os filmes da playlist são armazenados dentro do campo `filmes`, aparentemente como um array JSON/JSONB com objetos contendo dados como `id`, `titulo`, `ano`, `capa`, `sinopse` e notas.
-
-### Cenas
-
-A aba Cenas funciona como um feed vertical de vídeos curtos usando HTML5. A função principal é:
-
-```text
-carregarCenas()
-```
-
-Também existem:
-
-- curtidas;
-- comentários armazenados na própria linha da cena;
-- carregamento preguiçoso de dados do TMDB;
-- um player global para melhorar o comportamento em iOS.
-
-Tabela utilizada:
-
-```text
-cenas_shorts
-```
-
-Os campos de comentários e curtidas são tratados como arrays JSON pelo JavaScript. Confira o schema real antes de fazer migrações.
-
-### Comunidade
-
-A aba Comunidade lista playlists públicas:
-
-- mostra capa;
-- mostra nome;
-- mostra username do criador;
-- mostra quantidade de filmes;
-- permite curtir/descurtir;
-- ordena por quantidade de curtidas e depois por nome;
-- abre a playlist em modo somente leitura.
-
-Tabela utilizada:
-
-```text
-playlists
-```
-
-Campos esperados pelo front-end:
-
-```text
-id
-user_id
-nome
-capa_url
-filmes
-publica
-curtidas
-```
-
-### Amigos e sistema social
-
-A aba Amigos foi adicionada ao projeto.
-
-Fluxo:
-
-1. O usuário entra na aba Amigos.
-2. Se ainda não possui perfil, escolhe um username.
-3. O username é normalizado para letras minúsculas, números e `_`.
-4. O usuário busca outro usuário por `@username`.
-5. Envia um pedido.
-6. O destinatário aceita ou rejeita.
-7. Amigos aceitos podem visualizar:
-   - Assistidos;
-   - Quer Assistir;
-   - Playlists.
-
-IDs principais:
-
-```text
-setup-username-card
-meu-perfil-card
-secao-pedidos
-secao-amigos-lista
-modal-buscar-amigo
-modal-perfil-amigo
-```
-
-Funções principais:
-
-- `verificarPerfil()`;
-- `carregarAmigos()`;
-- `atualizarBadgeAmigos()`;
-- `renderizarAbaAmigos()`;
-- `buscarAmigo()`;
-- `enviarPedido()`;
-- `aceitarPedido()`;
-- `rejeitarPedido()`;
-- `abrirPerfilAmigo()`;
-- `renderizarFilmesAmigo()`;
-- `renderizarPlaylistsAmigo()`.
-
-O perfil do amigo é carregado em um modal separado. A consulta usa explicitamente o `user_id` do amigo:
-
-```javascript
-supabaseClient.from('meus_filmes').select('*').eq('user_id', userId)
-```
+## 4. Mapa do `index.html` (procure por `=== BLOCO:`)
+
+| Bloco | O que contém |
+|---|---|
+| CONFIGURAÇÕES E ESTADO GLOBAL | Cliente Supabase, chaves, `URL_BASE`, `IMG_BASE`, variáveis globais, `abrirModalSeguro`/`fecharModalSeguro`, `limparCopiaAntiga`, `VERSAO_APP` |
+| JS AUTENTICAÇÃO (LOGIN) | `checarSessao`, login/cadastro/sair; depois do login carrega listas, playlists, Explorar, Top 10, perfil, push |
+| JS NAVEGAÇÃO DE ABAS | `mudarAba(abaId)` (`'amigos'` abre a janela de Amigos) |
+| JS ABA EXPLORAR & PESQUISA | `aplicarFiltros`, toggle Filmes/Séries |
+| JS TOP 10 STREAMINGS | `carregarTop10`, logos de streaming |
+| JS DESENHAR CARDS (GRIDS) | `gerarCartaoFilmeHTML`, `renderScoreBadge`, folha de ações dos cards |
+| JS MINHAS LISTAS E SUPABASE | `carregarFilmesDaNuvem`, `renderizarMinhasListas`, `salvarNoGrupo`, `moverFilme`, `minhasNotasAval` |
+| JS PLAYLISTS | criar/editar/abrir, busca dentro da playlist |
+| JS MODAL DETALHES DO FILME | `abrirDetalhes`, `carregarElencoDetalhes`, onde assistir, trailer, botões de assistir |
+| JS CENAS (NATIVO HTML5) | feed vertical, `curtirCena`, `enviarCena` |
+| JS COMENTÁRIOS NAS CENAS | comentários das cenas |
+| JS AMIGOS E REDE SOCIAL | `verificarPerfil`, `carregarAmigos`, `renderizarAbaAmigos`, `pedirAmizade`/`enviarPedido`, caixa de entrada de recomendações |
+| JS PERFIL DO USUÁRIO | `abrirPerfil`, Top 5 (arrastar), favoritos, `abrirPessoa`, capa, frase, fotos prontas, tela de Amigos |
+| JS COMUNIDADE (FEED PÚBLICO) | playlists públicas |
+| JS AVISOS NO CELULAR (WEB PUSH) | inscrição, `atualizarCardPush`, `sincronizarPush` |
+| JS FOTO DE PERFIL | troca de foto, `avatarHTML`/`avatarConteudo` |
+| JS FEED AVALIAÇÕES | janela de avaliar, curtidas, feed de avaliações, aba Avaliações nos detalhes |
+| JS ROLETA | IIFE `roleta` (funil, roda em canvas, botão Girar, "Minha lista") |
+| JS CHAT IA (GROQ) | chat flutuante (`#btn-chat-fab`, arrastável na vertical) |
+
+Os blocos de CSS começam com `/* ... CSS ... */` no `<style>` e correspondem às mesmas áreas.
 
 ---
 
-## 6. Banco de dados e RLS
+## 5. Banco de dados (Supabase)
 
-O arquivo `supabase_social.sql` cria ou configura:
+**Tabelas que o código usa hoje:** `perfis`, `meus_filmes`, `playlists`, `amizades`, `avaliacoes`, `avaliacao_curtidas`, `recomendacoes_amigos`, `cenas_shorts`, `radar_curado`, `push_subscriptions`. **Storage:** bucket público `capas` (capas de playlist, fotos de perfil, capas de perfil). **Funções RPC:** `contar_amigos(alvo)`, `registrar_push`.
 
-### `perfis`
+Colunas principais (confira o schema real no Supabase antes de migrar algo):
 
-Campos:
+- `perfis`: `user_id` (único), `username` (único), `foto_url`, `created_at`, **`capa_url`, `top_filmes` (jsonb), `top_series` (jsonb), `favoritos` (jsonb), `bio` (até 120 caracteres)**.
+  - `top_*`: lista de `{id, titulo, ano, capa, sinopse}` na ordem escolhida.
+  - `favoritos`: `{atriz|ator|diretor: {id, nome, foto}}` (ids do TMDB).
+- `meus_filmes`: `user_id`, `tmdb_id`, `tipo` (`filme`/`serie`), `titulo`, `ano`, `nota`, `capa`, `sinopse`, `grupo` (`quero` ou `ja`).
+- `avaliacoes`: uma por `(user_id, tmdb_id, tipo)`; nota 0–10; comentário até 280.
+- `amizades`: `solicitante_id`, `destinatario_id`, `status` (`pendente`/`aceite`); índice único do par.
+- `playlists`: `user_id`, `nome`, `capa_url`, `filmes` (array JSON), `publica`, `curtidas`.
 
-```text
-id
-user_id
-username
-created_at
-```
+**Decisão de privacidade (18/10):** qualquer usuário logado pode **ler as listas** (`meus_filmes`) de qualquer outro, para poder abrir o perfil sem ser amigo. Só as **playlists públicas** aparecem para os outros. `contar_amigos` devolve só o número, sem revelar quem. Escrita continua só do dono.
 
-Regras:
+**Regra crítica:** a tela "Minhas Listas" **sempre** filtra `.eq('user_id', usuarioAtual.id)`. Como as listas de todos são legíveis, esquecer esse filtro mistura filmes de outras pessoas na sua lista (já aconteceu uma vez). Alterações e remoções também filtram por usuário.
 
-- `user_id` é único;
-- `username` é único;
-- usuários autenticados podem consultar perfis;
-- cada usuário só pode gerenciar o próprio perfil.
-
-### `amizades`
-
-Campos:
+### SQLs, em ordem (pasta `migrations/`)
 
 ```text
-id
-solicitante_id
-destinatario_id
-status
-created_at
+2026-10-01_tipo_em_meus_filmes.sql
+2026-10-01_tipo_em_recomendacoes.sql
+2026-10-05_avaliacoes.sql
+2026-10-05_foto_perfil.sql
+2026-10-11_curtidas_avaliacoes.sql
+2026-10-12_amizades_sem_duplicados.sql
+2026-10-13_push_notificacoes.sql      (tem o marcador COLE_AQUI_O_SEGREDO: nunca commitar o valor real)
+2026-10-18_perfil_publico.sql
+2026-10-19_perfil_personalizado.sql
+2026-10-20_bio_perfil.sql
 ```
 
-Status atuais:
-
-```text
-pendente
-aceite
-```
-
-Regras:
-
-- usuários podem consultar apenas amizades das quais participam;
-- o solicitante pode inserir um pedido;
-- o destinatário pode aceitar;
-- qualquer participante pode remover a amizade.
-
-### `meus_filmes`
-
-O SQL ativa RLS e cria políticas para:
-
-- o usuário ler os próprios filmes;
-- inserir apenas filmes com seu próprio `user_id`;
-- atualizar apenas os próprios filmes;
-- remover apenas os próprios filmes;
-- amigos aceitos lerem os filmes uns dos outros.
-
-**Regra crítica:** as políticas do banco permitem que um amigo leia seus filmes, mas isso não significa que a tela “Minhas Listas” deve carregar filmes de amigos. A consulta da lista pessoal precisa continuar assim:
-
-```javascript
-supabaseClient
-  .from('meus_filmes')
-  .select('*')
-  .eq('user_id', usuarioAtual.id)
-```
-
-E operações de alteração/remoção também devem filtrar pelo usuário atual.
-
-### Outras tabelas usadas pelo front-end
-
-O código também referencia estas tabelas:
-
-```text
-playlists
-cenas_shorts
-radar_curado
-recomendacoes_amigos
-```
-
-Os schemas completos dessas tabelas não estão documentados no arquivo `supabase_social.sql`. Antes de alterar alguma delas, consulte o schema real no Supabase.
-
-O bucket de Storage usado para capas é:
-
-```text
-capas
-```
-
-O arquivo SQL social não deve ser executado cegamente várias vezes sem conferir as políticas existentes. `CREATE POLICY` pode gerar erro se a política já existir. Em uma futura migração, prefira SQL idempotente, renomeie políticas conscientemente ou remova políticas antigas apenas após explicar o impacto.
+**Confirme com o usuário quais já foram rodados** (só ele tem acesso ao painel do Supabase). Sem o de 19/10, o perfil abre mas salvar capa/Top 5/favoritos falha com aviso; sem o de 20/10, a frase não salva.
+A IA **não tem acesso** ao Supabase nem ao Replit: SQL fica em `migrations/` e o usuário roda.
 
 ---
 
-## 7. Recomendações entre amigos
+## 6. Integrações
 
-O modal de detalhes possui o botão Recomendar.
+- **TMDB** (`https://api.themoviedb.org/3`, imagens `https://image.tmdb.org/t/p/...`): catálogo, detalhes, créditos, pessoas, provedores de streaming (região **BR**), trailers. `language=pt-BR`.
+- **Groq** (chat da IA, direto do navegador). Modelo atual: **`openai/gpt-oss-120b`** (o `llama-3.3-70b-versatile` foi desativado). O prompt faz a IA escrever filmes como `[Título | Ano]`; o front busca no TMDB e mostra um card.
+- **Web Push:** recomendação criada → gatilho `trg_push_recomendacao` (pg_net) → Edge Function `enviar-push` → aviso. A chave VAPID **pública** fica no `index.html`; a privada e o `WEBHOOK_SECRET` só nos **Secrets do Supabase**. iPhone só recebe com o app na Tela de Início (iOS 16.4+). Tocar no aviso abre `./?aba=amigos`.
+- **Links compartilháveis:** `?perfil=<username>` abre o perfil depois do login; `?aba=amigos` abre a tela de Amigos.
+- **Assistir:** veja a seção 11 (ponto de atenção).
 
-Fluxo:
+---
 
-1. Seleciona um amigo;
-2. opcionalmente escreve uma mensagem;
-3. grava uma recomendação;
-4. o amigo vê a recomendação na Caixa de Entrada da aba Amigos;
-5. pode abrir os detalhes ou organizar o filme na própria lista;
-6. pode apagar a recomendação.
+## 7. Perfil e telas filhas (resumo funcional)
 
-Tabela:
+- **Meu perfil:** ícones pequenos no banner (trocar **capa** pela galeria; compartilhar); câmera no avatar abre `#modal-avatares` (fotos prontas) com opção de galeria; **frase** (toque para editar, até 120 caracteres); números Assistidos / Quero ver / Avaliações / **Amigos** (botão com contador de pedidos); **Top 5 filmes** e **Top 5 séries** (busca, ✕, **segurar e arrastar** para reordenar); **Meus favoritos do cinema** (atriz, ator, diretor; tocar na foto abre a tela da pessoa); abas com **9 itens** e "Ver tudo".
+- **Perfil dos outros:** botão Adicionar amigo / Aceitar pedido / Pedido enviado / Amigos; "% de gosto em comum" (compara notas, só com 2+ títulos avaliados pelos dois); mesmos blocos sem os botões de editar.
+- **Notas lado a lado (regra do usuário):** em capas, nota do TMDB (amarela) **+** nota pessoal (roxa) quando houver — `selosHTML()`. No perfil, a roxa é a do dono do perfil; na tela da pessoa, a do usuário logado.
+- **Tela da pessoa** (`#modal-pessoa`): TMDB `/person/{id}` com `combined_credits`; abas Atuou/Dirigiu; ✓ verde nos que o usuário já viu; barra "X de N títulos que você já viu".
+- **Tela de Amigos** (`#modal-amigos`, aberta pelo botão Amigos do perfil; a antiga aba foi removida): criar @username (quem ainda não tem), busca, recomendações recebidas, pedidos, lista de amigos, cartão de avisos.
+- **Detalhes:** elenco em fila (diretor ou criador primeiro, depois até 8 do elenco; papel embaixo de cada foto).
+
+---
+
+## 8. Como testar
+
+O app precisa de login Supabase, então os testes usam um **Supabase falso**: `testes/mock-supabase.js` (tabelas em memória, usuário `u1` já logado) e rotas do Playwright para TMDB/imagens. Veja `testes/LEIA-ME.md` e `testes/exemplo-perfil.js`.
+
+Regras combinadas:
+- testar sempre em **375×812** (celular) e **1366×768** (computador);
+- após mudança, rodar a navegação principal: Listas, Explorar, Cenas, Roleta, Feed, perfil, Amigos;
+- usar Chromium do Playwright (`/opt/pw-browsers/chromium` no ambiente anterior);
+- imagens de prototipo são feitas em HTML e fotografadas com Playwright; o usuário aprova olhando a imagem.
+
+---
+
+## 9. Decisões do usuário e coisas descartadas
+
+- **Descartado por enquanto:** gêneros na busca de Listas (exigiria coluna nova em `meus_filmes`), pontos de posição e legenda nas Cenas, modo claro.
+- **Segurança foi adiada por decisão do usuário** (a chave do Groq está no front-end). Não insistir; só mencionar quando uma mudança aumentar o risco. Nunca copie valores de chaves para respostas ou documentos.
+- **Identidade visual:** roxo (`#8b5cf6`) com fundo escuro; luz roxa no topo das páginas (Explorar: só no topo do Top 10). Títulos de seção com barra roxa, chips ativos roxos, contadores roxos. Fonte Inter.
+- **Perfil:** público por padrão (qualquer logado vê); amizade só para ficar mais próximo e receber avisos.
+- **Fotos de perfil prontas:** estrutura pronta (`avatares.js` + `avatares/`), alimentada pelo próprio usuário com **ilustrações próprias**. A IA anterior **recusou** montar um catálogo com fotos de atores reais e cenas de filmes (uso de rosto de pessoa real como avatar). Atenção: o `avatares.js` atual ainda lista 18 entradas com nomes de atores reais, apontando para `.png` enquanto os arquivos são `.jpg` (por isso os círculos aparecem vazios). **Decisão pendente do usuário** — pergunte antes de mexer.
+- **Player próprio:** o usuário aprovou o visual de um player (protótipo: barra roxa, ±10 s, qualidade, legendas por idioma, picture-in-picture, menu "Transmitir para dispositivo" com Chromecast/AirPlay/Compartilhar/Copiar link/Abrir em player externo). **Ficou para depois**, para vídeos de fontes que o usuário tenha direito de tocar (ex.: servidor próprio Jellyfin/Plex, conteúdo gratuito legal).
+
+---
+
+## 10. Pendências e ideias em aberto
+
+**Pendências práticas**
+- Confirmar quais SQLs de `migrations/` o usuário já rodou (principalmente 18/10, 19/10 e 20/10).
+- Decidir o que fazer com `avatares.js` e com os 18 arquivos `.jpg` da pasta `avatares/` (ver seção 9).
+- Testar no celular o caminho "escolher um gênero" na roleta depois da opção "Minha lista" (só o caminho da lista foi testado).
+- Corrigir `icon-512.png` (é JPEG com extensão `.png`).
+- Decidir a estratégia do service worker (hoje o app apaga todos, exceto `sw-push.js`).
+
+**Plano de rede social (5 fases, sem ordem fechada)**
+1. Perfil público e descoberta — feito em boa parte; falta "pessoas com gosto parecido".
+2. Seguir sem amizade mútua + feed de atividade.
+3. Comentários em avaliações/filmes — **antes**, denunciar e bloquear.
+4. "Para se atualizar": sugestões por gosto e estreias das séries acompanhadas.
+5. Clubes de cinema e desafios.
+
+**Perfil — ideias de métricas (só brainstorm)**
+Sem SQL: DNA cinéfilo (radar de gêneros), décadas favoritas, distribuição de notas, "generoso ou exigente" (média pessoal vs TMDB), países/idiomas, prateleira de Quero ver, avaliação em destaque, curtidas recebidas. Com dados novos: "filme que me define", culpa-prazer, ritmo mensal e sequência de dias (precisa da data em que marcou como assistido), percentil, conquistas. Controle de privacidade por bloco ainda sem decisão.
+
+**Atores e diretores:** falta filtrar Explorar por diretor/ator e seguir uma pessoa (tabela nova).
+
+---
+
+## 11. Riscos e pontos de atenção (leia com cuidado)
+
+1. **Chaves no front-end.** Há chaves de serviços no JavaScript (Supabase anon, TMDB, Groq). A do Groq é a mais sensível: qualquer pessoa pode ler. A correção é um endpoint server-side. Não imprimir valores; recomendar rotação se uma chave privada foi exposta.
+2. **RLS aberta por decisão.** Listas de todos são legíveis por qualquer logado (seção 5). Se o produto crescer, reavalie, e acrescente bloqueio/denúncia antes de comentários.
+3. **Fontes de vídeo de terceiros.** Os botões **"Assistir Online (Legendado)"** (janela `#modal-cinema`, páginas incorporadas de servidores externos, função `trocarServidorCinema`) e **"Assistir com Stremio"** (abre o app Stremio; a janela de instruções sugere complementos que apontam para fontes de torrent) dependem de **fontes sem licença** de terceiros. O assistente anterior **não ampliou** essas integrações e **recusou** construir um player próprio sobre elas ou extrair endereços de vídeo delas. O usuário está ciente. Fica a decisão de quem continuar; tratar isso com transparência, sem prometer disponibilidade.
+4. **Imagens de pessoas reais como avatar** — ver seção 9.
+5. **Dívida técnica:** `index.html` grande e monolítico, CSS com regras que se sobrescrevem, erros do Supabase por vezes ignorados, sem testes automáticos oficiais. Não refatore tudo sem tarefa específica.
+6. **Replit:** o usuário publica manualmente (Pull → Run → Republicar). Os commits "Published your App" são marcadores do Replit e não mudam arquivos.
+
+---
+
+## 12. Cronologia resumida (outubro/2026)
+
+- Séries de TV (Explorar, listas, recomendar, episódios); trailer dublado; avaliações (nota 0–10, comentário, curtidas) e Feed de avaliações; foto de perfil; correção de amigos duplicados; Web Push; busca dentro de playlist; aba Avaliações nos detalhes; atualização automática do app instalado.
+- **18/10:** visual novo completo; identidade roxa; botão da IA como "etiqueta" na borda; roleta com botão Girar integrado; notas amarela+roxa lado a lado.
+- **19/10:** perfil completo (capa, Top 5, favoritos, abas, Amigos como tela dentro do perfil); fotos prontas (estrutura).
+- **20/10:** frase do perfil.
+- **23–25/10:** roleta "Minha lista · Quero assistir"; botão Girar no tamanho do miolo com texto em arco; elenco nos detalhes.
+- Estudo de player (protótipos aprovados; implementação adiada).
+
+---
+
+## 13. Primeira mensagem sugerida para colar na nova IA
 
 ```text
-recomendacoes_amigos
+Vou continuar o projeto iCine com você. Leia primeiro CONTEXTO_ICINE_PARA_OUTRA_IA.md e CLAUDE.md
+(na raiz do projeto), depois explore index.html pelos blocos "=== BLOCO:".
+Eu falo português do Brasil e não sou programador: explique em passos simples.
+Para mudanças maiores, mostre um protótipo (imagem) antes de aplicar.
+Sempre que mudar o app, troque VERSAO_APP no index.html e o valor de version.json (os dois iguais).
+Antes de mexer em qualquer coisa que dependa do banco, me diga qual SQL eu preciso rodar no Supabase.
+Comece me confirmando o que entendeu do projeto e quais SQLs de migrations/ ainda preciso rodar.
 ```
-
-Campos usados no front-end:
-
-```text
-id
-remetente_id
-destinatario_id
-tmdb_id
-titulo_filme
-capa_filme
-mensagem
-created_at
-```
-
-Funções:
-
-- `carregarCaixaEntrada()`;
-- `renderizarCaixaEntrada()`;
-- `apagarRecomendacao()`.
-
----
-
-## 8. Histórico de problemas e estado atual
-
-### Bug dos filmes do amigo entrando na lista pessoal
-
-Esse bug aconteceu quando a consulta principal de `meus_filmes` passou a receber dados permitidos pela política de amigos. A correção aplicada foi adicionar:
-
-```javascript
-.eq('user_id', usuarioAtual.id)
-```
-
-na carga da lista pessoal e também manter esse filtro nas operações de update/delete.
-
-O fluxo ainda precisa ser validado com duas contas reais:
-
-1. Conta A adiciona filmes.
-2. Conta B vira amiga da Conta A.
-3. Conta B abre o perfil da Conta A.
-4. Conta B recarrega “Minhas Listas”.
-5. Os filmes de A não podem aparecer na lista pessoal de B.
-6. Remover um filme de B não pode apagar ou alterar um filme de A.
-
-Não resolva esse problema removendo a política de leitura dos amigos. O correto é separar:
-
-- consulta pessoal;
-- consulta do perfil do amigo;
-- consulta de playlists do amigo.
-
-### Cache e Service Worker
-
-Existe `service-worker.js`, mas há uma inconsistência importante:
-
-- o `index.html` chama `navigator.serviceWorker.getRegistrations()` e desregistra todos os Service Workers no carregamento;
-- portanto, o Service Worker pode não permanecer ativo;
-- o `service-worker.js` atual usa a cache `icine-v2`;
-- ele utiliza estratégia Network First;
-- a lista de assets inclui `./`, `./index.html` e `./manifest.json`;
-- ele faz cache de qualquer requisição GET que não falhe, inclusive podendo capturar chamadas externas, apesar do comentário dizer que APIs seriam ignoradas.
-
-Se for corrigir PWA/cache:
-
-1. escolha conscientemente entre remover o Service Worker ou mantê-lo;
-2. não deixe o `index.html` desregistrar o Service Worker se a intenção é usar PWA offline;
-3. se mantiver cache, limite o cache aos assets do próprio app;
-4. trate atualização de versão com uma estratégia consistente;
-5. teste atualização em navegador normal e no modo instalado;
-6. não prometa que o ícone será atualizado instantaneamente em todos os dispositivos.
-
-### Ícone PWA
-
-O manifest aponta para:
-
-```text
-icon-512.png
-```
-
-O arquivo tem resolução 512×512, mas atualmente seu conteúdo é JPEG, apesar da extensão `.png`. Isso deve ser corrigido convertendo a imagem para um PNG verdadeiro. Também é recomendável adicionar:
-
-```html
-<link rel="apple-touch-icon" href="icon-512.png">
-```
-
-e, se possível, gerar versões reais 192×192 e 512×512.
-
-### Credenciais expostas
-
-O front-end contém chaves de serviços diretamente no JavaScript. Isso é uma pendência de segurança prioritária, especialmente a chave do Groq. A próxima IA deve:
-
-- não imprimir os valores;
-- não colocá-los em documentação;
-- não criar outra chave hardcoded;
-- propor um backend ou endpoint server-side;
-- usar o sistema de secrets do ambiente;
-- recomendar rotação de qualquer chave privada já exposta.
-
-### Consistência de campos de filmes
-
-O código lê campos como:
-
-```text
-notaTmdb
-notaImdb
-notaRt
-```
-
-mas a função de inserção de filme usa uma propriedade chamada `nota` em parte do objeto. Antes de modificar ratings, confira as colunas reais da tabela `meus_filmes` e padronize o modelo para não perder dados.
-
----
-
-## 9. Pontos de atenção de segurança e qualidade
-
-Há bastante HTML gerado com template strings e dados vindos do TMDB, Supabase ou usuário. Ao adicionar novas telas:
-
-- escape conteúdo antes de inserir em `innerHTML`;
-- prefira `textContent` quando não for necessário HTML;
-- não use username, nome de playlist ou mensagem de usuário diretamente em atributos `onclick`;
-- evite XSS em comentários, playlists, usernames e recomendações;
-- valide IDs no cliente, mas não confie apenas nessa validação;
-- mantenha RLS como proteção real no banco;
-- confira autorização também em operações de likes, playlists e recomendações.
-
-Existem algumas áreas de dívida técnica:
-
-- `index.html` é grande e contém responsabilidades demais;
-- há estilos duplicados e regras CSS que se sobrescrevem;
-- há atribuições duplicadas de eventos em alguns pontos do modal de detalhes;
-- muitos erros de Supabase são ignorados;
-- várias chamadas não exibem estado de carregamento ou erro detalhado;
-- não há testes automatizados confirmados;
-- os players e addons externos devem ser tratados com cuidado quanto à disponibilidade, segurança e direitos de uso.
-
-Não transforme essas observações em uma refatoração ampla sem uma tarefa específica.
-
----
-
-## 10. Plano recomendado para futuras evoluções
-
-### Curto prazo
-
-1. Validar o fluxo social com duas contas.
-2. Corrigir e testar o isolamento das listas pessoais.
-3. Confirmar o schema real de todas as tabelas usadas.
-4. Melhorar mensagens de erro das operações do Supabase.
-5. Corrigir o formato real do ícone PWA.
-6. Decidir e corrigir a estratégia do Service Worker.
-7. Remover chaves privadas do front-end.
-
-### Médio prazo
-
-1. Criar um backend pequeno para Groq e demais APIs privadas.
-2. Extrair JavaScript e CSS do `index.html` sem mudar comportamento.
-3. Criar camada única de acesso ao Supabase.
-4. Padronizar o modelo de dados de filmes.
-5. Adicionar estados de loading, vazio, erro e sucesso.
-6. Adicionar testes para autorização e isolamento entre usuários.
-7. Adicionar paginação real no feed social e nas listas.
-
-### Evoluções sociais possíveis
-
-- desfazer amizade;
-- cancelar pedido enviado;
-- bloquear usuário;
-- privacidade individual para lista, perfil e playlist;
-- filmes em comum;
-- comentários em playlists;
-- reações nas recomendações;
-- feed de atividade;
-- notificações;
-- busca por nome;
-- ordenação e filtros nas listas de amigos.
-
-Não implemente essas evoluções sem conferir o modelo atual de permissões.
-
----
-
-## 10A. Contexto adicional fornecido pelo Gemini
-
-O contexto original usado no desenvolvimento descreve o iCine como uma plataforma
-pessoal de filmes que combina:
-
-- diário de filmes;
-- comunidade de cinéfilos;
-- agregação de informações de streaming;
-- feed de edições de filmes no estilo TikTok/Reels;
-- integração com Stremio;
-- players web incorporados.
-
-Esse contexto confirma que o modal de detalhes é o centro da experiência. A versão
-atual já refinou:
-
-- botões com estética Glassmorphism;
-- proporção 16:9 para o trailer de fundo;
-- cantos inferiores arredondados no hero;
-- trailer do YouTube em autoplay silencioso;
-- escala do iframe para esconder elementos visuais indesejados do YouTube.
-
-### Próximo desafio principal: suporte a séries de TV
-
-A próxima grande evolução planejada é permitir filmes **e séries de TV** no mesmo
-produto. Essa mudança deve ser planejada antes de ser implementada, porque afeta o
-modelo de dados, a busca, os cards, os detalhes, as listas, as playlists e o
-player.
-
-Requisitos funcionais planejados:
-
-1. O usuário deve conseguir pesquisar séries usando o endpoint de TV do TMDB:
-
-   ```text
-   /search/tv
-   /discover/tv
-   /tv/{id}
-   ```
-
-2. O app deve distinguir filme de série no Supabase. A solução provável é uma
-   coluna como:
-
-   ```text
-   tipo = 'filme' | 'serie'
-   ```
-
-   Não altere a tabela antes de conferir o schema atual de `meus_filmes`,
-   `playlists` e os dados já salvos.
-
-3. O modal de detalhes deve identificar o tipo de conteúdo e adaptar:
-
-   - título original e título exibido;
-   - ano/data de lançamento;
-   - sinopse;
-   - nota;
-   - trailer;
-   - provedores oficiais;
-   - botões de organização;
-   - botão Stremio;
-   - player web.
-
-4. Para séries, o fluxo de reprodução precisa pedir:
-
-   - temporada;
-   - episódio;
-   - confirmação para abrir o conteúdo.
-
-5. O player web e o deep link do Stremio precisam receber os parâmetros
-   apropriados para conteúdo episódico, sem quebrar o fluxo de filmes.
-
-6. Playlists podem conter filmes e séries. O objeto armazenado no campo `filmes`
-   deve carregar o tipo do conteúdo e os identificadores necessários para abrir
-   novamente os detalhes.
-
-7. As listas “Quero Assistir” e “Assistidos Recentemente” devem continuar
-   funcionando para os dois tipos sem misturar IDs incompatíveis.
-
-### Recomendação de implementação para séries
-
-Antes de adicionar telas, faça uma análise de impacto:
-
-1. Padronize um modelo interno de conteúdo, por exemplo:
-
-   ```javascript
-   {
-     id: Number,
-     tipo: 'filme' ou 'serie',
-     titulo: String,
-     tituloOriginal: String,
-     ano: String,
-     notaTmdb: String,
-     notaImdb: String,
-     notaRt: String,
-     capa: String,
-     sinopse: String,
-     temporadas: Number opcional
-   }
-   ```
-
-2. Separe claramente:
-
-   - `tmdb_id` do filme;
-   - `tmdb_id` da série;
-   - `tipo` do conteúdo;
-   - `temporada` e `episodio` quando necessário.
-
-3. Evite assumir que todo ID TMDB é filme.
-4. Não duplique todo o código de cards e detalhes; crie normalizadores ou
-   adaptadores pequenos quando isso reduzir risco.
-5. Preserve a compatibilidade com registros antigos, que provavelmente ainda não
-   têm a coluna `tipo`.
-6. Faça uma migração reversível e explique o impacto antes de executá-la.
-7. Teste separadamente:
-
-   - busca de filme;
-   - busca de série;
-   - salvar filme;
-   - salvar série;
-   - abrir detalhes de filme;
-   - abrir detalhes de série;
-   - adicionar ambos à mesma playlist;
-   - remover cada tipo;
-   - ver conteúdo de um amigo;
-   - recarregar a página.
-
-### Regra de comunicação para mudanças futuras
-
-O arquivo `index.html` é muito grande. Ao apresentar alterações para o usuário:
-
-- envie apenas os blocos que precisam ser substituídos ou adicionados;
-- indique com clareza onde cada bloco deve ser colocado;
-- não envie a página inteira, salvo se o usuário solicitar;
-- explique se uma alteração exige SQL, mudança de tabela, configuração no
-  Supabase, nova secret ou novo endpoint;
-- não diga que uma mudança está pronta sem verificar o comportamento real.
-
-### Regras de estilo para novas telas
-
-- manter HTML, CSS e JavaScript Vanilla;
-- não introduzir Tailwind, Bootstrap ou outro framework sem pedido explícito;
-- preservar a estética Glassmorphism;
-- usar fundo escuro, bordas sutis, blur, gradientes roxo/rosa e componentes
-  adequados para toque;
-- manter o layout responsivo e prioritariamente mobile;
-- não sacrificar acessibilidade, estados de carregamento ou mensagens de erro por
-  causa do visual.
-
----
-
-## 11. Checklist de validação antes de entregar uma alteração
-
-### Front-end
-
-- A tela abre sem erro no console?
-- Login e logout continuam funcionando?
-- A alteração funciona em tela pequena?
-- Modais abrem e fecham corretamente?
-- O botão voltar do navegador não deixa modal aberto incorretamente?
-- Nenhum card pessoal recebe dados de outro usuário?
-- Estados vazios e erros são tratados?
-
-### Supabase
-
-- A consulta usa o `user_id` correto?
-- A operação depende de uma política RLS existente?
-- O schema da tabela foi confirmado?
-- Erros de insert/update/delete são tratados?
-- A alteração pode expor dados privados?
-
-### PWA
-
-- Manifesto continua válido?
-- O MIME/formato dos ícones está correto?
-- O Service Worker está realmente registrado?
-- A atualização de versão foi testada?
-- O app continua abrindo pelo workflow estático?
-
-### Segurança
-
-- Nenhuma chave foi adicionada ao código?
-- Nenhum segredo apareceu na resposta?
-- Dados inseridos por usuários estão escapados?
-- Endpoints externos são realmente apropriados para chamada no navegador?
-
----
-
-## 12. Pedido inicial para a próxima IA
-
-Comece confirmando que entendeu este contexto. Em seguida:
-
-1. faça uma inspeção rápida do estado atual do repositório;
-2. compare o código real com este documento;
-3. liste divergências encontradas;
-4. não edite nada até identificar claramente a tarefa atual;
-5. para qualquer bug envolvendo listas, usuários ou amigos, reproduza mentalmente o fluxo com duas contas e confira as consultas e políticas RLS;
-6. para qualquer mudança de segurança, explique o risco antes de aplicar a correção.
-
-O objetivo é evoluir o iCine com segurança, sem quebrar as listas pessoais, o sistema social, as playlists, o PWA ou a experiência mobile.

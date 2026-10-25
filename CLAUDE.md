@@ -1,6 +1,7 @@
 # iCine — contexto para o Claude
 
-Leia também `CONTEXTO_ICINE_PARA_OUTRA_IA.md` (arquitetura, tabelas, riscos). Este arquivo registra
+Leia também `CONTEXTO_ICINE_PARA_OUTRA_IA.md` (visão geral, mapa do código, tabelas, riscos; reescrito em 25/10 para passar o projeto a outra IA)
+e a pasta `testes/` (mock do Supabase e exemplos de teste). Este arquivo registra
 como trabalhamos e as decisões tomadas desde então.
 
 ## Como as mudanças chegam ao app

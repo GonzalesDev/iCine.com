@@ -163,7 +163,7 @@ A IA **não tem acesso** ao Supabase nem ao Replit: SQL fica em `migrations/` e 
 - **Groq** (chat da IA, direto do navegador). Modelo atual: **`openai/gpt-oss-120b`** (o `llama-3.3-70b-versatile` foi desativado). O prompt faz a IA escrever filmes como `[Título | Ano]`; o front busca no TMDB e mostra um card.
 - **Web Push:** recomendação criada → gatilho `trg_push_recomendacao` (pg_net) → Edge Function `enviar-push` → aviso. A chave VAPID **pública** fica no `index.html`; a privada e o `WEBHOOK_SECRET` só nos **Secrets do Supabase**. iPhone só recebe com o app na Tela de Início (iOS 16.4+). Tocar no aviso abre `./?aba=amigos`.
 - **Links compartilháveis:** `?perfil=<username>` abre o perfil depois do login; `?aba=amigos` abre a tela de Amigos.
-- **Assistir:** veja a seção 11 (ponto de atenção).
+- **Assistir:** o botão **"Assistir com Stremio"** abre o app Stremio por link (`stremio://detail/...`; a janela `#modal-stremio` mostra as instruções) e o botão **"Assistir Online (Legendado)"** abre a janela `#modal-cinema`, com páginas incorporadas de servidores externos (`trocarServidorCinema`). O iCine não toca o vídeo por conta própria nesses casos.
 
 ---
 
@@ -196,8 +196,8 @@ Regras combinadas:
 - **Segurança foi adiada por decisão do usuário** (a chave do Groq está no front-end). Não insistir; só mencionar quando uma mudança aumentar o risco. Nunca copie valores de chaves para respostas ou documentos.
 - **Identidade visual:** roxo (`#8b5cf6`) com fundo escuro; luz roxa no topo das páginas (Explorar: só no topo do Top 10). Títulos de seção com barra roxa, chips ativos roxos, contadores roxos. Fonte Inter.
 - **Perfil:** público por padrão (qualquer logado vê); amizade só para ficar mais próximo e receber avisos.
-- **Fotos de perfil prontas:** estrutura pronta (`avatares.js` + `avatares/`), alimentada pelo próprio usuário com **ilustrações próprias**. A IA anterior **recusou** montar um catálogo com fotos de atores reais e cenas de filmes (uso de rosto de pessoa real como avatar). Atenção: o `avatares.js` atual ainda lista 18 entradas com nomes de atores reais, apontando para `.png` enquanto os arquivos são `.jpg` (por isso os círculos aparecem vazios). **Decisão pendente do usuário** — pergunte antes de mexer.
-- **Player próprio:** o usuário aprovou o visual de um player (protótipo: barra roxa, ±10 s, qualidade, legendas por idioma, picture-in-picture, menu "Transmitir para dispositivo" com Chromecast/AirPlay/Compartilhar/Copiar link/Abrir em player externo). **Ficou para depois**, para vídeos de fontes que o usuário tenha direito de tocar (ex.: servidor próprio Jellyfin/Plex, conteúdo gratuito legal).
+- **Fotos de perfil prontas:** estrutura pronta (`avatares.js` + `avatares/`), alimentada pelo próprio usuário. Detalhe técnico atual: as 18 entradas de `avatares.js` apontam para arquivos `.png`, mas os arquivos na pasta são `.jpg`; por isso os círculos aparecem vazios. Para corrigir, o caminho de cada entrada precisa ser igual ao nome real do arquivo (com a extensão certa).
+- **Player próprio:** o usuário aprovou o visual de um player (protótipo: barra roxa, ±10 s, qualidade, legendas por idioma, picture-in-picture, menu "Transmitir para dispositivo" com Chromecast/AirPlay/Compartilhar/Copiar link/Abrir em player externo). **Ficou para depois**; a origem do vídeo ainda será definida.
 
 ---
 
@@ -205,7 +205,7 @@ Regras combinadas:
 
 **Pendências práticas**
 - Confirmar quais SQLs de `migrations/` o usuário já rodou (principalmente 18/10, 19/10 e 20/10).
-- Decidir o que fazer com `avatares.js` e com os 18 arquivos `.jpg` da pasta `avatares/` (ver seção 9).
+- Corrigir `avatares.js` (extensões `.png` x `.jpg`, ver seção 9).
 - Testar no celular o caminho "escolher um gênero" na roleta depois da opção "Minha lista" (só o caminho da lista foi testado).
 - Corrigir `icon-512.png` (é JPEG com extensão `.png`).
 - Decidir a estratégia do service worker (hoje o app apaga todos, exceto `sw-push.js`).
@@ -228,10 +228,8 @@ Sem SQL: DNA cinéfilo (radar de gêneros), décadas favoritas, distribuição d
 
 1. **Chaves no front-end.** Há chaves de serviços no JavaScript (Supabase anon, TMDB, Groq). A do Groq é a mais sensível: qualquer pessoa pode ler. A correção é um endpoint server-side. Não imprimir valores; recomendar rotação se uma chave privada foi exposta.
 2. **RLS aberta por decisão.** Listas de todos são legíveis por qualquer logado (seção 5). Se o produto crescer, reavalie, e acrescente bloqueio/denúncia antes de comentários.
-3. **Fontes de vídeo de terceiros.** Os botões **"Assistir Online (Legendado)"** (janela `#modal-cinema`, páginas incorporadas de servidores externos, função `trocarServidorCinema`) e **"Assistir com Stremio"** (abre o app Stremio; a janela de instruções sugere complementos que apontam para fontes de torrent) dependem de **fontes sem licença** de terceiros. O assistente anterior **não ampliou** essas integrações e **recusou** construir um player próprio sobre elas ou extrair endereços de vídeo delas. O usuário está ciente. Fica a decisão de quem continuar; tratar isso com transparência, sem prometer disponibilidade.
-4. **Imagens de pessoas reais como avatar** — ver seção 9.
-5. **Dívida técnica:** `index.html` grande e monolítico, CSS com regras que se sobrescrevem, erros do Supabase por vezes ignorados, sem testes automáticos oficiais. Não refatore tudo sem tarefa específica.
-6. **Replit:** o usuário publica manualmente (Pull → Run → Republicar). Os commits "Published your App" são marcadores do Replit e não mudam arquivos.
+3. **Dívida técnica:** `index.html` grande e monolítico, CSS com regras que se sobrescrevem, erros do Supabase por vezes ignorados, sem testes automáticos oficiais. Não refatore tudo sem tarefa específica.
+4. **Replit:** o usuário publica manualmente (Pull → Run → Republicar). Os commits "Published your App" são marcadores do Replit e não mudam arquivos.
 
 ---
 

@@ -64,6 +64,7 @@ como trabalhamos e as decisões tomadas desde então.
 - **Fotos prontas (19/10):** o câmera do meu perfil abre `#modal-avatares` (grade de círculos). A lista fica em `avatares.js`
   (`AVATARES_PRONTOS = [{ nome, arquivo: 'avatares/x.png' }]`) e as imagens em `avatares/` (ver `avatares/LEIA-ME.txt`).
   Escolher grava o caminho em `perfis.foto_url`. Imagens quebradas somem da grade. Catálogo vazio mostra "Nenhuma foto pronta ainda.".
+  A janela tem altura máxima (88vh) e só a área `.av-rolagem` rola (título e botões fixos); não aplicar `overflow` direto no `.av-grade` (as linhas encolhem e as bolinhas se sobrepõem).
 - Use `avatarHTML(nome, foto)` / `avatarConteudo(...)` em qualquer lugar que mostre usuário; cache
   `fotosPerfis` (user_id → url). Sem foto ou se a imagem falhar, mostra a inicial.
 

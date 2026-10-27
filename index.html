@@ -929,7 +929,7 @@
                 if (q === 'novo') localStorage.removeItem('icine_visual');
                 if (localStorage.getItem('icine_visual') !== 'antigo') {
                     document.documentElement.classList.add('novo');
-                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=32">');
+                    document.write('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"><link rel="stylesheet" href="novo-visual.css?v=33">');
                 }
             } catch (e) { document.documentElement.classList.add('novo'); }
         })();
@@ -1378,7 +1378,7 @@
     <div id="modal-avatares" class="modal" style="z-index: 2450; display:none;">
         <div class="modal-content">
             <h3>Escolher foto de perfil</h3>
-            <div class="av-grade" id="av-grade"></div>
+            <div class="av-rolagem"><div class="av-grade" id="av-grade"></div></div>
             <button type="button" class="btn-modal btn-modal-quero" id="av-galeria">Usar foto da galeria</button>
             <button type="button" class="btn-modal btn-modal-cancel" id="av-fechar" style="margin-top: 0.6rem;">Fechar</button>
         </div>
@@ -1542,7 +1542,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-25.1';
+        const VERSAO_APP = '2026-10-27.1';
         (function atualizarSozinho() {
             async function conferir() {
                 try {

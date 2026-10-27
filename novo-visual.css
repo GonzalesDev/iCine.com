@@ -403,3 +403,9 @@ html.novo #aba-roleta .btn-girar svg.girar-arco text { fill: #fff; }
 .elenco-pessoa b { font-size: 11.5px; font-weight: 700; line-height: 1.2; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .elenco-pessoa > span:last-child { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 .elenco-pessoa:focus-visible .elenco-foto { outline: 2px solid var(--purple); outline-offset: 3px; }
+
+/* Escolher foto de perfil: com muitos avatares, só a área da grade rola; título e botões ficam sempre visíveis */
+#modal-avatares .modal-content { max-height: 88vh; max-height: 88dvh; display: flex; flex-direction: column; }
+#modal-avatares .modal-content > h3, #modal-avatares .modal-content > button { flex: 0 0 auto; }
+#modal-avatares .av-rolagem { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; margin: 12px 0 16px; padding: 4px 2px; }
+#modal-avatares .av-grade { margin: 0; }

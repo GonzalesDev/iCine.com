@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+async function abrirDetalhes<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -2512,7 +2512,7 @@
             const pessoa = e.target.closest('[data-pessoa]'); if (pessoa) abrirPessoa(Number(pessoa.dataset.pessoa), null);
         });
 
-        async function abrirDetalhes(id) {
+async function abrirDetalhes(id) {
             try {
                 const idNumerico = Number(id);
                 const filme = bancoDeFilmesLocal.get(id)
@@ -2522,7 +2522,6 @@
                     console.warn('Filme nao encontrado no cache local:', id);
                     return;
                 }
-                // Séries: endpoints /tv do TMDB; podem ser organizadas, mas ainda sem assistir/recomendar
                 const ehSerie = filme.tipo === 'serie';
                 const tipoTmdb = ehSerie ? 'tv' : 'movie';
                 const idTmdb = ehSerie ? filme.tmdbId : id;
@@ -2537,7 +2536,7 @@
                 const btnTrailer = document.getElementById('detalhe-trailer-novo');
                 const btnShorts = document.getElementById('detalhe-shorts-novo');
                 const containerVideo = document.getElementById('video-background-container');
-                const tokenDetalhe = ++contadorAberturaDetalhes; // respostas de uma abertura antiga são descartadas
+                const tokenDetalhe = ++contadorAberturaDetalhes;
                 pararTrailerDetalhes();
                 carregarElencoDetalhes(tipoTmdb, idTmdb, tokenDetalhe);
                 if (detalheTitulo) detalheTitulo.innerText = filme.titulo || 'Titulo indisponivel';
@@ -2566,191 +2565,169 @@
                     btnShorts.style.display = '';
                 }
 
-            // Configuração do botão Organizar
-            const btnOrg = document.getElementById('btn-modal-organizar-novo');
-            if(btnOrg) {
-                btnOrg.onclick = () => { 
-                    fecharModalSeguro('modal-detalhes'); 
-                    setTimeout(() => abrirModal(id, 'explorar'), 150); 
-                };
-            }
+                // Configuração do botão Organizar
+                const btnOrg = document.getElementById('btn-modal-organizar-novo');
+                if(btnOrg) {
+                    btnOrg.onclick = () => { 
+                        fecharModalSeguro('modal-detalhes'); 
+                        setTimeout(() => abrirModal(id, 'explorar'), 150); 
+                    };
+                }
 
-            // Configuração do botão Recomendar
-            const btnRec = document.getElementById('btn-recomendar-amigo-novo');
-            if(btnRec) {
-                btnRec.onclick = () => {
-                    filmeParaRecomendar = filme;
-                    document.getElementById('img-filme-recomendacao').src = filme.capa;
-                    document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
-                    abrirModalSeguro('modal-enviar-recomendacao');
-                };
-            }
+                // Configuração do botão Recomendar
+                const btnRec = document.getElementById('btn-recomendar-amigo-novo');
+                if(btnRec) {
+                    btnRec.onclick = () => {
+                        filmeParaRecomendar = filme;
+                        document.getElementById('img-filme-recomendacao').src = filme.capa;
+                        document.getElementById('titulo-filme-recomendacao').innerText = filme.titulo;
+                        abrirModalSeguro('modal-enviar-recomendacao');
+                    };
+                }
 
-            // FUNCIONALIDADE RECOMENDAR A UM AMIGO
-            const btnRecomendar = document.getElementById('btn-recomendar-amigo-novo');
-            if (btnRecomendar) {
-                btnRecomendar.onclick = () => {
-                    filmeParaRecomendar = filme;
-                    const imgRecomendacao = document.getElementById('img-filme-recomendacao');
-                    const tituloRecomendacao = document.getElementById('titulo-filme-recomendacao');
-                    if (imgRecomendacao) imgRecomendacao.src = filme.capa || '';
-                    if (tituloRecomendacao) tituloRecomendacao.innerText = filme.titulo || 'Filme';
+                const btnRecomendar = document.getElementById('btn-recomendar-amigo-novo');
+                if (btnRecomendar) {
+                    btnRecomendar.onclick = () => {
+                        filmeParaRecomendar = filme;
+                        const imgRecomendacao = document.getElementById('img-filme-recomendacao');
+                        const tituloRecomendacao = document.getElementById('titulo-filme-recomendacao');
+                        if (imgRecomendacao) imgRecomendacao.src = filme.capa || '';
+                        if (tituloRecomendacao) tituloRecomendacao.innerText = filme.titulo || 'Filme';
 
-                    const select = document.getElementById('select-amigo-recomendacao');
-                    if (select) {
-                        select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
-                        listaAmigos.forEach(a => {
-                            const option = document.createElement('option');
-                            option.value = a.user_id;
-                            option.textContent = `@${a.username}`;
-                            select.appendChild(option);
-                        });
-                    }
-
-                    const inputMsgRecomendacao = document.getElementById('input-msg-recomendacao');
-                    const statusRecomendacao = document.getElementById('status-envio-recomendacao');
-                    if (inputMsgRecomendacao) inputMsgRecomendacao.value = '';
-                    if (statusRecomendacao) statusRecomendacao.innerText = '';
-                    abrirModalSeguro('modal-enviar-recomendacao');
-                };
-            }
-
-            // ==========================================
-            // O Código do Botão Assistir (STREMIO)
-            // ==========================================
-            const btnAssistir = document.getElementById('btn-assistir-agora');
-            if (btnAssistir) {
-                // ALTERADO AQUI: Nome inicial do botão
-                btnAssistir.innerText = "🎬 Assistir com Stremio (Dublado)";
-                btnAssistir.disabled = false;
-                btnAssistir.style.opacity = '1';
-
-                // Séries: temporada/episódio vêm do seletor de episódio
-                const abrirStremio = async (temporada = null, episodio = null) => {
-                    btnAssistir.innerText = "A carregar... ⏳";
-                    let imdbId = null;
-
-                    try {
-                        // Filmes trazem imdb_id no /movie/{id}; séries só no /tv/{id}/external_ids
-                        const urlImdb = ehSerie ? `${URL_BASE}/tv/${idTmdb}/external_ids?api_key=${TMDB_KEY}` : `${URL_BASE}/movie/${id}?api_key=${TMDB_KEY}`;
-                        const respImdb = await fetch(urlImdb);
-                        const dadosImdb = await respImdb.json();
-                        imdbId = dadosImdb.imdb_id;
-                    } catch(e) { console.error("Erro ao buscar IMDb:", e); }
-
-                    if (imdbId) {
-                        // ALTERADO AQUI: Nome do botão após carregar o ID
-                        btnAssistir.innerText = "🎬 Assistir com Stremio (Dublado)";
-
-                        // 1. ABRE A TELA DE INSTRUÇÕES (MODAL) PRIMEIRO
-                        const modalStremio = document.getElementById('modal-stremio');
-                        if (modalStremio) modalStremio.style.display = 'flex';
-
-                        // Verifica a plataforma para exibir avisos e rotear corretamente
-                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                        const isAndroid = /Android/i.test(navigator.userAgent);
-
-                        // Mostra o aviso da Apple se for iOS
-                        const avisoIos = document.getElementById('aviso-ios');
-                        if (avisoIos) {
-                            avisoIos.style.display = isIOS ? 'block' : 'none';
+                        const select = document.getElementById('select-amigo-recomendacao');
+                        if (select) {
+                            select.innerHTML = '<option value="" disabled selected>Selecione um amigo...</option>';
+                            listaAmigos.forEach(a => {
+                                const option = document.createElement('option');
+                                option.value = a.user_id;
+                                option.textContent = `@${a.username}`;
+                                select.appendChild(option);
+                            });
                         }
 
-                        // 2. CONFIGURA O BOTÃO FINAL DENTRO DO MODAL COM O ROTEAMENTO CORRETO
-                        const btnFinal = document.getElementById('btn-abrir-stremio-final');
-                        if (btnFinal) {
-                            // Stremio: filme = detail/movie/<imdb>/<imdb>; episódio = detail/series/<imdb>/<imdb>:<temp>:<ep>
-                            const tipoStremio = ehSerie ? 'series' : 'movie';
-                            const videoId = ehSerie ? `${imdbId}:${temporada}:${episodio}` : imdbId;
-                            btnFinal.innerText = ehSerie ? `▶️ Abrir T${temporada} E${episodio} no Stremio` : '▶️ Abrir Filme no Stremio';
-                            btnFinal.onclick = () => {
-                                if (isAndroid) {
-                                    // Android abre o App nativo direto
-                                    window.location.href = `stremio://detail/${tipoStremio}/${imdbId}/${videoId}`;
-                                } else {
-                                    // PC (Windows/Mac) e iOS abrem a versão Web para evitar o erro "Failed to fetch"
-                                    window.open(`https://web.stremio.com/#/detail/${tipoStremio}/${imdbId}/${encodeURIComponent(videoId)}`, '_blank');
-                                }
-                            };
+                        const inputMsgRecomendacao = document.getElementById('input-msg-recomendacao');
+                        const statusRecomendacao = document.getElementById('status-envio-recomendacao');
+                        if (inputMsgRecomendacao) inputMsgRecomendacao.value = '';
+                        if (statusRecomendacao) statusRecomendacao.innerText = '';
+                        abrirModalSeguro('modal-enviar-recomendacao');
+                    };
+                }
+
+                // Botão Stremio
+                const btnAssistir = document.getElementById('btn-assistir-agora');
+                if (btnAssistir) {
+                    btnAssistir.innerText = "🎬 Assistir com Stremio (Dublado)";
+                    btnAssistir.disabled = false;
+                    btnAssistir.style.opacity = '1';
+
+                    const abrirStremio = async (temporada = null, episodio = null) => {
+                        btnAssistir.innerText = "A carregar... ⏳";
+                        let imdbId = null;
+
+                        try {
+                            const urlImdb = ehSerie ? `${URL_BASE}/tv/${idTmdb}/external_ids?api_key=${TMDB_KEY}` : `${URL_BASE}/movie/${id}?api_key=${TMDB_KEY}`;
+                            const respImdb = await fetch(urlImdb);
+                            const dadosImdb = await respImdb.json();
+                            imdbId = dadosImdb.imdb_id;
+                        } catch(e) { console.error("Erro ao buscar IMDb:", e); }
+
+                        if (imdbId) {
+                            btnAssistir.innerText = "🎬 Assistir com Stremio (Dublado)";
+                            const modalStremio = document.getElementById('modal-stremio');
+                            if (modalStremio) modalStremio.style.display = 'flex';
+
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                            const isAndroid = /Android/i.test(navigator.userAgent);
+                            const avisoIos = document.getElementById('aviso-ios');
+                            if (avisoIos) avisoIos.style.display = isIOS ? 'block' : 'none';
+
+                            const btnFinal = document.getElementById('btn-abrir-stremio-final');
+                            if (btnFinal) {
+                                const tipoStremio = ehSerie ? 'series' : 'movie';
+                                const videoId = ehSerie ? `${imdbId}:${temporada}:${episodio}` : imdbId;
+                                btnFinal.innerText = ehSerie ? `▶️ Abrir T${temporada} E${episodio} no Stremio` : '▶️ Abrir Filme no Stremio';
+                                btnFinal.onclick = () => {
+                                    if (isAndroid) {
+                                        window.location.href = `stremio://detail/${tipoStremio}/${imdbId}/${videoId}`;
+                                    } else {
+                                        window.open(`https://web.stremio.com/#/detail/${tipoStremio}/${imdbId}/${encodeURIComponent(videoId)}`, '_blank');
+                                    }
+                                };
+                            }
+                        } else {
+                            btnAssistir.innerText = "❌ Indisponível no Stremio";
+                            btnAssistir.disabled = true;
+                            btnAssistir.style.opacity = '0.5';
                         }
-                    } else {
-                        btnAssistir.innerText = "❌ Indisponível no Stremio";
-                        btnAssistir.disabled = true;
-                        btnAssistir.style.opacity = '0.5';
-                    }
-                };
+                    };
 
-                btnAssistir.onclick = () => {
-                    pausarTrailerDetalhes();
-                    if (ehSerie) escolherEpisodio(filme, (t, e) => abrirStremio(t, e));
-                    else abrirStremio();
-                };
-            }
+                    btnAssistir.onclick = () => {
+                        pausarTrailerDetalhes();
+                        if (ehSerie) escolherEpisodio(filme, (t, e) => abrirStremio(t, e));
+                        else abrirStremio();
+                    };
+                }
 
-// ==========================================
-            // O Código do Botão Assistir (WEB PLAYER ONLINE HÍBRIDO)
-            // ==========================================
-            const btnAssistirWeb = document.getElementById('btn-assistir-web');
-            if (btnAssistirWeb) {
-                const abrirCinema = async (temporada = null, episodio = null) => {
-                    const modalCinema = document.getElementById('modal-cinema');
-                    const cinemaTitulo = document.getElementById('cinema-titulo');
-                    const cinemaIframe = document.getElementById('cinema-iframe');
-                    if (modalCinema) modalCinema.style.display = 'flex';
-                    if (cinemaTitulo) cinemaTitulo.innerText = ehSerie ? `${filme.titulo || 'Série'} · T${temporada} E${episodio}` : (filme.titulo || 'Filme');
+                // Botão Assistir Online (Web Player Híbrido)
+                const btnAssistirWeb = document.getElementById('btn-assistir-web');
+                if (btnAssistirWeb) {
+                    const abrirCinema = async (temporada = null, episodio = null) => {
+                        const modalCinema = document.getElementById('modal-cinema');
+                        const cinemaTitulo = document.getElementById('cinema-titulo');
+                        const cinemaIframe = document.getElementById('cinema-iframe');
+                        if (modalCinema) modalCinema.style.display = 'flex';
+                        if (cinemaTitulo) cinemaTitulo.innerText = ehSerie ? `${filme.titulo || 'Série'} · T${temporada} E${episodio}` : (filme.titulo || 'Filme');
 
-                    const tmdbAlvo = ehSerie ? idTmdb : (idNumerico || id);
-                    if (cinemaIframe) {
-                        cinemaIframe.setAttribute('data-tmdb-id', tmdbAlvo);
-                        cinemaIframe.setAttribute('data-imdb-id', '');
-                        cinemaIframe.setAttribute('data-tipo', ehSerie ? 'tv' : 'movie');
-                        cinemaIframe.setAttribute('data-temporada', temporada || '');
-                        cinemaIframe.setAttribute('data-episodio', episodio || '');
-                    }
-
-                    // Busca o IMDb ID para servidores que exigem código tt... e para checar streams diretos
-                    try {
-                        const urlExt = ehSerie
-                            ? `${URL_BASE}/tv/${idTmdb}/external_ids?api_key=${TMDB_KEY}`
-                            : `${URL_BASE}/movie/${tmdbAlvo}?api_key=${TMDB_KEY}`;
-                        const dadosExt = await fetch(urlExt).then(r => r.json());
-                        if (dadosExt && dadosExt.imdb_id && cinemaIframe) {
-                            cinemaIframe.setAttribute('data-imdb-id', dadosExt.imdb_id);
+                        const tmdbAlvo = ehSerie ? idTmdb : (idNumerico || id);
+                        if (cinemaIframe) {
+                            cinemaIframe.setAttribute('data-tmdb-id', tmdbAlvo);
+                            cinemaIframe.setAttribute('data-imdb-id', '');
+                            cinemaIframe.setAttribute('data-tipo', ehSerie ? 'tv' : 'movie');
+                            cinemaIframe.setAttribute('data-temporada', temporada || '');
+                            cinemaIframe.setAttribute('data-episodio', episodio || '');
                         }
-                    } catch (e) { console.warn('Sem IMDb ID:', e); }
 
-                    // Inicia no Servidor Principal Dublado e procura stream direto (.m3u8/.mp4) em paralelo
-                    const btnPadrao = document.querySelector('.btn-server[data-srv="dub1"]');
-                    trocarServidorCinema('dub1', btnPadrao);
-                    buscarStreamDiretoNativo();
-                };
+                        try {
+                            const urlExt = ehSerie
+                                ? `${URL_BASE}/tv/${idTmdb}/external_ids?api_key=${TMDB_KEY}`
+                                : `${URL_BASE}/movie/${tmdbAlvo}?api_key=${TMDB_KEY}`;
+                            const dadosExt = await fetch(urlExt).then(r => r.json());
+                            if (dadosExt && dadosExt.imdb_id && cinemaIframe) {
+                                cinemaIframe.setAttribute('data-imdb-id', dadosExt.imdb_id);
+                            }
+                        } catch (e) { console.warn('Sem IMDb ID:', e); }
 
-                btnAssistirWeb.onclick = () => {
-                    pausarTrailerDetalhes();
-                    if (ehSerie) escolherEpisodio(filme, (t, e) => abrirCinema(t, e));
-                    else abrirCinema();
-                };
-            }
+                        const btnPadrao = document.querySelector('.btn-server[data-srv="dub1"]');
+                        trocarServidorCinema('dub1', btnPadrao);
+                        buscarStreamDiretoNativo();
+                    };
 
-            const btnRadar = document.getElementById('btn-fixar-radar-novo');
-            if (btnRadar) {
-                const SEU_ID_DE_ADMIN = "34bc00a4-00b1-4470-9439-1f793ac3b9f0"; 
-                if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN && !ehSerie) { btnRadar.style.display = ''; } else { btnRadar.style.display = 'none'; }
-                btnRadar.onclick = async () => {
-                    const dataInput = prompt("Digite a data de estreia oficial no Brasil (AAAA-MM-DD):", "2026-12-25"); if (!dataInput) return;
-                    const { error } = await supabaseClient.from('radar_curado').insert([{ tmdb_id: id, data_estreia: dataInput }]);
-                    if (!error) { alert("📌 Perfeito! Filme fixado nos Próximos Lançamentos."); if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true); } 
-                    else {
-                        if (error.code === '23505') {
-                            if(confirm("Este filme já está listado. Deseja atualizar a data de estreia?")) { await supabaseClient.from('radar_curado').update({ data_estreia: dataInput }).eq('tmdb_id', id); alert("🗓️ Data atualizada!"); if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true); }
-                        } else { alert("Erro ao salvar: " + error.message); }
-                    }
-                };
-            }
-        abrirModalSeguro('modal-detalhes');
+                    btnAssistirWeb.onclick = () => {
+                        pausarTrailerDetalhes();
+                        if (ehSerie) escolherEpisodio(filme, (t, e) => abrirCinema(t, e));
+                        else abrirCinema();
+                    };
+                }
+
+                const btnRadar = document.getElementById('btn-fixar-radar-novo');
+                if (btnRadar) {
+                    const SEU_ID_DE_ADMIN = "34bc00a4-00b1-4470-9439-1f793ac3b9f0"; 
+                    if (usuarioAtual && usuarioAtual.id === SEU_ID_DE_ADMIN && !ehSerie) { btnRadar.style.display = ''; } else { btnRadar.style.display = 'none'; }
+                    btnRadar.onclick = async () => {
+                        const dataInput = prompt("Digite a data de estreia oficial no Brasil (AAAA-MM-DD):", "2026-12-25"); if (!dataInput) return;
+                        const { error } = await supabaseClient.from('radar_curado').insert([{ tmdb_id: id, data_estreia: dataInput }]);
+                        if (!error) { alert("📌 Perfeito! Filme fixado nos Próximos Lançamentos."); if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true); } 
+                        else {
+                            if (error.code === '23505') {
+                                if(confirm("Este filme já está listado. Deseja atualizar a data de estreia?")) { await supabaseClient.from('radar_curado').update({ data_estreia: dataInput }).eq('tmdb_id', id); alert("🗓️ Data atualizada!"); if(document.getElementById('select-ordem').value === 'radar_curado') aplicarFiltros(true); }
+                            } else { alert("Erro ao salvar: " + error.message); }
+                        }
+                    };
+                }
+                
+                abrirModalSeguro('modal-detalhes');
                 const modalScroll = document.querySelector('#modal-detalhes .immersive-modal'); if (modalScroll) modalScroll.scrollTop = 0;
 
-                // 0. Detalhes completos: imagem horizontal, nota real, duração/temporadas, gêneros e frase de efeito
                 fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.json()).then(info => {
                     if (tokenDetalhe !== contadorAberturaDetalhes || !info || info.success === false) return;
                     if (info.backdrop_path && detalheHero) detalheHero.style.backgroundImage = `url('https://image.tmdb.org/t/p/w1280${info.backdrop_path}')`;
@@ -2765,7 +2742,6 @@
                     if (info.tagline) { detalheTagline.innerText = info.tagline; detalheTagline.hidden = false; }
                 }).catch(e => console.error('Erro ao carregar detalhes:', e));
 
-                // 1. Busca os provedores de streaming (Netflix, etc)
                 try {
                     let resp = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/watch/providers?api_key=${TMDB_KEY}`);
                     let dadosProviders = await resp.json();
@@ -2783,9 +2759,7 @@
                     console.error("Erro provedores:", err);
                 }
 
-                // 2. Busca os vídeos e injeta o iframe de fundo
                 try {
-                    // 1º: vídeos do Brasil (onde ficam os dublados). Só cai para inglês se não houver trailer/teaser em pt-BR.
                     const dadosBR = await fetch(`${URL_BASE}/${tipoTmdb}/${idTmdb}/videos?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.json());
                     let trailer = escolherMelhorTrailer(dadosBR.results);
                     if (!trailer || !['Trailer', 'Teaser'].includes(trailer.type)) {
@@ -2795,12 +2769,10 @@
                     if (tokenDetalhe !== contadorAberturaDetalhes) return;
 
                     if (trailer) {
-                        // Configura o link do botão de trailer externo
                         if (btnTrailer) {
                             btnTrailer.href = `https://www.youtube.com/watch?v=${trailer.key}`;
                             btnTrailer.style.display = '';
                         }
-                        // Trailer no topo: tenta começar com som (ver iniciarTrailerDetalhes)
                         if (containerVideo && document.getElementById('modal-detalhes').style.display !== 'none') iniciarTrailerDetalhes(trailer.key);
                     }
                 } catch (e) {

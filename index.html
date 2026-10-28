@@ -14,6 +14,7 @@
     <link rel="manifest" href="manifest.json">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
 
         .btn-assistir {
@@ -1300,7 +1301,7 @@
                 <!-- Botões Principais -->
                 <div class="hero-buttons">
                     <button id="btn-assistir-agora" class="btn-assistir btn-stremio">🎬 Assistir com Stremio (Dublado)</button>
-                    <button id="btn-assistir-web" class="btn-assistir btn-online">🍿 Assistir Online (Legendado)</button>
+                    <button id="btn-assistir-web" class="btn-assistir btn-online">🍿 Assistir Online (Dub / Leg)</button>
                 </div>
 
                 <!-- Ações secundárias: ícone em cima, texto embaixo -->
@@ -1328,24 +1329,29 @@
         </div>
     </div>
 
-    <!-- NOVO MODAL: Tela de Cinema Embutida (Web Player) -->
+<!-- NOVO MODAL: Tela de Cinema Embutida (Web Player Híbrido) -->
     <div id="modal-cinema" class="modal" style="z-index: 3800; background: #000; padding: 0; align-items: center;">
         <div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
             <!-- Barra Superior do Cinema -->
             <div style="background: #111827; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151;">
-                <h3 id="cinema-titulo" style="color: white; margin: 0; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">A Carregar Filme...</h3>
-                <button onclick="document.getElementById('modal-cinema').style.display='none'; document.getElementById('cinema-iframe').src='';" style="background: var(--red); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">Sair ✕</button>
+                <h3 id="cinema-titulo" style="color: white; margin: 0; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72%;">A Carregar...</h3>
+                <button onclick="fecharCinema()" style="background: var(--red); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: bold; cursor: pointer;">Sair ✕</button>
             </div>
             <!-- Seleção de Servidores -->
-            <div style="background: #1f2937; padding: 8px 15px; display: flex; gap: 10px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #374151;">
-                <span style="color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center;">Servidor:</span>
-                <button class="btn-server" onclick="trocarServidorCinema(2, this)" style="background: var(--purple); color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Legendado 1</button>
-                <button class="btn-server" onclick="trocarServidorCinema(3, this)" style="background: #374151; color: white; border: none; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">Legendado 2</button>
+            <div id="cinema-barra-servidores" style="background: #14141c; padding: 10px 15px; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid rgba(255,255,255,0.08); scrollbar-width: none;">
+                <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; margin-right: 4px;">Fonte:</span>
+                <button id="btn-srv-direto" class="btn-server" onclick="trocarServidorCinema('direto', this)" style="display: none; background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">⚡ Player Nativo (Sem Anúncios)</button>
+                <button class="btn-server" data-srv="dub1" onclick="trocarServidorCinema('dub1', this)" style="background: var(--purple); color: white; border: none; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">🇧🇷 Principal (Dub/Leg)</button>
+                <button class="btn-server" data-srv="dub2" onclick="trocarServidorCinema('dub2', this)" style="background: #272732; color: white; border: none; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🇧🇷 Alternativo (Dub/Leg)</button>
+                <button class="btn-server" data-srv="dub3" onclick="trocarServidorCinema('dub3', this)" style="background: #272732; color: white; border: none; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🇧🇷 Backup PT-BR</button>
+                <button class="btn-server" data-srv="leg1" onclick="trocarServidorCinema('leg1', this)" style="background: #272732; color: white; border: none; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🇺🇸 Legendado 1</button>
+                <button class="btn-server" data-srv="leg2" onclick="trocarServidorCinema('leg2', this)" style="background: #272732; color: white; border: none; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">🇺🇸 Legendado 2</button>
             </div>
-            <!-- O Iframe Mágico onde roda o filme -->
-            <div style="flex: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center;">
-                <p id="cinema-loading" style="color: white; position: absolute; z-index: 1;">A carregar player...</p>
-                <iframe id="cinema-iframe" src="" allowfullscreen allow="autoplay; fullscreen" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;"></iframe>
+            <!-- Área de Reprodução (Player Nativo HLS + Iframe) -->
+            <div style="flex: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                <p id="cinema-loading" style="color: var(--text-muted); font-size: 0.9rem; position: absolute; z-index: 1;">A sintonizar servidor... ⏳</p>
+                <video id="cinema-video-nativo" controls playsinline style="display: none; width: 100%; height: 100%; position: relative; z-index: 3; background: #000; accent-color: #8b5cf6;"></video>
+                <iframe id="cinema-iframe" src="" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" referrerpolicy="origin" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;"></iframe>
             </div>
         </div>
     </div>
@@ -1542,7 +1548,7 @@
         // Atualização automática: cada publicação muda VERSAO_APP aqui e em version.json (mesmo valor).
         // O app confere version.json (sem cache) ao abrir, ao voltar para o app e a cada 5 min;
         // se for diferente, recarrega numa URL nova (?v=...) que fura o cache do app instalado.
-        const VERSAO_APP = '2026-10-27.1';
+        const VERSAO_APP = '2026-10-27.2';
         (function atualizarSozinho() {
             async function conferir() {
                 try {
@@ -2681,30 +2687,42 @@
                 };
             }
 
-            // ==========================================
-            // NOVO: O Código do Botão Assistir (WEB PLAYER ONLINE)
+// ==========================================
+            // O Código do Botão Assistir (WEB PLAYER ONLINE HÍBRIDO)
             // ==========================================
             const btnAssistirWeb = document.getElementById('btn-assistir-web');
             if (btnAssistirWeb) {
-                const abrirCinema = (temporada = null, episodio = null) => {
+                const abrirCinema = async (temporada = null, episodio = null) => {
                     const modalCinema = document.getElementById('modal-cinema');
                     const cinemaTitulo = document.getElementById('cinema-titulo');
                     const cinemaIframe = document.getElementById('cinema-iframe');
                     if (modalCinema) modalCinema.style.display = 'flex';
                     if (cinemaTitulo) cinemaTitulo.innerText = ehSerie ? `${filme.titulo || 'Série'} · T${temporada} E${episodio}` : (filme.titulo || 'Filme');
+
+                    const tmdbAlvo = ehSerie ? idTmdb : (idNumerico || id);
                     if (cinemaIframe) {
-                        cinemaIframe.setAttribute('data-tmdb-id', ehSerie ? idTmdb : (idNumerico || id));
-                        // trocarServidorCinema usa estes atributos para montar a URL de episódio
+                        cinemaIframe.setAttribute('data-tmdb-id', tmdbAlvo);
+                        cinemaIframe.setAttribute('data-imdb-id', '');
                         cinemaIframe.setAttribute('data-tipo', ehSerie ? 'tv' : 'movie');
                         cinemaIframe.setAttribute('data-temporada', temporada || '');
                         cinemaIframe.setAttribute('data-episodio', episodio || '');
                     }
 
-                    // Carrega o Legendado 1 (Número 2) por padrão ao abrir o player
-                    const primeiroBotaoServidor = document.querySelector('.btn-server');
-                    if (cinemaIframe && typeof trocarServidorCinema === 'function') {
-                        trocarServidorCinema(2, primeiroBotaoServidor);
-                    }
+                    // Busca o IMDb ID para servidores que exigem código tt... e para checar streams diretos
+                    try {
+                        const urlExt = ehSerie
+                            ? `${URL_BASE}/tv/${idTmdb}/external_ids?api_key=${TMDB_KEY}`
+                            : `${URL_BASE}/movie/${tmdbAlvo}?api_key=${TMDB_KEY}`;
+                        const dadosExt = await fetch(urlExt).then(r => r.json());
+                        if (dadosExt && dadosExt.imdb_id && cinemaIframe) {
+                            cinemaIframe.setAttribute('data-imdb-id', dadosExt.imdb_id);
+                        }
+                    } catch (e) { console.warn('Sem IMDb ID:', e); }
+
+                    // Inicia no Servidor Principal Dublado e procura stream direto (.m3u8/.mp4) em paralelo
+                    const btnPadrao = document.querySelector('.btn-server[data-srv="dub1"]');
+                    trocarServidorCinema('dub1', btnPadrao);
+                    buscarStreamDiretoNativo();
                 };
 
                 btnAssistirWeb.onclick = () => {
@@ -2795,6 +2813,8 @@
         }
 
         document.getElementById('btn-fechar-detalhes').addEventListener('click', () => { fecharModalSeguro('modal-detalhes'); });
+
+        
         // =========================================
         // === SELETOR DE EPISÓDIO (SÉRIES) ===
         // =========================================
@@ -2857,42 +2877,137 @@
             setTimeout(() => cb(temporada, episodio), 150);
         });
 
+// =========================================
+        // === MOTOR DE STREAMING WEB (HÍBRIDO: HLS NATIVO + EMBEDS PT-BR) ===
         // =========================================
-        // === MOTOR DE STREAMING WEB (IFRAMES) ===
-        // =========================================
-        function trocarServidorCinema(servidorNum, clickedBtn = null) {
+        let instanciaHlsCinema = null;
+        let urlStreamDiretoAtual = null;
+
+        function limparPlayerNativo() {
+            const video = document.getElementById('cinema-video-nativo');
+            if (instanciaHlsCinema) { instanciaHlsCinema.destroy(); instanciaHlsCinema = null; }
+            if (video) { video.pause(); video.removeAttribute('src'); video.load(); video.style.display = 'none'; }
+        }
+
+        function fecharCinema() {
+            document.getElementById('modal-cinema').style.display = 'none';
+            const iframe = document.getElementById('cinema-iframe');
+            if (iframe) iframe.src = '';
+            limparPlayerNativo();
+        }
+
+        // Procura links diretos (.m3u8 / .mp4) em APIs de streams compatíveis para liberar o Player Nativo sem anúncios
+        async function buscarStreamDiretoNativo() {
+            const btnDireto = document.getElementById('btn-srv-direto');
+            if (btnDireto) btnDireto.style.display = 'none';
+            urlStreamDiretoAtual = null;
+
+            const iframe = document.getElementById('cinema-iframe');
+            const imdbId = iframe ? iframe.getAttribute('data-imdb-id') : '';
+            if (!imdbId) return;
+
+            const ehEpisodio = iframe.getAttribute('data-tipo') === 'tv';
+            const temp = iframe.getAttribute('data-temporada');
+            const ep = iframe.getAttribute('data-episodio');
+            const tipoRota = ehEpisodio ? 'series' : 'movie';
+            const idRota = ehEpisodio ? `${imdbId}:${temp}:${ep}` : imdbId;
+
+            const endpoints = [
+                `https://94c8cb9f702d-brazuca-torrents.baby-beamup.club/stream/${tipoRota}/${encodeURIComponent(idRota)}.json`,
+                `https://froststream.cloutteam.com/stream/${tipoRota}/${encodeURIComponent(idRota)}.json`
+            ];
+
+            for (const url of endpoints) {
+                try {
+                    const r = await fetch(url);
+                    if (!r.ok) continue;
+                    const d = await r.json();
+                    const direto = (d.streams || []).find(s => s.url && /^https?:\/\//i.test(s.url) && /\.(m3u8|mp4)(\?|$)/i.test(s.url));
+                    if (direto) {
+                        urlStreamDiretoAtual = direto.url;
+                        if (btnDireto) btnDireto.style.display = 'inline-block';
+                        return;
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function tocarNoPlayerNativo(url) {
+            const iframe = document.getElementById('cinema-iframe');
+            const video = document.getElementById('cinema-video-nativo');
+            if (iframe) { iframe.src = ''; iframe.style.display = 'none'; }
+            if (!video) return;
+
+            limparPlayerNativo();
+            video.style.display = 'block';
+
+            if (url.includes('.m3u8') && window.Hls && Hls.isSupported()) {
+                instanciaHlsCinema = new Hls();
+                instanciaHlsCinema.loadSource(url);
+                instanciaHlsCinema.attachMedia(video);
+                instanciaHlsCinema.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+            } else {
+                video.src = url;
+                video.play().catch(() => {});
+            }
+        }
+
+        function trocarServidorCinema(servidorKey, clickedBtn = null) {
             const iframe = document.getElementById('cinema-iframe');
             const tmdbId = iframe.getAttribute('data-tmdb-id');
+            const imdbId = iframe.getAttribute('data-imdb-id') || tmdbId;
             if (!tmdbId) return;
 
-            // Atualiza os botões visuais
             document.querySelectorAll('.btn-server').forEach(btn => {
-                btn.style.background = '#374151'; 
+                btn.style.background = btn.id === 'btn-srv-direto' ? '#065f46' : '#272732';
             });
-
             if (clickedBtn) {
-                clickedBtn.style.background = 'var(--purple)';
-            } else {
-                const firstBtn = document.querySelector('.btn-server');
-                if (firstBtn) firstBtn.style.background = 'var(--purple)';
+                clickedBtn.style.background = clickedBtn.id === 'btn-srv-direto' ? '#10b981' : 'var(--purple)';
             }
 
-            // Escolhe a API de streaming gratuita (Apenas as duas opções legendadas estáveis)
+            if (servidorKey === 'direto' && urlStreamDiretoAtual) {
+                tocarNoPlayerNativo(urlStreamDiretoAtual);
+                return;
+            }
+
+            limparPlayerNativo();
+            iframe.style.display = 'block';
+
             const ehEpisodio = iframe.getAttribute('data-tipo') === 'tv';
-            const temporada = iframe.getAttribute('data-temporada');
-            const episodio = iframe.getAttribute('data-episodio');
+            const s = iframe.getAttribute('data-temporada');
+            const e = iframe.getAttribute('data-episodio');
+
             let urlVideo = '';
-            if (servidorNum === 2) {
-                urlVideo = ehEpisodio
-                    ? `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${temporada}&episode=${episodio}`
-                    : `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
-            } else if (servidorNum === 3) {
-                urlVideo = ehEpisodio
-                    ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${temporada}&e=${episodio}`
-                    : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+            switch (String(servidorKey)) {
+                case 'dub1': // SuperFlix (PT-BR Dublado / Legendado)
+                    urlVideo = ehEpisodio
+                        ? `https://superflixapi.dev/serie/${tmdbId}/${s}/${e}`
+                        : `https://superflixapi.dev/filme/${tmdbId}`;
+                    break;
+                case 'dub2': // WarezCDN (PT-BR Dublado / Legendado)
+                    urlVideo = ehEpisodio
+                        ? `https://embed.warezcdn.com/serie/${imdbId}/${s}/${e}`
+                        : `https://embed.warezcdn.com/filme/${imdbId}`;
+                    break;
+                case 'dub3': // Embedder (Dual Áudio / PT-BR)
+                    urlVideo = ehEpisodio
+                        ? `https://embedder.net/e/series?imdb=${imdbId}&sea=${s}&epi=${e}`
+                        : `https://embedder.net/e/movie?imdb=${imdbId}`;
+                    break;
+                case 'leg1':
+                case '2': // VidSrc (Legendado)
+                    urlVideo = ehEpisodio
+                        ? `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${s}&episode=${e}`
+                        : `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
+                    break;
+                case 'leg2':
+                case '3': // MultiEmbed (Legendado)
+                    urlVideo = ehEpisodio
+                        ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${s}&e=${e}`
+                        : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+                    break;
             }
 
-            // Carrega o filme no Iframe
             iframe.src = urlVideo;
         }
 
